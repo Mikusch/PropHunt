@@ -17,8 +17,13 @@
 
 "Phrases"
 {
+	"Picked Model"
+	{
+		"#format"	"{1:s}"
+		"en"		"You have chosen: {1}"
+	}
 	"PropLock Engaged"
 	{
-		"en"	"PropLock Engaged"
+		"en"		"PropLock Engaged"
 	}
 }

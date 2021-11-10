@@ -89,30 +89,28 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 {
 	int buttonsChanged = GetEntProp(client, Prop_Data, "m_afButtonPressed") | GetEntProp(client, Prop_Data, "m_afButtonReleased");
 	
-	if (buttons & IN_ATTACK && buttonsChanged & IN_ATTACK)
+	if (TF2_GetClientTeam(client) == TFTeam_Props)
 	{
-		bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
-		
-		SetVariantInt(!locked);
-		AcceptEntityInput(client, "SetCustomModelRotates");
-		
-		if (locked)
+		if (buttons & IN_ATTACK && buttonsChanged & IN_ATTACK)
 		{
-			EmitSoundToClient(client, LOCK_SOUND, _, SNDCHAN_STATIC);
-			PrintToChat(client, "%t", "PropLock Engaged");
-		}
-		else
-		{
-			EmitSoundToClient(client, UNLOCK_SOUND, _, SNDCHAN_STATIC);
+			bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
+			
+			SetVariantInt(!locked);
+			AcceptEntityInput(client, "SetCustomModelRotates");
+			
+			if (locked)
+			{
+				EmitSoundToClient(client, LOCK_SOUND, _, SNDCHAN_STATIC);
+				PrintToChat(client, "%t", "PropLock Engaged");
+			}
+			else
+			{
+				EmitSoundToClient(client, UNLOCK_SOUND, _, SNDCHAN_STATIC);
+			}
 		}
 	}
 	
 	return Plugin_Continue;
-}
-
-public void TF2_OnConditionAdded(int client, TFCond condition)
-{
-	PrintToServer("%N: %d", client, condition);
 }
 
 public Action ConCmd_DebugBox(int client, int args)
@@ -140,14 +138,14 @@ public Action ConCmd_DebugBox(int client, int args)
 		}
 	}
 	
-	char mod[PLATFORM_MAX_PATH];
-	GetEntPropString(client, Prop_Send, "m_iszCustomModel", mod, sizeof(mod));
-	PrintToServer(mod);
-	
+	// Grab a trace result for later
 	float pos[3];
 	if (!GetClientAimPosition(client, pos))
 		return;
 	
+	// Static props take a little more work to parse since they are not entities.
+	// We do a trace and check if the endpoint intersects with the AABB of the model.
+	// This is not the most accurate solution, but it works.
 	int total = GetTotalNumberOfStaticProps();
 	for (int i = 0; i < total; i++)
 	{
@@ -184,10 +182,10 @@ public Action ConCmd_DebugBox(int client, int args)
 
 void SetPropModel(int client, const char[] model)
 {
-	PrintToChat(client, "You have chosen: %s", model);
-	
 	SetVariantString(model);
 	AcceptEntityInput(client, "SetCustomModel");
+	
+	PrintToChat(client, "Picked Model %s", model);
 	
 	SetEntProp(client, Prop_Data, "m_bloodColor", 0); // DONT_BLEED
 }
@@ -280,5 +278,7 @@ public Action Timer_SetForcedTauntCam(Handle timer, int userid)
 	{
 		SetVariantInt(1);
 		AcceptEntityInput(client, "SetForcedTauntCam");
+		
+		TF2_AddCondition(client, TFCond_AfterburnImmune);
 	}
 }

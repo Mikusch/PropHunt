@@ -28,6 +28,8 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 	int client = GetClientOfUserId(userid);
 	if (TF2_GetClientTeam(client) == TFTeam_Props)
 	{
+		SetEntProp(client, Prop_Send, "m_nDisguiseTeam", TFTeam_Hunters);
+		
 		CreateTimer(0.1, Timer_SetForcedTauntCam, userid);
 	}
 }
