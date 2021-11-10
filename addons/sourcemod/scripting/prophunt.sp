@@ -1,27 +1,149 @@
+/*
+ * Copyright (C) 2021  Mikusch
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include <sourcemod>
 #include <sdktools>
 #include <tf2_stocks>
+#include <dhooks>
 #include <StaticProps>
 
 #pragma semicolon 1
 #pragma newdecls required
+
+#define PLUGIN_VERSION	"1.0.0"
+
+#define LOCK_SOUND		"buttons/button3.wav"
+#define UNLOCK_SOUND	"buttons/button24.wav"
+
+const TFTeam TFTeam_Hunters = TFTeam_Blue;
+const TFTeam TFTeam_Props = TFTeam_Red;
+
+enum PHPropType
+{
+	Prop_None, 
+	Prop_Static, 
+	Prop_Entity, 
+}
+
+// ConVars
+ConVar ph_prop_min_size;
+ConVar ph_prop_max_size;
+
+#include "prophunt/methodmaps.sp"
+
+#include "prophunt/convars.sp"
+#include "prophunt/dhooks.sp"
+#include "prophunt/events.sp"
+#include "prophunt/sdkcalls.sp"
 
 public Plugin myinfo = 
 {
 	name = "PropHunt Neu", 
 	author = "Mikusch", 
 	description = "A modern PropHunt plugin for Team Fortress 2", 
-	version = "1.0.0", 
+	version = PLUGIN_VERSION, 
 	url = "https://github.com/Mikusch/PropHunt"
 }
 
 public void OnPluginStart()
 {
+	LoadTranslations("prophunt.phrases");
+	
+	PrecacheSound(LOCK_SOUND);
+	PrecacheSound(UNLOCK_SOUND);
+	
 	RegAdminCmd("ph_debug", ConCmd_DebugBox, ADMFLAG_GENERIC);
+	
+	ConVars_Initialize();
+	Events_Initialize();
+	
+	GameData gamedata = new GameData("prophunt");
+	if (gamedata)
+	{
+		DHooks_Initialize(gamedata);
+		SDKCalls_Initialize(gamedata);
+		
+		delete gamedata;
+	}
+	else
+	{
+		SetFailState("Could not find prophunt gamedata");
+	}
+}
+
+public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
+{
+	int buttonsChanged = GetEntProp(client, Prop_Data, "m_afButtonPressed") | GetEntProp(client, Prop_Data, "m_afButtonReleased");
+	
+	if (buttons & IN_ATTACK && buttonsChanged & IN_ATTACK)
+	{
+		bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
+		
+		SetVariantInt(!locked);
+		AcceptEntityInput(client, "SetCustomModelRotates");
+		
+		if (locked)
+		{
+			EmitSoundToClient(client, LOCK_SOUND, _, SNDCHAN_STATIC);
+			PrintToChat(client, "%t", "PropLock Engaged");
+		}
+		else
+		{
+			EmitSoundToClient(client, UNLOCK_SOUND, _, SNDCHAN_STATIC);
+		}
+	}
+	
+	return Plugin_Continue;
+}
+
+public void TF2_OnConditionAdded(int client, TFCond condition)
+{
+	PrintToServer("%N: %d", client, condition);
 }
 
 public Action ConCmd_DebugBox(int client, int args)
 {
+	// Search for prop_* entities first
+	int entity = GetClientAimTarget(client, false);
+	if (entity != -1)
+	{
+		char classname[256];
+		if (GetEntityClassname(entity, classname, sizeof(classname)) && strncmp(classname, "prop_", 5) == 0)
+		{
+			float mins[3], maxs[3];
+			GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
+			GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
+			
+			if (IsValidBboxSize(mins, maxs))
+			{
+				PHPlayer(client).PropType = Prop_Entity;
+				PHPlayer(client).PropIndex = EntIndexToEntRef(entity);
+				
+				char model[PLATFORM_MAX_PATH];
+				GetEntPropString(entity, Prop_Data, "m_ModelName", model, sizeof(model));
+				SetPropModel(client, model);
+			}
+		}
+	}
+	
+	char mod[PLATFORM_MAX_PATH];
+	GetEntPropString(client, Prop_Send, "m_iszCustomModel", mod, sizeof(mod));
+	PrintToServer(mod);
+	
 	float pos[3];
 	if (!GetClientAimPosition(client, pos))
 		return;
@@ -42,10 +164,17 @@ public Action ConCmd_DebugBox(int client, int args)
 		if (!IsPointWithin(pos, mins, maxs))
 			continue;
 		
+		// Check the size of the prop
+		if (!IsValidBboxSize(mins, maxs))
+			continue;
+		
 		char name[PLATFORM_MAX_PATH];
 		if (!StaticProp_GetModelName(i, name, sizeof(name)))
 			continue;
 		
+		// Finally, set the player's prop
+		PHPlayer(client).PropType = Prop_Static;
+		PHPlayer(client).PropIndex = i;
 		SetPropModel(client, name);
 		
 		// Exit out after we find a valid prop
@@ -60,17 +189,7 @@ void SetPropModel(int client, const char[] model)
 	SetVariantString(model);
 	AcceptEntityInput(client, "SetCustomModel");
 	
-	// TODO: Move this somewhere else
-	SetVariantInt(1);
-	AcceptEntityInput(client, "SetForcedTauntCam");
-	
-	int wearable = MaxClients + 1;
-	while ((wearable = FindEntityByClassname(wearable, "tf_wearable*")) != -1)
-	{
-		int owner = GetEntPropEnt(wearable, Prop_Send, "m_hOwnerEntity");
-		if (owner != -1)
-			TF2_RemoveWearable(owner, wearable);
-	}
+	SetEntProp(client, Prop_Data, "m_bloodColor", 0); // DONT_BLEED
 }
 
 bool GetClientAimPosition(int client, float pos[3])
@@ -87,6 +206,11 @@ bool GetClientAimPosition(int client, float pos[3])
 	delete trace;
 	
 	return true;
+}
+
+bool IsValidBboxSize(const float[3] mins, const float[3] maxs)
+{
+	return ph_prop_min_size.FloatValue < GetVectorDistance(mins, maxs) < ph_prop_max_size.FloatValue;
 }
 
 public bool TraceFilterEntity(int entity, int mask, any data)
@@ -146,5 +270,15 @@ bool IsPointWithin(float point[3], float corner1[3], float corner2[3])
 	else
 	{
 		return true;
+	}
+}
+
+public Action Timer_SetForcedTauntCam(Handle timer, int userid)
+{
+	int client = GetClientOfUserId(userid);
+	if (client != 0)
+	{
+		SetVariantInt(1);
+		AcceptEntityInput(client, "SetForcedTauntCam");
 	}
 }
