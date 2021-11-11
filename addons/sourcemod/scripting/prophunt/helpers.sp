@@ -17,6 +17,9 @@
 
 #define FLOAT_EPSILON	0.0001
 
+// sizeof(WeaponData_t)
+#define WEAPONDATA_SIZE	58
+
 any Min(any a, any b)
 {
 	return (a <= b) ? a : b;
@@ -30,6 +33,11 @@ any Max(any a, any b)
 any Clamp(any val, any min, any max)
 {
 	return Min(Max(val, min), max);
+}
+
+bool IsNaN(float value)
+{
+	return value != value;
 }
 
 // Thanks to ficool2 for helping me with scary vector math
@@ -109,4 +117,23 @@ bool CloseEnough(float a, float b, float epsilon)
 bool IsValidBboxSize(const float[3] mins, const float[3] maxs)
 {
 	return ph_prop_min_size.FloatValue < GetVectorDistance(mins, maxs) < ph_prop_max_size.FloatValue;
+}
+
+bool IsWeaponBaseGun(int entity)
+{
+	return HasEntProp(entity, Prop_Data, "CTFWeaponBaseGunZoomOutIn");
+}
+
+bool IsWeaponBaseMelee(int entity)
+{
+	return HasEntProp(entity, Prop_Data, "CTFWeaponBaseMeleeSmack");
+}
+
+int GetBulletsPerShot(int weapon)
+{
+	// m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_nBulletsPerShot
+	int weaponMode = GetEntData(weapon, g_OffsetWeaponMode);
+	int weaponInfo = GetEntData(weapon, g_OffsetWeaponInfo);
+	int weaponData = weaponInfo + (WEAPONDATA_SIZE * weaponMode);
+	return LoadFromAddress(view_as<Address>(weaponData + g_OffsetBulletsPerShot), NumberType_Int8);
 }

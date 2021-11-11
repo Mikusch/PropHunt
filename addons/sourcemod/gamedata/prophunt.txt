@@ -34,6 +34,46 @@
 				"linux"		"308"
 				"windows"	"307"
 			}
+			"CTeamplayRules::SetSwitchTeams"
+			{
+				"linux"		"163"
+				"windows"	"162"
+			}
+			"CTFWeaponBaseGun::FireProjectile"
+			{
+				"linux"		"470"
+				"windows"	"463"
+			}
+			"CTFWeaponBaseMelee::Smack"
+			{
+				"linux"		"470"
+				"windows"	"463"
+			}
+			"CTFWeaponBaseGun::GetProjectileDamage"
+			{
+				"linux"		"485"
+				"windows"	"478"
+			}
+			"CTFWeaponBaseMelee::GetMeleeDamage"
+			{
+				"linux"		"474"
+				"windows"	"467"
+			}
+			"CTFWeaponBase::m_iWeaponMode"
+			{
+				"linux"		"1704"
+				"windows"	"1700"
+			}
+			"CTFWeaponBase::m_pWeaponInfo"
+			{
+				"linux"		"1716"
+				"windows"	"1712"
+			}
+			"WeaponData_t::m_nBulletsPerShot"
+			{
+				"linux"		"1788"
+				"windows"	"1788"
+			}
 		}
 		"Functions"
 		{
@@ -42,6 +82,27 @@
 				"signature"	"CTFPlayer::GetMaxHealthForBuffing"
 				"callconv"	"thiscall"
 				"return"	"int"
+				"this"		"entity"
+			}
+			"CTFWeaponBaseGun::FireProjectile"
+			{
+				"offset"	"CTFWeaponBaseGun::FireProjectile"
+				"hooktype"	"entity"
+				"return"	"cbaseentity"
+				"this"		"entity"
+				"arguments"
+				{
+					"pPlayer"
+					{
+						"type"	"cbaseentity"
+					}
+				}
+			}
+			"CTFWeaponBaseMelee::Smack"
+			{
+				"offset"	"CTFWeaponBaseMelee::Smack"
+				"hooktype"	"entity"
+				"return"	"void"
 				"this"		"entity"
 			}
 		}

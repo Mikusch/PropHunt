@@ -19,12 +19,17 @@
 #include <sdktools>
 #include <tf2_stocks>
 #include <dhooks>
+#include <sdkhooks>
 #include <StaticProps>
+#include <tf2items>
 
 #pragma semicolon 1
 #pragma newdecls required
 
 #define PLUGIN_VERSION	"1.0.0"
+
+#define DMG_MELEE	DMG_BLAST_SURFACE
+#define DONT_BLEED	0
 
 #define LOCK_SOUND		"buttons/button3.wav"
 #define UNLOCK_SOUND	"buttons/button24.wav"
@@ -38,6 +43,11 @@ enum PHPropType
 	Prop_Static,	/**< Static prop, index corresponds to position in static prop array */
 	Prop_Entity,	/**< Entity-based prop, index corresponds to entity reference */
 }
+
+// Offsets
+int g_OffsetWeaponMode;
+int g_OffsetWeaponInfo;
+int g_OffsetBulletsPerShot;
 
 // ConVars
 ConVar ph_prop_min_size;
@@ -76,6 +86,10 @@ public void OnPluginStart()
 	{
 		DHooks_Initialize(gamedata);
 		SDKCalls_Initialize(gamedata);
+		
+		g_OffsetWeaponMode = gamedata.GetOffset("CTFWeaponBase::m_iWeaponMode");
+		g_OffsetWeaponInfo = gamedata.GetOffset("CTFWeaponBase::m_pWeaponInfo");
+		g_OffsetBulletsPerShot = gamedata.GetOffset("WeaponData_t::m_nBulletsPerShot");
 		
 		delete gamedata;
 	}
@@ -125,6 +139,17 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	}
 	
 	return Plugin_Continue;
+}
+
+public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int itemDefIndex, int level, int quality, int entity)
+{
+	// CTFWeaponBaseGun
+	if (IsWeaponBaseGun(entity))
+		DHooks_HookBaseGun(entity);
+	
+	// CTFWeaponBaseMelee
+	if (IsWeaponBaseMelee(entity))
+		DHooks_HookBaseMelee(entity);
 }
 
 bool SearchForEntityProps(int client)
@@ -218,7 +243,7 @@ void SetCustomModel(int client, const char[] model)
 	
 	PrintToChat(client, "%t", "Selected Prop", model);
 	
-	SetEntProp(client, Prop_Data, "m_bloodColor", 0); // DONT_BLEED
+	SetEntProp(client, Prop_Data, "m_bloodColor", DONT_BLEED);
 }
 
 public void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue)

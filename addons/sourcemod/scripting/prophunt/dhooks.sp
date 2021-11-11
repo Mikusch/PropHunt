@@ -15,9 +15,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+static DynamicHook g_DHookFireProjectile;
+static DynamicHook g_DHookSmack;
+
 void DHooks_Initialize(GameData gamedata)
 {
 	DHooks_CreateDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHook_GetMaxHealthForBuffing_Post);
+	
+	g_DHookFireProjectile = CreateDynamicHook(gamedata, "CTFWeaponBaseGun::FireProjectile");
+	g_DHookSmack = CreateDynamicHook(gamedata, "CTFWeaponBaseMelee::Smack");
+}
+
+void DHooks_HookBaseGun(int weapon)
+{
+	if (g_DHookFireProjectile)
+		g_DHookFireProjectile.HookEntity(Hook_Pre, weapon, DHook_FireProjectile_Pre);
+}
+
+void DHooks_HookBaseMelee(int weapon)
+{
+	if (g_DHookSmack)
+		g_DHookSmack.HookEntity(Hook_Pre, weapon, DHook_Smack_Pre);
 }
 
 static void DHooks_CreateDetour(GameData gamedata, const char[] name, DHookCallback callbackPre = INVALID_FUNCTION, DHookCallback callbackPost = INVALID_FUNCTION)
@@ -35,6 +53,15 @@ static void DHooks_CreateDetour(GameData gamedata, const char[] name, DHookCallb
 		if (callbackPost != INVALID_FUNCTION)
 			detour.Enable(Hook_Post, callbackPost);
 	}
+}
+
+static DynamicHook CreateDynamicHook(GameData gamedata, const char[] name)
+{
+	DynamicHook hook = DynamicHook.FromConf(gamedata, name);
+	if (!hook)
+		LogError("Failed to create hook setup handle for %s", name);
+	
+	return hook;
 }
 
 public MRESReturn DHook_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
@@ -80,6 +107,34 @@ public MRESReturn DHook_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
 		
 		ret.Value = health;
 		return MRES_Supercede;
+	}
+	
+	return MRES_Ignored;
+}
+
+public MRESReturn DHook_FireProjectile_Pre(int weapon, DHookReturn ret, DHookParam params)
+{
+	int player = params.Get(1);
+	
+	if (PHPlayer(player).IsHunter())
+	{
+		float damage = SDKCall_GetProjectileDamage(weapon) * GetBulletsPerShot(weapon);
+		if (!IsNaN(damage))
+			SDKHooks_TakeDamage(player, 0, 0, damage * 0.5, DMG_PREVENT_PHYSICS_FORCE);
+	}
+	
+	return MRES_Ignored;
+}
+
+public MRESReturn DHook_Smack_Pre(int weapon)
+{
+	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
+	
+	if (PHPlayer(owner).IsHunter())
+	{
+		float damage = SDKCall_GetMeleeDamage(weapon, owner, DMG_MELEE, 0);
+		if (!IsNaN(damage))
+			SDKHooks_TakeDamage(owner, 0, 0, damage * 0.25, DMG_PREVENT_PHYSICS_FORCE);
 	}
 	
 	return MRES_Ignored;
