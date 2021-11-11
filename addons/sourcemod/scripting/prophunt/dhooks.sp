@@ -119,7 +119,8 @@ public MRESReturn DHook_HookTarget_Pre(int projectile, DHookParam params)
 	if (PHPlayer(owner).IsHunter())
 	{
 		float damage = ph_hunter_damage_grapplinghook.FloatValue;
-		SDKHooks_TakeDamage(owner, 0, 0, damage, DMG_PREVENT_PHYSICS_FORCE);
+		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
+		SDKHooks_TakeDamage(owner, projectile, owner, damage, DMG_PREVENT_PHYSICS_FORCE, launcher);
 	}
 }
 
@@ -131,7 +132,7 @@ public MRESReturn DHook_FireProjectile_Pre(int weapon, DHookReturn ret, DHookPar
 	{
 		float damage = SDKCall_GetProjectileDamage(weapon) * GetBulletsPerShot(weapon);
 		if (!IsNaN(damage))
-			SDKHooks_TakeDamage(player, 0, 0, damage * ph_hunter_damagemod_guns.FloatValue, DMG_PREVENT_PHYSICS_FORCE);
+			SDKHooks_TakeDamage(player, weapon, player, damage * ph_hunter_damagemod_guns.FloatValue, DMG_PREVENT_PHYSICS_FORCE, weapon);
 	}
 	
 	return MRES_Ignored;
@@ -145,7 +146,7 @@ public MRESReturn DHook_Smack_Pre(int weapon)
 	{
 		float damage = SDKCall_GetMeleeDamage(weapon, owner, DMG_MELEE, 0);
 		if (!IsNaN(damage))
-			SDKHooks_TakeDamage(owner, 0, 0, damage * ph_hunter_damagemod_melee.FloatValue, DMG_PREVENT_PHYSICS_FORCE);
+			SDKHooks_TakeDamage(owner, weapon, owner, damage * ph_hunter_damagemod_melee.FloatValue, DMG_PREVENT_PHYSICS_FORCE, weapon);
 	}
 	
 	return MRES_Ignored;
