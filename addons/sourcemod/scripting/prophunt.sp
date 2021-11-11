@@ -42,12 +42,14 @@ enum PHPropType
 // ConVars
 ConVar ph_prop_min_size;
 ConVar ph_prop_max_size;
+ConVar fw_prop_max_select_distance;
 
 #include "prophunt/methodmaps.sp"
 
 #include "prophunt/convars.sp"
 #include "prophunt/dhooks.sp"
 #include "prophunt/events.sp"
+#include "prophunt/helpers.sp"
 #include "prophunt/sdkcalls.sp"
 
 public Plugin myinfo = 
@@ -138,28 +140,31 @@ public Action ConCmd_DebugBox(int client, int args)
 		}
 	}
 	
-	// Grab a trace result for later
-	float pos[3];
-	if (!GetClientAimPosition(client, pos))
-		return;
+	float eyePosition[3], eyeAngles[3], eyeAngleFwd[3];
+	GetClientEyePosition(client, eyePosition);
+	GetClientEyeAngles(client, eyeAngles);
+	GetAngleVectors(eyeAngles, eyeAngleFwd, NULL_VECTOR, NULL_VECTOR);
 	
-	// Static props take a little more work to parse since they are not entities.
-	// We do a trace and check if the endpoint intersects with the AABB of the model.
-	// This is not the most accurate solution, but it works.
+	// Get the position of the cloest wall to us
+	float endPosition[3];
+	TR_TraceRayFilter(eyePosition, eyeAngles, MASK_SOLID, RayType_Infinite, TraceEntityFilter_IgnoreEntity, client);
+	TR_GetEndPosition(endPosition);
+	
+	float distance = GetVectorDistance(eyePosition, endPosition);
+	distance = Clamp(distance, 0.0, fw_prop_max_select_distance.FloatValue);
+	
+	// Search for static props next
 	int total = GetTotalNumberOfStaticProps();
 	for (int i = 0; i < total; i++)
 	{
-		// Ignore non-solid props
-		SolidType_t solid_type;
-		if (!StaticProp_GetSolidType(i, solid_type) || solid_type == SOLID_NONE)
-			continue;
-		
 		float mins[3], maxs[3];
 		if (!StaticProp_GetWorldSpaceBounds(i, mins, maxs))
 			continue;
 		
-		// Check whether we pointed at the current prop
-		if (!IsPointWithin(pos, mins, maxs))
+		// Check whether the player is looking at this prop.
+		// The engine completely ignores any non-solid props regardless of trace settings,
+		// so we only use the engine trace to get the distance to the next wall and solve the intersection ourselves.
+		if (!IntersectionLineAABBFast(mins, maxs, eyePosition, eyeAngleFwd, distance))
 			continue;
 		
 		// Check the size of the prop
@@ -180,6 +185,11 @@ public Action ConCmd_DebugBox(int client, int args)
 	}
 }
 
+public bool TraceEntityFilter_IgnoreEntity(int entity, int mask, any data)
+{
+	return entity != data;
+}
+
 void SetPropModel(int client, const char[] model)
 {
 	SetVariantString(model);
@@ -188,87 +198,6 @@ void SetPropModel(int client, const char[] model)
 	PrintToChat(client, "Picked Model %s", model);
 	
 	SetEntProp(client, Prop_Data, "m_bloodColor", 0); // DONT_BLEED
-}
-
-bool GetClientAimPosition(int client, float pos[3])
-{
-	float eyePosition[3], eyeAngles[3];
-	GetClientEyePosition(client, eyePosition);
-	GetClientEyeAngles(client, eyeAngles);
-	
-	if (TR_PointOutsideWorld(eyePosition))
-		return false;
-	
-	Handle trace = TR_TraceRayFilterEx(eyePosition, eyeAngles, MASK_VISIBLE, RayType_Infinite, TraceFilterEntity, client);
-	TR_GetEndPosition(pos, trace);
-	delete trace;
-	
-	return true;
-}
-
-bool IsValidBboxSize(const float[3] mins, const float[3] maxs)
-{
-	return ph_prop_min_size.FloatValue < GetVectorDistance(mins, maxs) < ph_prop_max_size.FloatValue;
-}
-
-public bool TraceFilterEntity(int entity, int mask, any data)
-{
-	return entity != data;
-}
-
-bool IsPointWithin(float point[3], float corner1[3], float corner2[3])
-{
-	float field1[2];
-	float field2[2];
-	float field3[2];
-	
-	if (FloatCompare(corner1[0], corner2[0]) == -1)
-	{
-		field1[0] = corner1[0];
-		field1[1] = corner2[0];
-	}
-	else
-	{
-		field1[0] = corner2[0];
-		field1[1] = corner1[0];
-	}
-	if (FloatCompare(corner1[1], corner2[1]) == -1)
-	{
-		field2[0] = corner1[1];
-		field2[1] = corner2[1];
-	}
-	else
-	{
-		field2[0] = corner2[1];
-		field2[1] = corner1[1];
-	}
-	if (FloatCompare(corner1[2], corner2[2]) == -1)
-	{
-		field3[0] = corner1[2];
-		field3[1] = corner2[2];
-	}
-	else
-	{
-		field3[0] = corner2[2];
-		field3[1] = corner1[2];
-	}
-	
-	if (point[0] < field1[0] || point[0] > field1[1])
-	{
-		return false;
-	}
-	else if (point[1] < field2[0] || point[1] > field2[1])
-	{
-		return false;
-	}
-	else if (point[2] < field3[0] || point[2] > field3[1])
-	{
-		return false;
-	}
-	else
-	{
-		return true;
-	}
 }
 
 public Action Timer_SetForcedTauntCam(Handle timer, int userid)
