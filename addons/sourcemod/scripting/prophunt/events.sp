@@ -42,4 +42,19 @@ public void Event_PostInventoryApplication(Event event, const char[] name, bool 
 		// Better than removing everything manually, this also removes wearables
 		SDKCall_RemoveAllWeapons(client);
 	}
+	else if (PHPlayer(client).IsHunter())
+	{
+		// Give Hunters a Grappling Hook to get around quicker
+		Handle item = TF2Items_CreateItem(PRESERVE_ATTRIBUTES);
+		
+		char classname[256];
+		TF2Econ_GetItemClassName(ITEM_DEFINDEX_GRAPPLINGHOOK, classname, sizeof(classname));
+		
+		TF2Items_SetClassname(item, classname);
+		TF2Items_SetItemIndex(item, ITEM_DEFINDEX_GRAPPLINGHOOK);
+		TF2Items_SetLevel(item, 1);
+		
+		int grapplingHook = TF2Items_GiveNamedItem(client, item);
+		EquipPlayerWeapon(client, grapplingHook);
+	}
 }

@@ -33,7 +33,8 @@
 #define DMG_MELEE	DMG_BLAST_SURFACE
 #define DONT_BLEED	0
 
-#define ATTRIB_SEE_ENEMY_HEALTH	269
+#define ITEM_DEFINDEX_GRAPPLINGHOOK			1152
+#define ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH	269
 
 #define LOCK_SOUND		"buttons/button3.wav"
 #define UNLOCK_SOUND	"buttons/button24.wav"
@@ -160,9 +161,9 @@ public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int item
 	
 	// Nullify cheating attributes
 	ArrayList attributes = TF2Econ_GetItemStaticAttributes(itemDefIndex);
-	int index = attributes.FindValue(ATTRIB_SEE_ENEMY_HEALTH);
+	int index = attributes.FindValue(ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH);
 	if (index != -1)
-		TF2Attrib_SetByDefIndex(entity, ATTRIB_SEE_ENEMY_HEALTH, 0.0);
+		TF2Attrib_SetByDefIndex(entity, ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH, 0.0);
 	delete attributes;
 }
 
