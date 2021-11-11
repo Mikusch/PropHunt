@@ -57,6 +57,9 @@ int g_OffsetBulletsPerShot;
 ConVar ph_prop_min_size;
 ConVar ph_prop_max_size;
 ConVar ph_prop_max_select_distance;
+ConVar ph_hunter_damagemod_guns;
+ConVar ph_hunter_damagemod_melee;
+ConVar ph_hunter_damage_grapplinghook;
 
 #include "prophunt/methodmaps.sp"
 

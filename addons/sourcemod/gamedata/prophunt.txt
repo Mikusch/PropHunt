@@ -26,6 +26,11 @@
 				"linux"		"@_ZN9CTFPlayer22GetMaxHealthForBuffingEv"
 				"windows"	"\x55\x8B\xEC\x83\xEC\x24\x53\x56\x57\x8B\xF9\xFF\xB7\x10\x21\x00\x00"
 			}
+			"CTFProjectile_GrapplingHook::HookTarget"
+			{
+				"linux"		"@_ZN27CTFProjectile_GrapplingHook10HookTargetEP11CBaseEntity"
+				"windows"	"\x55\x8B\xEC\x51\x56\x8B\xF1\x8B\x8E\xE8\x01\x00\x00\x83\xF9\xFF\x0F\x84\x2A\x2A\x2A\x2A\x8B\x15\x2A\x2A\x2A\x2A"
+			}
 		}
 		"Offsets"
 		{
@@ -83,6 +88,20 @@
 				"callconv"	"thiscall"
 				"return"	"int"
 				"this"		"entity"
+			}
+			"CTFProjectile_GrapplingHook::HookTarget"
+			{
+				"signature"	"CTFProjectile_GrapplingHook::HookTarget"
+				"callconv"	"thiscall"
+				"return"	"void"
+				"this"		"entity"
+				"arguments"
+				{
+					"pOther"
+					{
+						"type"	"cbaseentity"
+					}
+				}
 			}
 			"CTFWeaponBaseGun::FireProjectile"
 			{

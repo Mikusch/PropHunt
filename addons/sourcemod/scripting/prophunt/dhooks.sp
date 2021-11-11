@@ -21,6 +21,7 @@ static DynamicHook g_DHookSmack;
 void DHooks_Initialize(GameData gamedata)
 {
 	DHooks_CreateDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHook_GetMaxHealthForBuffing_Post);
+	DHooks_CreateDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHook_HookTarget_Pre, _);
 	
 	g_DHookFireProjectile = CreateDynamicHook(gamedata, "CTFWeaponBaseGun::FireProjectile");
 	g_DHookSmack = CreateDynamicHook(gamedata, "CTFWeaponBaseMelee::Smack");
@@ -112,6 +113,16 @@ public MRESReturn DHook_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
 	return MRES_Ignored;
 }
 
+public MRESReturn DHook_HookTarget_Pre(int projectile, DHookParam params)
+{
+	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
+	if (PHPlayer(owner).IsHunter())
+	{
+		float damage = ph_hunter_damage_grapplinghook.FloatValue;
+		SDKHooks_TakeDamage(owner, 0, 0, damage, DMG_PREVENT_PHYSICS_FORCE);
+	}
+}
+
 public MRESReturn DHook_FireProjectile_Pre(int weapon, DHookReturn ret, DHookParam params)
 {
 	int player = params.Get(1);
@@ -120,7 +131,7 @@ public MRESReturn DHook_FireProjectile_Pre(int weapon, DHookReturn ret, DHookPar
 	{
 		float damage = SDKCall_GetProjectileDamage(weapon) * GetBulletsPerShot(weapon);
 		if (!IsNaN(damage))
-			SDKHooks_TakeDamage(player, 0, 0, damage * 0.5, DMG_PREVENT_PHYSICS_FORCE);
+			SDKHooks_TakeDamage(player, 0, 0, damage * ph_hunter_damagemod_guns.FloatValue, DMG_PREVENT_PHYSICS_FORCE);
 	}
 	
 	return MRES_Ignored;
@@ -134,7 +145,7 @@ public MRESReturn DHook_Smack_Pre(int weapon)
 	{
 		float damage = SDKCall_GetMeleeDamage(weapon, owner, DMG_MELEE, 0);
 		if (!IsNaN(damage))
-			SDKHooks_TakeDamage(owner, 0, 0, damage * 0.25, DMG_PREVENT_PHYSICS_FORCE);
+			SDKHooks_TakeDamage(owner, 0, 0, damage * ph_hunter_damagemod_melee.FloatValue, DMG_PREVENT_PHYSICS_FORCE);
 	}
 	
 	return MRES_Ignored;
