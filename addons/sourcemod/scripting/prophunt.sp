@@ -85,6 +85,11 @@ public void OnPluginStart()
 	}
 }
 
+public void OnClientPutInServer(int client)
+{
+	QueryClientConVar(client, "r_staticpropinfo", ConVarQuery_StaticPropInfo);
+}
+
 public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
 {
 	int buttonsChanged = GetEntProp(client, Prop_Data, "m_afButtonPressed") | GetEntProp(client, Prop_Data, "m_afButtonReleased");
@@ -214,6 +219,21 @@ void SetCustomModel(int client, const char[] model)
 	PrintToChat(client, "%t", "Selected Prop", model);
 	
 	SetEntProp(client, Prop_Data, "m_bloodColor", 0); // DONT_BLEED
+}
+
+public void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue)
+{
+	if (result == ConVarQuery_Okay)
+	{
+		int value = StringToInt(cvarValue);
+		if (value == 0)
+			return;
+		
+		KickClient(client, "%t", "r_staticpropinfo Enabled");
+		return;
+	}
+	
+	KickClient(client, "%t", "r_staticpropinfo Not Okay");
 }
 
 public bool TraceEntityFilter_IgnoreEntity(int entity, int mask, any data)

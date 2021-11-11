@@ -32,4 +32,14 @@
 	{
 		"en"		"You are not looking at a valid prop!"
 	}
+	
+	"r_staticpropinfo Enabled"
+	{
+		"en"		"You need to set r_staticpropinfo to 0 to play this gamemode."
+	}
+	
+	"r_staticpropinfo Not Okay"
+	{
+		"en"		"Failed to query your client for r_staticpropinfo."
+	}
 }
