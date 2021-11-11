@@ -34,15 +34,15 @@ const TFTeam TFTeam_Props = TFTeam_Red;
 
 enum PHPropType
 {
-	Prop_None, 
-	Prop_Static, 
-	Prop_Entity, 
+	Prop_None,		/**< Invalid or no prop */
+	Prop_Static,	/**< Static prop, index corresponds to position in static prop array */
+	Prop_Entity,	/**< Entity-based prop, index corresponds to entity reference */
 }
 
 // ConVars
 ConVar ph_prop_min_size;
 ConVar ph_prop_max_size;
-ConVar fw_prop_max_select_distance;
+ConVar ph_prop_max_select_distance;
 
 #include "prophunt/methodmaps.sp"
 
@@ -68,8 +68,6 @@ public void OnPluginStart()
 	PrecacheSound(LOCK_SOUND);
 	PrecacheSound(UNLOCK_SOUND);
 	
-	RegAdminCmd("ph_debug", ConCmd_DebugBox, ADMFLAG_GENERIC);
-	
 	ConVars_Initialize();
 	Events_Initialize();
 	
@@ -91,55 +89,75 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 {
 	int buttonsChanged = GetEntProp(client, Prop_Data, "m_afButtonPressed") | GetEntProp(client, Prop_Data, "m_afButtonReleased");
 	
-	if (TF2_GetClientTeam(client) == TFTeam_Props)
+	// Prop-only functionality below this point
+	if (!PHPlayer(client).IsProp())
+		return Plugin_Continue;
+	
+	// IN_ATTACK locks the player's prop view
+	if (buttons & IN_ATTACK && buttonsChanged & IN_ATTACK)
 	{
-		if (buttons & IN_ATTACK && buttonsChanged & IN_ATTACK)
+		bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
+		
+		SetVariantInt(!locked);
+		AcceptEntityInput(client, "SetCustomModelRotates");
+		
+		if (locked)
 		{
-			bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
-			
-			SetVariantInt(!locked);
-			AcceptEntityInput(client, "SetCustomModelRotates");
-			
-			if (locked)
-			{
-				EmitSoundToClient(client, LOCK_SOUND, _, SNDCHAN_STATIC);
-				PrintToChat(client, "%t", "PropLock Engaged");
-			}
-			else
-			{
-				EmitSoundToClient(client, UNLOCK_SOUND, _, SNDCHAN_STATIC);
-			}
+			EmitSoundToClient(client, LOCK_SOUND, _, SNDCHAN_STATIC);
+			PrintHintText(client, "%t", "PropLock Engaged");
 		}
+		else
+		{
+			EmitSoundToClient(client, UNLOCK_SOUND, _, SNDCHAN_STATIC);
+		}
+	}
+	
+	// IN_RELOAD allows the player to pick a prop
+	if (buttons & IN_RELOAD && buttonsChanged & IN_RELOAD)
+	{
+		if (!SearchForEntityProps(client) && !SearchForStaticProps(client))
+			PrintToChat(client, "%t", "No Valid Prop");
 	}
 	
 	return Plugin_Continue;
 }
 
-public Action ConCmd_DebugBox(int client, int args)
+bool SearchForEntityProps(int client)
 {
-	// Search for prop_* entities first
+	// For entities, we can simply go with whatever is under the player's crosshair
 	int entity = GetClientAimTarget(client, false);
-	if (entity != -1)
+	if (entity == -1)
+		return false;
+	
+	char classname[256];
+	if (GetEntityClassname(entity, classname, sizeof(classname)) && HasEntProp(entity, Prop_Data, "m_ModelName"))
 	{
-		char classname[256];
-		if (GetEntityClassname(entity, classname, sizeof(classname)) && strncmp(classname, "prop_", 5) == 0)
-		{
-			float mins[3], maxs[3];
-			GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
-			GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
-			
-			if (IsValidBboxSize(mins, maxs))
-			{
-				PHPlayer(client).PropType = Prop_Entity;
-				PHPlayer(client).PropIndex = EntIndexToEntRef(entity);
-				
-				char model[PLATFORM_MAX_PATH];
-				GetEntPropString(entity, Prop_Data, "m_ModelName", model, sizeof(model));
-				SetPropModel(client, model);
-			}
-		}
+		char model[PLATFORM_MAX_PATH];
+		GetEntPropString(entity, Prop_Data, "m_ModelName", model, sizeof(model));
+		
+		// Ignore brush entities
+		if (model[0] == '*')
+			return false;
+		
+		float mins[3], maxs[3];
+		GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
+		GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
+		
+		if (!IsValidBboxSize(mins, maxs))
+			return false;
+		
+		PHPlayer(client).PropType = Prop_Entity;
+		PHPlayer(client).PropIndex = EntIndexToEntRef(entity);
+		SetCustomModel(client, model);
+		
+		return true;
 	}
 	
+	return false;
+}
+
+bool SearchForStaticProps(int client)
+{
 	float eyePosition[3], eyeAngles[3], eyeAngleFwd[3];
 	GetClientEyePosition(client, eyePosition);
 	GetClientEyeAngles(client, eyeAngles);
@@ -151,9 +169,9 @@ public Action ConCmd_DebugBox(int client, int args)
 	TR_GetEndPosition(endPosition);
 	
 	float distance = GetVectorDistance(eyePosition, endPosition);
-	distance = Clamp(distance, 0.0, fw_prop_max_select_distance.FloatValue);
+	distance = Clamp(distance, 0.0, ph_prop_max_select_distance.FloatValue);
 	
-	// Search for static props next
+	// Iterate all static props in the world
 	int total = GetTotalNumberOfStaticProps();
 	for (int i = 0; i < total; i++)
 	{
@@ -178,26 +196,29 @@ public Action ConCmd_DebugBox(int client, int args)
 		// Finally, set the player's prop
 		PHPlayer(client).PropType = Prop_Static;
 		PHPlayer(client).PropIndex = i;
-		SetPropModel(client, name);
+		SetCustomModel(client, name);
 		
 		// Exit out after we find a valid prop
-		break;
+		return true;
 	}
+	
+	// Exhausted all options...
+	return false;
+}
+
+void SetCustomModel(int client, const char[] model)
+{
+	SetVariantString(model);
+	AcceptEntityInput(client, "SetCustomModel");
+	
+	PrintToChat(client, "%t", "Selected Prop", model);
+	
+	SetEntProp(client, Prop_Data, "m_bloodColor", 0); // DONT_BLEED
 }
 
 public bool TraceEntityFilter_IgnoreEntity(int entity, int mask, any data)
 {
 	return entity != data;
-}
-
-void SetPropModel(int client, const char[] model)
-{
-	SetVariantString(model);
-	AcceptEntityInput(client, "SetCustomModel");
-	
-	PrintToChat(client, "Picked Model %s", model);
-	
-	SetEntProp(client, Prop_Data, "m_bloodColor", 0); // DONT_BLEED
 }
 
 public Action Timer_SetForcedTauntCam(Handle timer, int userid)

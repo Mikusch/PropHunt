@@ -19,5 +19,5 @@ void ConVars_Initialize()
 {
 	ph_prop_min_size = CreateConVar("ph_prop_min_size", "50.0", "Minimum size of props to be able to select them.");
 	ph_prop_max_size = CreateConVar("ph_prop_max_size", "400.0", "Maximum size of props to be able to select them.");
-	fw_prop_max_select_distance = CreateConVar("fw_prop_max_select_distance", "128.0", "Players must have at least this distance to the prop to be able to select it.");
+	ph_prop_max_select_distance = CreateConVar("ph_prop_max_select_distance", "128.0", "Players must have at least this distance to the prop to be able to select it.");
 }

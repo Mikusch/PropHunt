@@ -26,7 +26,7 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 	int userid = event.GetInt("userid");
 	
 	int client = GetClientOfUserId(userid);
-	if (TF2_GetClientTeam(client) == TFTeam_Props)
+	if (PHPlayer(client).IsProp())
 	{
 		SetEntProp(client, Prop_Send, "m_nDisguiseTeam", TFTeam_Hunters);
 		
@@ -37,7 +37,7 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 public void Event_PostInventoryApplication(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
-	if (TF2_GetClientTeam(client) == TFTeam_Props)
+	if (PHPlayer(client).IsProp())
 	{
 		// Better than removing everything manually, this also removes wearables
 		SDKCall_RemoveAllWeapons(client);

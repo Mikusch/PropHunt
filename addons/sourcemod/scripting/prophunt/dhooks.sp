@@ -39,10 +39,10 @@ static void DHooks_CreateDetour(GameData gamedata, const char[] name, DHookCallb
 
 public MRESReturn DHook_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
 {
-	if (TF2_GetClientTeam(player) == TFTeam_Props)
+	if (PHPlayer(player).IsProp())
 	{
-		float mins[3], maxs[3];
 		int health;
+		float mins[3], maxs[3];
 		
 		// Determine health based on prop bounding box size
 		switch (PHPlayer(player).PropType)
@@ -74,7 +74,7 @@ public MRESReturn DHook_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
 			}
 		}
 		
-		//Refill health during setup
+		// Refill health during setup time
 		if (GameRules_GetRoundState() == RoundState_Preround)
 			SetEntityHealth(player, health);
 		

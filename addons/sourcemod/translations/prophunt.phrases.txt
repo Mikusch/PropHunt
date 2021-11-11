@@ -17,13 +17,19 @@
 
 "Phrases"
 {
-	"Picked Model"
+	"Selected Prop"
 	{
 		"#format"	"{1:s}"
 		"en"		"You have chosen: {1}"
 	}
+	
 	"PropLock Engaged"
 	{
 		"en"		"PropLock Engaged"
+	}
+	
+	"No Valid Prop"
+	{
+		"en"		"You are not looking at a valid prop!"
 	}
 }

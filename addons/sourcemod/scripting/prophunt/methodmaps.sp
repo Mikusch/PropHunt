@@ -69,4 +69,9 @@ methodmap PHPlayer
 			g_PlayerPropLockEnabled[this.Client] = enabled;
 		}
 	}
+	
+	public bool IsProp()
+	{
+		return TF2_GetClientTeam(this.Client) == TFTeam_Props;
+	}
 }
