@@ -213,6 +213,24 @@ public void OnClientPutInServer(int client)
 	PHPlayer(client).Reset();
 }
 
+void TogglePropLock(int client, bool toggle)
+{
+	SetVariantInt(!toggle);
+	AcceptEntityInput(client, "SetCustomModelRotates");
+	
+	if (toggle)
+	{
+		EmitSoundToClient(client, LOCK_SOUND, _, SNDCHAN_STATIC);
+		SetEntityMoveType(client, MOVETYPE_NONE);
+		PrintHintText(client, "%t", "PropLock Engaged");
+	}
+	else
+	{
+		EmitSoundToClient(client, UNLOCK_SOUND, _, SNDCHAN_STATIC);
+		SetEntityMoveType(client, MOVETYPE_WALK);
+	}
+}
+
 public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
 {
 	int buttonsChanged = GetEntProp(client, Prop_Data, "m_afButtonPressed") | GetEntProp(client, Prop_Data, "m_afButtonReleased");
@@ -221,25 +239,16 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	if (!PHPlayer(client).IsProp() || !IsPlayerAlive(client))
 		return Plugin_Continue;
 	
+	static float latestUnlockTime[MAXPLAYERS + 1];
+	
 	// IN_ATTACK locks the player's prop view
 	if (buttons & IN_ATTACK && buttonsChanged & IN_ATTACK)
 	{
 		bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
+		TogglePropLock(client, locked);
 		
-		SetVariantInt(!locked);
-		AcceptEntityInput(client, "SetCustomModelRotates");
 		
-		if (locked)
-		{
-			EmitSoundToClient(client, LOCK_SOUND, _, SNDCHAN_STATIC);
-			SetEntityMoveType(client, MOVETYPE_NONE);
-			PrintHintText(client, "%t", "PropLock Engaged");
-		}
-		else
-		{
-			EmitSoundToClient(client, UNLOCK_SOUND, _, SNDCHAN_STATIC);
-			SetEntityMoveType(client, MOVETYPE_WALK);
-		}
+		latestUnlockTime[client] = GetGameTime() + 1.0;
 	}
 	
 	// IN_ATTACK2 switches betweeen first-person and third-person view
@@ -259,6 +268,27 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	{
 		if (!SearchForEntityProps(client) && !SearchForStaticProps(client))
 			PrintToChat(client, "%t", "No Valid Prop");
+	}
+	
+	// Prevent the player from auto-unlocking themselves with movement keys for one second
+	if (PHPlayer(client).InForcedTauntCam && latestUnlockTime[client] > GetGameTime())
+	{
+		buttons &= ~IN_FORWARD;
+		buttons &= ~IN_BACK;
+		buttons &= ~IN_MOVELEFT;
+		buttons &= ~IN_MOVERIGHT;
+		
+		return Plugin_Changed;
+	}
+	
+	// Movement keys will undo a prop lock
+	if (buttons & IN_FORWARD || buttons & IN_BACK || buttons & IN_MOVELEFT || buttons & IN_MOVERIGHT)
+	{
+		if (PHPlayer(client).PropLockEnabled)
+		{
+			PHPlayer(client).PropLockEnabled = false;
+			TogglePropLock(client, false);
+		}
 	}
 	
 	return Plugin_Continue;
