@@ -137,3 +137,13 @@ int GetBulletsPerShot(int weapon)
 	int weaponData = weaponInfo + (WEAPONDATA_SIZE * weaponMode);
 	return LoadFromAddress(view_as<Address>(weaponData + g_OffsetBulletsPerShot), NumberType_Int8);
 }
+
+bool IsEntityClient(int entity)
+{
+	return 0 < entity < MaxClients;
+}
+
+int GetMaxHealth(int client)
+{
+	return GetEntProp(GetPlayerResourceEntity(), Prop_Send, "m_iMaxHealth", _, client);
+}

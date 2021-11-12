@@ -105,6 +105,12 @@ public void OnPluginStart()
 	{
 		SetFailState("Could not find prophunt gamedata");
 	}
+	
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		if (IsClientInGame(client))
+			OnClientPutInServer(client);
+	}
 }
 
 public void OnClientPutInServer(int client)

@@ -18,19 +18,49 @@
 void Events_Initialize()
 {
 	HookEvent("player_spawn", Event_PlayerSpawn);
+	HookEvent("player_death", Event_PlayerDeath);
 	HookEvent("post_inventory_application", Event_PostInventoryApplication);
 }
 
 public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 {
 	int userid = event.GetInt("userid");
-	
 	int client = GetClientOfUserId(userid);
+	
+	// Prevent latespawning
+	// TODO: Leave this out while still indev
+	/*if (GameRules_GetRoundState() != RoundState_Preround)
+	{
+		ForcePlayerSuicide(client);
+		return;
+	}*/
+	
 	if (PHPlayer(client).IsProp())
 	{
 		SetEntProp(client, Prop_Send, "m_nDisguiseTeam", TFTeam_Hunters);
 		
 		CreateTimer(0.1, Timer_SetForcedTauntCam, userid);
+	}
+}
+
+public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
+{
+	int victim = GetClientOfUserId(event.GetInt("userid"));
+	int attacker = GetClientOfUserId(event.GetInt("attacker"));
+	int assister = GetClientOfUserId(event.GetInt("assister"));
+	
+	if (victim != attacker && IsEntityClient(attacker) && IsClientInGame(attacker) && IsPlayerAlive(attacker))
+	{
+		// Fully regenerate the killing player
+		SetEntityHealth(attacker, GetMaxHealth(attacker) + 25);
+		TF2_AddCondition(attacker, TFCond_SpeedBuffAlly, 7.0);
+		
+		if (IsEntityClient(assister) && IsClientInGame(assister) && IsPlayerAlive(assister))
+		{
+			// Give the assister a little bonus
+			SetEntityHealth(assister, GetMaxHealth(assister));
+			TF2_AddCondition(attacker, TFCond_SpeedBuffAlly, 3.5);
+		}
 	}
 }
 
