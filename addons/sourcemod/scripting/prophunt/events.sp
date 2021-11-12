@@ -20,6 +20,9 @@ void Events_Initialize()
 	HookEvent("player_spawn", Event_PlayerSpawn);
 	HookEvent("player_death", Event_PlayerDeath);
 	HookEvent("post_inventory_application", Event_PostInventoryApplication);
+	HookEvent("teamplay_round_start", Event_TeamplayRoundStart);
+	HookEvent("teamplay_round_win", Event_TeamplayRoundWin);
+	HookEvent("arena_round_start", Event_ArenaRoundStart);
 }
 
 public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
@@ -87,4 +90,103 @@ public void Event_PostInventoryApplication(Event event, const char[] name, bool 
 		int grapplingHook = TF2Items_GiveNamedItem(client, item);
 		EquipPlayerWeapon(client, grapplingHook);
 	}
+}
+
+public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBroadcast)
+{
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		PHPlayer(client).Reset();
+	}
+}
+
+public void Event_TeamplayRoundWin(Event event, const char[] name, bool dontBroadcast)
+{
+	// Always switch teams on round win
+	SDKCall_SetSwitchTeams(true);
+}
+
+public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroadcast)
+{
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		if (IsClientInGame(client) && !IsFakeClient(client))
+		{
+			// Kick cheaters out of the game
+			QueryClientConVar(client, "r_staticpropinfo", ConVarQuery_StaticPropInfo);
+			
+			// Freeze hunters so that props can hide
+			if (g_CurrentMapConfig.hunter_setup_freeze && PHPlayer(client).IsHunter())
+			{
+				SetEntityMoveType(client, MOVETYPE_NONE);
+			}
+		}
+	}
+	
+	// Create our timer
+	int timer = CreateEntityByName("team_round_timer");
+	
+	SetEntProp(timer, Prop_Data, "m_nTimerInitialLength", g_CurrentMapConfig.round_time);
+	SetEntProp(timer, Prop_Data, "m_nSetupTimeLength", g_CurrentMapConfig.setup_time);
+	DispatchKeyValue(timer, "auto_countdown", "1");
+	DispatchKeyValue(timer, "show_in_hud", "1");
+	
+	if (DispatchSpawn(timer))
+	{
+		g_InSetup = true;
+		
+		AcceptEntityInput(timer, "Enable");
+		
+		HookSingleEntityOutput(timer, "OnSetupFinished", OnSetupFinished, true);
+		HookSingleEntityOutput(timer, "OnFinished", OnRoundFinished, true);
+	}
+}
+
+public Action OnSetupFinished(const char[] output, int caller, int activator, float delay)
+{
+	g_InSetup = false;
+	
+	// Make all Hunters move
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		if (IsClientInGame(client) && !IsFakeClient(client))
+		{
+			if (PHPlayer(client).IsHunter())
+				SetEntityMoveType(client, MOVETYPE_WALK);
+		}
+	}
+	
+	// Trigger named relay
+	if (g_CurrentMapConfig.relay_name[0] != '\0')
+	{
+		int relay = MaxClients + 1;
+		while ((relay = FindEntityByClassname(relay, "logic_relay")) != -1)
+		{
+			char name[64];
+			GetEntPropString(relay, Prop_Data, "m_iName", name, sizeof(name));
+			
+			if (strcmp(name, g_CurrentMapConfig.relay_name) == 0)
+				AcceptEntityInput(relay, "Trigger");
+		}
+	}
+	
+	// Open all doors in the map
+	if (g_CurrentMapConfig.open_doors_after_setup)
+	{
+		int door = MaxClients + 1;
+		while ((door = FindEntityByClassname(door, "func_door")) != -1)
+		{
+			AcceptEntityInput(door, "Open");
+		}
+	}
+	
+	return Plugin_Continue;
+}
+
+public Action OnRoundFinished(const char[] output, int caller, int activator, float delay)
+{
+	ForceRoundWin(TFTeam_Props);
+	RemoveEntity(caller);
+	
+	return Plugin_Continue;
 }

@@ -90,8 +90,8 @@ void SDKCall_RemoveAllWeapons(int player)
 
 void SDKCall_SetSwitchTeams(bool shouldSwitch)
 {
-	if (SDKCallSetSwitchTeams)
-		SDKCall(SDKCallSetSwitchTeams, shouldSwitch);
+	if (g_SDKCallSetSwitchTeams)
+		SDKCall(g_SDKCallSetSwitchTeams, shouldSwitch);
 }
 
 float SDKCall_GetProjectileDamage(int weapon)

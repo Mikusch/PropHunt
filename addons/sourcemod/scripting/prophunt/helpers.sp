@@ -191,3 +191,17 @@ bool GetMapConfigFilepath(char[] filePath, int length)
 	
 	return FileExists(filePath);
 }
+
+void ForceRoundWin(TFTeam team)
+{
+	int win = CreateEntityByName("game_round_win");
+	
+	DispatchKeyValue(win, "force_map_reset", "1");
+	SetEntProp(win, Prop_Data, "m_iTeamNum", team);
+	
+	if (DispatchSpawn(win))
+	{
+		if (AcceptEntityInput(win, "RoundWin"))
+			RemoveEntity(win);
+	}
+}

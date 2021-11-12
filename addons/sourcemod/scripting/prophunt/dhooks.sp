@@ -115,24 +115,36 @@ public MRESReturn DHook_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
 
 public MRESReturn DHook_HookTarget_Pre(int projectile, DHookParam params)
 {
+	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+		return MRES_Ignored;
+	
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
+	
 	if (PHPlayer(owner).IsHunter())
 	{
 		float damage = ph_hunter_damage_grapplinghook.FloatValue;
 		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
 		SDKHooks_TakeDamage(owner, projectile, owner, damage, DMG_PREVENT_PHYSICS_FORCE, launcher);
 	}
+	
+	return MRES_Ignored;
 }
 
 public MRESReturn DHook_FireProjectile_Pre(int weapon, DHookReturn ret, DHookParam params)
 {
+	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+		return MRES_Ignored;
+	
 	int player = params.Get(1);
 	
 	if (PHPlayer(player).IsHunter())
 	{
 		float damage = SDKCall_GetProjectileDamage(weapon) * GetBulletsPerShot(weapon);
 		if (!IsNaN(damage))
-			SDKHooks_TakeDamage(player, weapon, player, damage * ph_hunter_damagemod_guns.FloatValue, DMG_PREVENT_PHYSICS_FORCE, weapon);
+		{
+			damage *= ph_hunter_damagemod_guns.FloatValue;
+			SDKHooks_TakeDamage(player, weapon, player, damage, DMG_PREVENT_PHYSICS_FORCE, weapon);
+		}
 	}
 	
 	return MRES_Ignored;
@@ -140,13 +152,19 @@ public MRESReturn DHook_FireProjectile_Pre(int weapon, DHookReturn ret, DHookPar
 
 public MRESReturn DHook_Smack_Pre(int weapon)
 {
+	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+		return MRES_Ignored;
+	
 	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
 	
 	if (PHPlayer(owner).IsHunter())
 	{
 		float damage = SDKCall_GetMeleeDamage(weapon, owner, DMG_MELEE, 0);
 		if (!IsNaN(damage))
-			SDKHooks_TakeDamage(owner, weapon, owner, damage * ph_hunter_damagemod_melee.FloatValue, DMG_PREVENT_PHYSICS_FORCE, weapon);
+		{
+			damage *= ph_hunter_damagemod_melee.FloatValue;
+			SDKHooks_TakeDamage(owner, weapon, owner, damage, DMG_PREVENT_PHYSICS_FORCE, weapon);
+		}
 	}
 	
 	return MRES_Ignored;

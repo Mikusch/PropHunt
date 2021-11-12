@@ -79,4 +79,11 @@ methodmap PHPlayer
 	{
 		return TF2_GetClientTeam(this.Client) == TFTeam_Hunters;
 	}
+	
+	public void Reset()
+	{
+		this.PropType = Prop_None;
+		this.PropIndex = -1;
+		this.PropLockEnabled = false;
+	}
 }

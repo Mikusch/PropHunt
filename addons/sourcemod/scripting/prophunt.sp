@@ -51,72 +51,8 @@ enum PHPropType
 	Prop_Entity,	/**< Entity-based prop, index corresponds to entity reference */
 }
 
-enum struct MapConfig
-{
-	ArrayList prop_whitelist;
-	ArrayList prop_blacklist;
-	
-	void ReadFromKv(KeyValues kv)
-	{
-		// Prop whitelist (overrides blacklist)
-		if (kv.JumpToKey("prop_whitelist"))
-		{
-			this.prop_whitelist = new ArrayList(PLATFORM_MAX_PATH);
-			
-			if (kv.GotoFirstSubKey(false))
-			{
-				do
-				{
-					char model[PLATFORM_MAX_PATH];
-					kv.GetString(NULL_STRING, model, sizeof(model));
-					this.prop_whitelist.PushString(model);
-				}
-				while (kv.GotoNextKey(false));
-				kv.GoBack();
-			}
-			kv.GoBack();
-		}
-		kv.GoBack();
-		
-		// Prop blacklist
-		if (kv.JumpToKey("prop_blacklist"))
-		{
-			this.prop_blacklist = new ArrayList(PLATFORM_MAX_PATH);
-			
-			if (kv.GotoFirstSubKey(false))
-			{
-				do
-				{
-					char model[PLATFORM_MAX_PATH];
-					kv.GetString(NULL_STRING, model, sizeof(model));
-					this.prop_blacklist.PushString(model);
-				}
-				while (kv.GotoNextKey(false));
-				kv.GoBack();
-			}
-			kv.GoBack();
-		}
-		kv.GoBack();
-	}
-	
-	bool HasWhitelist()
-	{
-		return (this.prop_whitelist && this.prop_whitelist.Length > 0);
-	}
-	
-	bool IsWhitelisted(const char[] model)
-	{
-		return this.HasWhitelist() && (this.prop_whitelist.FindString(model) != -1);
-	}
-	
-	bool IsBlacklisted(const char[] model)
-	{
-		return this.HasWhitelist() || (this.prop_blacklist && this.prop_blacklist.Length > 0 && this.prop_blacklist.FindString(model) != -1);
-	}
-}
-
 // Globals
-MapConfig g_CurrentMapConfig;
+bool g_InSetup;
 
 // Offsets
 int g_OffsetWeaponMode;
@@ -130,8 +66,14 @@ ConVar ph_prop_max_select_distance;
 ConVar ph_hunter_damagemod_guns;
 ConVar ph_hunter_damagemod_melee;
 ConVar ph_hunter_damage_grapplinghook;
+ConVar ph_hunter_setup_freeze;
+ConVar ph_open_doors_after_setup;
+ConVar ph_setup_time;
+ConVar ph_round_time;
+ConVar ph_relay_name;
 
 #include "prophunt/methodmaps.sp"
+#include "prophunt/structs.sp"
 
 #include "prophunt/convars.sp"
 #include "prophunt/dhooks.sp"
@@ -184,10 +126,11 @@ public void OnPluginStart()
 
 public void OnMapStart()
 {
-	//Fetch map name
-	char mapname[PLATFORM_MAX_PATH];
-	GetCurrentMap(mapname, sizeof(mapname));
-	GetMapDisplayName(mapname, mapname, sizeof(mapname));
+	g_CurrentMapConfig.hunter_setup_freeze = ph_hunter_setup_freeze.BoolValue;
+	g_CurrentMapConfig.open_doors_after_setup = ph_open_doors_after_setup.BoolValue;
+	g_CurrentMapConfig.setup_time = ph_setup_time.IntValue;
+	g_CurrentMapConfig.round_time = ph_round_time.IntValue;
+	ph_relay_name.GetString(g_CurrentMapConfig.relay_name, sizeof(g_CurrentMapConfig.relay_name));
 	
 	char filepath[PLATFORM_MAX_PATH];
 	if (GetMapConfigFilepath(filepath, sizeof(filepath)))
@@ -203,7 +146,7 @@ public void OnMapStart()
 
 public void OnClientPutInServer(int client)
 {
-	QueryClientConVar(client, "r_staticpropinfo", ConVarQuery_StaticPropInfo);
+	PHPlayer(client).Reset();
 }
 
 public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
@@ -211,7 +154,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	int buttonsChanged = GetEntProp(client, Prop_Data, "m_afButtonPressed") | GetEntProp(client, Prop_Data, "m_afButtonReleased");
 	
 	// Prop-only functionality below this point
-	if (!PHPlayer(client).IsProp())
+	if (!PHPlayer(client).IsProp() || !IsPlayerAlive(client))
 		return Plugin_Continue;
 	
 	// IN_ATTACK locks the player's prop view
@@ -245,11 +188,11 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 
 public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int itemDefIndex, int level, int quality, int entity)
 {
-	// CTFWeaponBaseGun
+	// Is CTFWeaponBaseGun?
 	if (IsWeaponBaseGun(entity))
 		DHooks_HookBaseGun(entity);
 	
-	// CTFWeaponBaseMelee
+	// Is CTFWeaponBaseMelee?
 	if (IsWeaponBaseMelee(entity))
 		DHooks_HookBaseMelee(entity);
 	
