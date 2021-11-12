@@ -147,3 +147,47 @@ int GetMaxHealth(int client)
 {
 	return GetEntProp(GetPlayerResourceEntity(), Prop_Send, "m_iMaxHealth", _, client);
 }
+
+int CountCharInString(const char[] string, char letter)
+{
+	int i, count;
+	while (string[i] != '\0')
+	{
+		if (string[i++] == letter)
+			count++;
+	}
+	return count;
+}
+
+bool GetMapConfigFilepath(char[] filePath, int length)
+{
+	char mapName[PLATFORM_MAX_PATH];
+	GetCurrentMap(mapName, sizeof(mapName));
+	GetMapDisplayName(mapName, mapName, sizeof(mapName));
+	
+	int partsCount = CountCharInString(mapName, '_') + 1;
+	
+	//Split map prefix and first part of its name (e.g. pl_hightower)
+	char[][] nameParts = new char[partsCount][PLATFORM_MAX_PATH];
+	ExplodeString(mapName, "_", nameParts, partsCount, PLATFORM_MAX_PATH);
+	
+	//Start to stitch name parts together
+	char tidyMapName[PLATFORM_MAX_PATH];
+	char filePathBuffer[PLATFORM_MAX_PATH];
+	strcopy(tidyMapName, sizeof(tidyMapName), nameParts[0]);
+	
+	//Build file path
+	BuildPath(Path_SM, tidyMapName, sizeof(tidyMapName), CONFIG_FILEPATH, tidyMapName);
+	
+	for (int i = 1; i < partsCount; i++)
+	{
+		Format(tidyMapName, sizeof(tidyMapName), "%s_%s", tidyMapName, nameParts[i]);
+		Format(filePathBuffer, sizeof(filePathBuffer), "%s.cfg", tidyMapName);
+		
+		//We are trying to find the most specific config
+		if (FileExists(filePathBuffer))
+			strcopy(filePath, length, filePathBuffer);
+	}
+	
+	return FileExists(filePath);
+}

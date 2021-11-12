@@ -36,6 +36,8 @@
 #define ITEM_DEFINDEX_GRAPPLINGHOOK			1152
 #define ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH	269
 
+#define CONFIG_FILEPATH	"configs/prophunt/maps/%s"
+
 #define LOCK_SOUND		"buttons/button3.wav"
 #define UNLOCK_SOUND	"buttons/button24.wav"
 
@@ -48,6 +50,73 @@ enum PHPropType
 	Prop_Static,	/**< Static prop, index corresponds to position in static prop array */
 	Prop_Entity,	/**< Entity-based prop, index corresponds to entity reference */
 }
+
+enum struct MapConfig
+{
+	ArrayList prop_whitelist;
+	ArrayList prop_blacklist;
+	
+	void ReadFromKv(KeyValues kv)
+	{
+		// Prop whitelist (overrides blacklist)
+		if (kv.JumpToKey("prop_whitelist"))
+		{
+			this.prop_whitelist = new ArrayList(PLATFORM_MAX_PATH);
+			
+			if (kv.GotoFirstSubKey(false))
+			{
+				do
+				{
+					char model[PLATFORM_MAX_PATH];
+					kv.GetString(NULL_STRING, model, sizeof(model));
+					this.prop_whitelist.PushString(model);
+				}
+				while (kv.GotoNextKey(false));
+				kv.GoBack();
+			}
+			kv.GoBack();
+		}
+		kv.GoBack();
+		
+		// Prop blacklist
+		if (kv.JumpToKey("prop_blacklist"))
+		{
+			this.prop_blacklist = new ArrayList(PLATFORM_MAX_PATH);
+			
+			if (kv.GotoFirstSubKey(false))
+			{
+				do
+				{
+					char model[PLATFORM_MAX_PATH];
+					kv.GetString(NULL_STRING, model, sizeof(model));
+					this.prop_blacklist.PushString(model);
+				}
+				while (kv.GotoNextKey(false));
+				kv.GoBack();
+			}
+			kv.GoBack();
+		}
+		kv.GoBack();
+	}
+	
+	bool HasWhitelist()
+	{
+		return (this.prop_whitelist && this.prop_whitelist.Length > 0);
+	}
+	
+	bool IsWhitelisted(const char[] model)
+	{
+		return this.HasWhitelist() && (this.prop_whitelist.FindString(model) != -1);
+	}
+	
+	bool IsBlacklisted(const char[] model)
+	{
+		return this.HasWhitelist() || (this.prop_blacklist && this.prop_blacklist.Length > 0 && this.prop_blacklist.FindString(model) != -1);
+	}
+}
+
+// Globals
+MapConfig g_CurrentMapConfig;
 
 // Offsets
 int g_OffsetWeaponMode;
@@ -110,6 +179,25 @@ public void OnPluginStart()
 	{
 		if (IsClientInGame(client))
 			OnClientPutInServer(client);
+	}
+}
+
+public void OnMapStart()
+{
+	//Fetch map name
+	char mapname[PLATFORM_MAX_PATH];
+	GetCurrentMap(mapname, sizeof(mapname));
+	GetMapDisplayName(mapname, mapname, sizeof(mapname));
+	
+	char filepath[PLATFORM_MAX_PATH];
+	if (GetMapConfigFilepath(filepath, sizeof(filepath)))
+	{
+		KeyValues kv = new KeyValues("PropHunt");
+		
+		if (kv.ImportFromFile(filepath))
+			g_CurrentMapConfig.ReadFromKv(kv);
+		
+		delete kv;
 	}
 }
 
@@ -190,6 +278,9 @@ bool SearchForEntityProps(int client)
 		if (model[0] == '*')
 			return false;
 		
+		if (!g_CurrentMapConfig.IsWhitelisted(model) && g_CurrentMapConfig.IsBlacklisted(model))
+			return false;
+		
 		float mins[3], maxs[3];
 		GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
 		GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
@@ -242,6 +333,9 @@ bool SearchForStaticProps(int client)
 		
 		char name[PLATFORM_MAX_PATH];
 		if (!StaticProp_GetModelName(i, name, sizeof(name)))
+			continue;
+		
+		if (!g_CurrentMapConfig.IsWhitelisted(name) && g_CurrentMapConfig.IsBlacklisted(name))
 			continue;
 		
 		// Finally, set the player's prop
