@@ -128,12 +128,6 @@ public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroad
 			// Kick cheaters out of the game
 			QueryClientConVar(client, "r_staticpropinfo", ConVarQuery_StaticPropInfo);
 			
-			// Freeze hunters so that props can hide
-			if (PHPlayer(client).IsHunter() && g_CurrentMapConfig.hunter_setup_freeze)
-			{
-				SetEntityMoveType(client, MOVETYPE_NONE);
-			}
-			
 			if (PHPlayer(client).IsProp())
 			{
 				ShowKeyHintText(client, "%t", "Prop Controls");

@@ -31,6 +31,11 @@
 				"linux"		"@_ZN27CTFProjectile_GrapplingHook10HookTargetEP11CBaseEntity"
 				"windows"	"\x55\x8B\xEC\x51\x56\x8B\xF1\x8B\x8E\xE8\x01\x00\x00\x83\xF9\xFF\x0F\x84\x2A\x2A\x2A\x2A\x8B\x15\x2A\x2A\x2A\x2A"
 			}
+			"CTFPlayer::CanPlayerMove"
+			{
+				"linux"		"@_ZNK9CTFPlayer13CanPlayerMoveEv"
+				"windows"	"\x56\x8B\xF1\x8A\x86\x4E\x01\x00\x00"
+			}
 		}
 		"Offsets"
 		{
@@ -102,6 +107,13 @@
 						"type"	"cbaseentity"
 					}
 				}
+			}
+			"CTFPlayer::CanPlayerMove"
+			{
+				"signature"	"CTFPlayer::CanPlayerMove"
+				"callconv"	"thiscall"
+				"return"	"bool"
+				"this"		"entity"
 			}
 			"CTFWeaponBaseGun::FireProjectile"
 			{

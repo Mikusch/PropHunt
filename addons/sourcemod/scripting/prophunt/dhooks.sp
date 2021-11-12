@@ -22,6 +22,7 @@ void DHooks_Initialize(GameData gamedata)
 {
 	DHooks_CreateDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHook_GetMaxHealthForBuffing_Post);
 	DHooks_CreateDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHook_HookTarget_Pre, _);
+	DHooks_CreateDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHook_CanPlayerMove_Post);
 	
 	g_DHookFireProjectile = CreateDynamicHook(gamedata, "CTFWeaponBaseGun::FireProjectile");
 	g_DHookSmack = CreateDynamicHook(gamedata, "CTFWeaponBaseMelee::Smack");
@@ -125,6 +126,20 @@ public MRESReturn DHook_HookTarget_Pre(int projectile, DHookParam params)
 		float damage = ph_hunter_damage_grapplinghook.FloatValue;
 		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
 		SDKHooks_TakeDamage(owner, projectile, owner, damage, DMG_PREVENT_PHYSICS_FORCE, launcher);
+	}
+	
+	return MRES_Ignored;
+}
+
+public MRESReturn DHook_CanPlayerMove_Post(int player, DHookReturn ret)
+{
+	if (g_InSetup)
+	{
+		if (PHPlayer(player).IsHunter())
+		{
+			ret.Value = false;
+			return MRES_Supercede;
+		}
 	}
 	
 	return MRES_Ignored;

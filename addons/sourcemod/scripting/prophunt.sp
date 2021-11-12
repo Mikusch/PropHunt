@@ -414,17 +414,14 @@ public Action OnSetupFinished(const char[] output, int caller, int activator, fl
 {
 	g_InSetup = false;
 	
-	// Make all Hunters move
+	// Refresh speed of all clients to allow hunters to move
 	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsClientInGame(client) && !IsFakeClient(client))
-		{
-			if (PHPlayer(client).IsHunter())
-				SetEntityMoveType(client, MOVETYPE_WALK);
-		}
+		if (IsClientInGame(client))
+			TF2_AddCondition(client, TFCond_SpeedBuffAlly, 0.01);
 	}
 	
-	// Trigger named relay
+	// Trigger named relays
 	if (g_CurrentMapConfig.relay_name[0] != '\0')
 	{
 		int relay = MaxClients + 1;
