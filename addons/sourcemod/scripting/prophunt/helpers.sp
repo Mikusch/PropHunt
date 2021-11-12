@@ -138,6 +138,12 @@ int GetBulletsPerShot(int weapon)
 	return LoadFromAddress(view_as<Address>(weaponData + g_OffsetBulletsPerShot), NumberType_Int8);
 }
 
+bool IsPropBlacklisted(const char[] model)
+{
+	PropConfig config;
+	return g_PropConfigs.GetArray(model, config, sizeof(config)) && config.blacklisted;
+}
+
 bool IsEntityClient(int entity)
 {
 	return 0 < entity < MaxClients;

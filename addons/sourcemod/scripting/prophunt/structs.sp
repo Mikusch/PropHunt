@@ -77,3 +77,22 @@ enum struct MapConfig
 }
 
 MapConfig g_CurrentMapConfig;
+
+// Global Prop Config
+enum struct PropConfig
+{
+	char model[PLATFORM_MAX_PATH];
+	bool blacklisted;
+	float offset[3];
+	float rotation[3];
+	
+	void ReadFromKv(KeyValues kv)
+	{
+		kv.GetString("model", this.model, PLATFORM_MAX_PATH);
+		this.blacklisted = view_as<bool>(kv.GetNum("blacklisted"));
+		kv.GetVector("offset", this.offset);
+		kv.GetVector("rotation", this.rotation);
+	}
+}
+
+StringMap g_PropConfigs;

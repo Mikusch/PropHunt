@@ -101,8 +101,33 @@ public void OnPluginStart()
 	ConVars_Initialize();
 	Events_Initialize();
 	
+	RegAdminCmd("ph_setprop", ConCmd_SetCustomModel, ADMFLAG_CHEATS);
+	
 	AddCommandListener(CommandListener_JoinClass, "joinclass");
 	AddCommandListener(CommandListener_Build, "build");
+	
+	g_PropConfigs = new StringMap();
+	
+	char file[PLATFORM_MAX_PATH];
+	BuildPath(Path_SM, file, sizeof(file), "configs/prophunt/props.cfg");
+	
+	KeyValues kv = new KeyValues("Props");
+	if (kv.ImportFromFile(file))
+	{
+		if (kv.GotoFirstSubKey(false))
+		{
+			do
+			{
+				PropConfig config;
+				config.ReadFromKv(kv);
+				g_PropConfigs.SetArray(config.model, config, sizeof(config));
+			}
+			while (kv.GotoNextKey(false));
+			kv.GoBack();
+		}
+		kv.GoBack();
+	}
+	delete kv;
 	
 	GameData gamedata = new GameData("prophunt");
 	if (gamedata)
@@ -280,6 +305,9 @@ bool SearchForEntityProps(int client)
 		if (model[0] == '*')
 			return false;
 		
+		if (IsPropBlacklisted(model))
+			return false;
+		
 		if (!g_CurrentMapConfig.IsWhitelisted(model) && g_CurrentMapConfig.IsBlacklisted(model))
 			return false;
 		
@@ -337,6 +365,9 @@ bool SearchForStaticProps(int client)
 		if (!StaticProp_GetModelName(i, name, sizeof(name)))
 			continue;
 		
+		if (IsPropBlacklisted(name))
+			return false;
+		
 		if (!g_CurrentMapConfig.IsWhitelisted(name) && g_CurrentMapConfig.IsBlacklisted(name))
 			continue;
 		
@@ -358,9 +389,33 @@ void SetCustomModel(int client, const char[] model)
 	SetVariantString(model);
 	AcceptEntityInput(client, "SetCustomModel");
 	
-	PrintToChat(client, "%t", "Selected Prop", model);
+	PropConfig config;
+	if (g_PropConfigs.GetArray(model, config, sizeof(config)))
+	{
+		SetVariantVector3D(config.offset);
+		AcceptEntityInput(client, "SetCustomModelOffset");
+		
+		if (GetVectorLength(config.rotation, true) == 0.0)
+		{
+			AcceptEntityInput(client, "ClearCustomModelRotation");
+		}
+		else
+		{
+			SetVariantVector3D(config.rotation);
+			AcceptEntityInput(client, "SetCustomModelRotation");
+		}
+	}
+	else
+	{
+		AcceptEntityInput(client, "ClearCustomModelRotation");
+		
+		SetVariantVector3D(view_as<float>( { 0.0, 0.0, 0.0 } ));
+		AcceptEntityInput(client, "SetCustomModelOffset");
+	}
 	
 	SetEntProp(client, Prop_Data, "m_bloodColor", DONT_BLEED);
+	
+	PrintToChat(client, "%t", "Selected Prop", model);
 	
 	LogMessage("[PROP HUNT] %N chose prop \"%s\"", client, model);
 }
@@ -370,10 +425,16 @@ void ClearCustomModel(int client)
 	SetVariantString("");
 	AcceptEntityInput(client, "SetCustomModel");
 	
-	SetVariantString("0 0 0");
+	SetVariantVector3D(view_as<float>( { 0.0, 0.0, 0.0 } ));
 	AcceptEntityInput(client, "SetCustomModelOffset");
 	
 	AcceptEntityInput(client, "ClearCustomModelRotation");
+	
+	SetVariantInt(1);
+	AcceptEntityInput(client, "SetCustomModelRotates");
+	
+	SetVariantInt(1);
+	AcceptEntityInput(client, "SetCustomModelVisibletoSelf");
 }
 
 public void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue)
@@ -491,4 +552,17 @@ public Action CommandListener_Build(int client, const char[] command, int argc)
 	}
 	
 	return Plugin_Continue;
+}
+
+public Action ConCmd_SetCustomModel(int client, int args)
+{
+	if (args < 1)
+		return Plugin_Handled;
+	
+	char model[PLATFORM_MAX_PATH];
+	GetCmdArg(1, model, sizeof(model));
+	
+	SetCustomModel(client, model);
+	
+	return Plugin_Handled;
 }
