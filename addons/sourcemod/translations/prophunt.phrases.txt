@@ -45,6 +45,6 @@
 	
 	"Prop Controls"
 	{
-		"en"		"%%+attack%% PROP LOCK %%+attack2%% THIRDPERSON %%+reload%% SELECT PROP"
+		"en"		"%%+attack%% LOCK PROP ROTATION %%+attack2%% TOGGLE THIRDPERSON %%+reload%% SELECT PROP"
 	}
 }

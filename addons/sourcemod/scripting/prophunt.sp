@@ -184,12 +184,26 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 		if (locked)
 		{
 			EmitSoundToClient(client, LOCK_SOUND, _, SNDCHAN_STATIC);
+			SetEntityMoveType(client, MOVETYPE_NONE);
 			PrintHintText(client, "%t", "PropLock Engaged");
 		}
 		else
 		{
 			EmitSoundToClient(client, UNLOCK_SOUND, _, SNDCHAN_STATIC);
+			SetEntityMoveType(client, MOVETYPE_WALK);
 		}
+	}
+	
+	// IN_ATTACK2 switches betweeen first-person and third-person view
+	if (buttons & IN_ATTACK2 && buttonsChanged & IN_ATTACK2)
+	{
+		bool value = PHPlayer(client).InForcedTauntCam = !PHPlayer(client).InForcedTauntCam;
+		
+		SetVariantInt(value);
+		AcceptEntityInput(client, "SetForcedTauntCam");
+
+		SetVariantInt(value);
+		AcceptEntityInput(client, "SetCustomModelVisibletoSelf");
 	}
 	
 	// IN_RELOAD allows the player to pick a prop
@@ -345,11 +359,13 @@ public Action Timer_SetForcedTauntCam(Handle timer, int userid)
 	int client = GetClientOfUserId(userid);
 	if (client != 0)
 	{
-		SetVariantInt(1);
+		SetVariantInt(PHPlayer(client).InForcedTauntCam);
 		AcceptEntityInput(client, "SetForcedTauntCam");
 		
 		TF2_AddCondition(client, TFCond_AfterburnImmune);
 	}
+	
+	return Plugin_Continue;
 }
 
 public Action OnSetupFinished(const char[] output, int caller, int activator, float delay)

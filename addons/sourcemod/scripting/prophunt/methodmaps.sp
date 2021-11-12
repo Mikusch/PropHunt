@@ -18,6 +18,7 @@
 static PHPropType g_PlayerPropType[MAXPLAYERS + 1];
 static int g_PlayerPropIndex[MAXPLAYERS + 1];
 static bool g_PlayerPropLockEnabled[MAXPLAYERS + 1];
+static bool g_PlayerInForcedTauntCam[MAXPLAYERS + 1];
 
 methodmap PHPlayer
 {
@@ -70,6 +71,18 @@ methodmap PHPlayer
 		}
 	}
 	
+	property bool InForcedTauntCam
+	{
+		public get()
+		{
+			return g_PlayerInForcedTauntCam[this.Client];
+		}
+		public set(bool inForcedTauntCam)
+		{
+			g_PlayerInForcedTauntCam[this.Client] = inForcedTauntCam;
+		}
+	}
+	
 	public bool IsProp()
 	{
 		return TF2_GetClientTeam(this.Client) == TFTeam_Props;
@@ -85,5 +98,6 @@ methodmap PHPlayer
 		this.PropType = Prop_None;
 		this.PropIndex = -1;
 		this.PropLockEnabled = false;
+		this.InForcedTauntCam = false;
 	}
 }

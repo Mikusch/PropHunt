@@ -31,19 +31,19 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 	int client = GetClientOfUserId(userid);
 	
 	// Prevent latespawning
-	// TODO: Leave this out while still indev
-	/*if (GameRules_GetRoundState() != RoundState_Preround)
+	if (GameRules_GetRoundState() != RoundState_Preround)
 	{
 		ForcePlayerSuicide(client);
 		return;
-	}*/
-	
-	if (PHPlayer(client).IsProp())
-	{
-		SetEntProp(client, Prop_Send, "m_nDisguiseTeam", TFTeam_Hunters);
-		
-		CreateTimer(0.1, Timer_SetForcedTauntCam, userid);
 	}
+	
+	// Restore third-person setting to props
+	if (PHPlayer(client).IsProp())
+		CreateTimer(0.1, Timer_SetForcedTauntCam, userid);
+	
+	// Always spawn players with their default model
+	SetVariantString("");
+	AcceptEntityInput(client, "SetCustomModel");
 }
 
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
@@ -102,7 +102,7 @@ public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBr
 
 public void Event_TeamplayRoundWin(Event event, const char[] name, bool dontBroadcast)
 {
-	// Always switch teams on round win
+	// Always switch teams on round end
 	SDKCall_SetSwitchTeams(true);
 }
 
@@ -128,7 +128,7 @@ public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroad
 		}
 	}
 	
-	// Create our timer
+	// Create the setup and round timer
 	int timer = CreateEntityByName("team_round_timer");
 	
 	SetEntProp(timer, Prop_Data, "m_nTimerInitialLength", g_CurrentMapConfig.round_time);
