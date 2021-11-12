@@ -65,6 +65,7 @@ ConVar ph_prop_max_size;
 ConVar ph_prop_max_select_distance;
 ConVar ph_hunter_damagemod_guns;
 ConVar ph_hunter_damagemod_melee;
+ConVar ph_hunter_damage_flamethrower;
 ConVar ph_hunter_damage_grapplinghook;
 ConVar ph_hunter_setup_freeze;
 ConVar ph_open_doors_after_setup;
@@ -162,6 +163,17 @@ public void OnEntityCreated(int entity, const char[] classname)
 	}
 }
 
+public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname, bool &result)
+{
+	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+		return MRES_Ignored;
+	
+	if (strcmp(weaponname, "tf_weapon_flamethrower") == 0)
+	{
+		SDKHooks_TakeDamage(client, weapon, client, ph_hunter_damage_flamethrower.FloatValue, DMG_PREVENT_PHYSICS_FORCE, weapon);
+	}
+}
+
 public void OnClientPutInServer(int client)
 {
 	PHPlayer(client).Reset();
@@ -203,7 +215,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 		
 		SetVariantInt(value);
 		AcceptEntityInput(client, "SetForcedTauntCam");
-
+		
 		SetVariantInt(value);
 		AcceptEntityInput(client, "SetCustomModelVisibletoSelf");
 	}
@@ -234,6 +246,12 @@ public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int item
 	if (index != -1)
 		TF2Attrib_SetByDefIndex(entity, ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH, 0.0);
 	delete attributes;
+	
+	// Significantly reduce Medic's healing
+	if (strcmp(classname, "tf_weapon_medigun") == 0)
+	{
+		TF2Attrib_SetByName(entity, "heal rate penalty", 0.1);
+	}
 }
 
 bool SearchForEntityProps(int client)
@@ -420,7 +438,7 @@ public Action OnRoundFinished(const char[] output, int caller, int activator, fl
 }
 
 public Action CommandListener_JoinClass(int client, const char[] command, int argc)
- {
+{
 	if (argc < 1)
 		return Plugin_Handled;
 	
@@ -429,9 +447,8 @@ public Action CommandListener_JoinClass(int client, const char[] command, int ar
 	TFClassType class = TF2_GetClass(arg);
 	
 	// Hunters may not play as some of the classes
-	if (PHPlayer(client).IsHunter() && (class == TFClass_Spy || class == TFClass_Pyro))
+	if (PHPlayer(client).IsHunter() && class == TFClass_Spy)
 	{
-		// TODO: Find a better way to handle this
 		PrintCenterText(client, "%t", "Hunter Class Unavailable");
 		ShowVGUIPanel(client, TF2_GetClientTeam(client) == TFTeam_Red ? "class_red" : "class_blue");
 		return Plugin_Handled;

@@ -103,7 +103,7 @@ public MRESReturn DHook_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
 		}
 		
 		// Refill health during setup time
-		if (GameRules_GetRoundState() == RoundState_Preround)
+		if (GameRules_GetRoundState() == RoundState_Preround || g_InSetup)
 			SetEntityHealth(player, health);
 		
 		ret.Value = health;
