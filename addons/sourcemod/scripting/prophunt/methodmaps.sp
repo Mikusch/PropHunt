@@ -98,6 +98,6 @@ methodmap PHPlayer
 		this.PropType = Prop_None;
 		this.PropIndex = -1;
 		this.PropLockEnabled = false;
-		this.InForcedTauntCam = false;
+		this.InForcedTauntCam = true;
 	}
 }

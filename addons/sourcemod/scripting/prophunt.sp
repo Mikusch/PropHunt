@@ -100,6 +100,8 @@ public void OnPluginStart()
 	ConVars_Initialize();
 	Events_Initialize();
 	
+	AddCommandListener(CommandListener_JoinClass, "joinclass");
+	
 	GameData gamedata = new GameData("prophunt");
 	if (gamedata)
 	{
@@ -413,6 +415,27 @@ public Action OnRoundFinished(const char[] output, int caller, int activator, fl
 {
 	ForceRoundWin(TFTeam_Props);
 	RemoveEntity(caller);
+	
+	return Plugin_Continue;
+}
+
+public Action CommandListener_JoinClass(int client, const char[] command, int argc)
+ {
+	if (argc < 1)
+		return Plugin_Handled;
+	
+	char arg[32];
+	GetCmdArg(1, arg, sizeof(arg));
+	TFClassType class = TF2_GetClass(arg);
+	
+	// Hunters may not play as some of the classes
+	if (PHPlayer(client).IsHunter() && (class == TFClass_Spy || class == TFClass_Pyro))
+	{
+		// TODO: Find a better way to handle this
+		PrintCenterText(client, "%t", "Hunter Class Unavailable");
+		ShowVGUIPanel(client, TF2_GetClientTeam(client) == TFTeam_Red ? "class_red" : "class_blue");
+		return Plugin_Handled;
+	}
 	
 	return Plugin_Continue;
 }

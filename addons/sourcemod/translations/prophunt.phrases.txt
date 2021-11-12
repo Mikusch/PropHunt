@@ -47,4 +47,9 @@
 	{
 		"en"		"%%+attack%% LOCK PROP ROTATION %%+attack2%% TOGGLE THIRDPERSON %%+reload%% SELECT PROP"
 	}
+	
+	"Hunter Class Unavailable"
+	{
+		"en"		"This class is unavailable on the Hunter team."
+	}
 }

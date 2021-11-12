@@ -37,9 +37,20 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 		return;
 	}
 	
-	// Restore third-person setting to props
+	
 	if (PHPlayer(client).IsProp())
+	{
+		// Restore third-person setting to props
 		CreateTimer(0.1, Timer_SetForcedTauntCam, userid);
+		
+		// FIXME: This works, but makes the player persist as scout.
+		// Passing persist = true will freeze the server.
+		if (TF2_GetPlayerClass(client) != TFClass_Scout)
+		{
+			TF2_SetPlayerClass(client, TFClass_Scout);
+			TF2_RespawnPlayer(client);
+		}
+	}
 	
 	// Always spawn players with their default model
 	SetVariantString("");
