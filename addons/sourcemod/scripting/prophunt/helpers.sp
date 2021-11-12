@@ -41,7 +41,7 @@ bool IsNaN(float value)
 }
 
 // Thanks to ficool2 for helping me with scary vector math
-bool IntersectionLineAABBFast(const float[3] mins, const float[3] maxs, const float[3] start, const float[3] dir, float far)
+bool IntersectionLineAABBFast(const float mins[3], const float maxs[3], const float start[3], const float dir[3], float far)
 {
 	// Test each cardinal plane (X, Y and Z) in turn
 	float near = 0.0;
@@ -114,7 +114,7 @@ bool CloseEnough(float a, float b, float epsilon)
 	return FloatAbs(a - b) <= epsilon;
 }
 
-bool IsValidBboxSize(const float[3] mins, const float[3] maxs)
+bool IsValidBboxSize(const float mins[3], const float maxs[3])
 {
 	return ph_prop_min_size.FloatValue < GetVectorDistance(mins, maxs) < ph_prop_max_size.FloatValue;
 }

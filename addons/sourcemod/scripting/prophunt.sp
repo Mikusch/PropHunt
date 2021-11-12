@@ -156,22 +156,30 @@ public void OnMapStart()
 
 public void OnEntityCreated(int entity, const char[] classname)
 {
-	// Prevent arena from trying to enable the control point
 	if (strcmp(classname, "tf_logic_arena") == 0)
 	{
+		// Prevent arena from trying to enable the control point
 		DispatchKeyValue(entity, "CapEnableDelay", "0");
+	}
+	else if (strcmp(classname, "trigger_capture_area") == 0)
+	{
+		// Remove all capture areas, we don't need them
+		RemoveEntity(entity);
 	}
 }
 
 public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname, bool &result)
 {
 	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
-		return MRES_Ignored;
+		return Plugin_Continue;
 	
+	// Flame throwers are a special case, as always
 	if (strcmp(weaponname, "tf_weapon_flamethrower") == 0)
 	{
 		SDKHooks_TakeDamage(client, weapon, client, ph_hunter_damage_flamethrower.FloatValue, DMG_PREVENT_PHYSICS_FORCE, weapon);
 	}
+	
+	return Plugin_Continue;
 }
 
 public void OnClientPutInServer(int client)
