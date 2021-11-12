@@ -14,6 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+ 
+#define MAX_COMMAND_LENGTH 1024
+
+enum struct ConVarInfo
+{
+	char name[64];
+	char value[MAX_COMMAND_LENGTH];
+	char initialValue[MAX_COMMAND_LENGTH];
+	bool enforce;
+	bool enabled;
+}
+
+static StringMap g_GameConVars;
 
 void ConVars_Initialize()
 {
@@ -30,4 +43,105 @@ void ConVars_Initialize()
 	ph_setup_time = CreateConVar("ph_setup_time", "30", "Length of the hiding time for props.");
 	ph_round_time = CreateConVar("ph_round_time", "175", "Length of the round time.");
 	ph_relay_name = CreateConVar("ph_relay_name", "hidingover", "Name of the relay to fire after setup time.");
+	
+	g_GameConVars = new StringMap();
+	
+	//Track all ConVars not controlled by this plugin
+	ConVars_Track("tf_arena_round_time", "0");
+	ConVars_Track("tf_arena_override_cap_enable_time", "0");
+	ConVars_Track("tf_arena_use_queue", "0");
+	ConVars_Track("tf_arena_first_blood", "0");
+	ConVars_Track("mp_show_voice_icons", "0");
+	ConVars_Track("mp_forcecamera", "0");
+	ConVars_Track("sv_gravity", "500");
+}
+
+void ConVars_Track(const char[] name, const char[] value, bool enforce = true)
+{
+	ConVar convar = FindConVar(name);
+	if (convar)
+	{
+		//Store ConVar information
+		ConVarInfo info;
+		strcopy(info.name, sizeof(info.name), name);
+		strcopy(info.value, sizeof(info.value), value);
+		info.enforce = enforce;
+		
+		g_GameConVars.SetArray(name, info, sizeof(info));
+	}
+	else
+	{
+		LogError("The ConVar %s could not be found", name);
+	}
+}
+
+void ConVars_ToggleAll(bool enable)
+{
+	StringMapSnapshot snapshot = g_GameConVars.Snapshot();
+	for (int i = 0; i < snapshot.Length; i++)
+	{
+		int size = snapshot.KeyBufferSize(i);
+		char[] key = new char[size];
+		snapshot.GetKey(i, key, size);
+		
+		if (enable)
+			ConVars_Enable(key);
+		else
+			ConVars_Disable(key);
+	}
+	delete snapshot;
+}
+
+void ConVars_Enable(const char[] name)
+{
+	ConVarInfo info;
+	if (g_GameConVars.GetArray(name, info, sizeof(info)) && !info.enabled)
+	{
+		ConVar convar = FindConVar(info.name);
+		
+		//Store the current value so we can later reset the ConVar to it
+		convar.GetString(info.initialValue, sizeof(info.initialValue));
+		info.enabled = true;
+		g_GameConVars.SetArray(name, info, sizeof(info));
+		
+		//Update the current value
+		convar.SetString(info.value);
+		convar.AddChangeHook(OnConVarChanged);
+	}
+}
+
+void ConVars_Disable(const char[] name)
+{
+	ConVarInfo info;
+	if (g_GameConVars.GetArray(name, info, sizeof(info)) && info.enabled)
+	{
+		ConVar convar = FindConVar(info.name);
+		
+		info.enabled = false;
+		g_GameConVars.SetArray(name, info, sizeof(info));
+		
+		//Restore the convar value
+		convar.RemoveChangeHook(OnConVarChanged);
+		convar.SetString(info.initialValue);
+	}
+}
+
+public void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
+{
+	char name[64];
+	convar.GetName(name, sizeof(name));
+	
+	ConVarInfo info;
+	if (g_GameConVars.GetArray(name, info, sizeof(info)))
+	{
+		if (!StrEqual(newValue, info.value))
+		{
+			strcopy(info.initialValue, sizeof(info.initialValue), newValue);
+			g_GameConVars.SetArray(name, info, sizeof(info));
+			
+			//Restore our value if needed
+			if (info.enforce)
+				convar.SetString(info.value);
+		}
+	}
 }

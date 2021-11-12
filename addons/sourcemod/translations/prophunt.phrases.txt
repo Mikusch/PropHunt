@@ -42,4 +42,9 @@
 	{
 		"en"		"Failed to query your client for r_staticpropinfo."
 	}
+	
+	"Prop Controls"
+	{
+		"en"		"%%+attack%% PROP LOCK %%+attack2%% THIRDPERSON %%+reload%% SELECT PROP"
+	}
 }

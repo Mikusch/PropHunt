@@ -116,9 +116,14 @@ public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroad
 			QueryClientConVar(client, "r_staticpropinfo", ConVarQuery_StaticPropInfo);
 			
 			// Freeze hunters so that props can hide
-			if (g_CurrentMapConfig.hunter_setup_freeze && PHPlayer(client).IsHunter())
+			if (PHPlayer(client).IsHunter() && g_CurrentMapConfig.hunter_setup_freeze)
 			{
 				SetEntityMoveType(client, MOVETYPE_NONE);
+			}
+			
+			if (PHPlayer(client).IsProp())
+			{
+				ShowKeyHintText(client, "%t", "Prop Controls");
 			}
 		}
 	}
@@ -140,53 +145,4 @@ public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroad
 		HookSingleEntityOutput(timer, "OnSetupFinished", OnSetupFinished, true);
 		HookSingleEntityOutput(timer, "OnFinished", OnRoundFinished, true);
 	}
-}
-
-public Action OnSetupFinished(const char[] output, int caller, int activator, float delay)
-{
-	g_InSetup = false;
-	
-	// Make all Hunters move
-	for (int client = 1; client <= MaxClients; client++)
-	{
-		if (IsClientInGame(client) && !IsFakeClient(client))
-		{
-			if (PHPlayer(client).IsHunter())
-				SetEntityMoveType(client, MOVETYPE_WALK);
-		}
-	}
-	
-	// Trigger named relay
-	if (g_CurrentMapConfig.relay_name[0] != '\0')
-	{
-		int relay = MaxClients + 1;
-		while ((relay = FindEntityByClassname(relay, "logic_relay")) != -1)
-		{
-			char name[64];
-			GetEntPropString(relay, Prop_Data, "m_iName", name, sizeof(name));
-			
-			if (strcmp(name, g_CurrentMapConfig.relay_name) == 0)
-				AcceptEntityInput(relay, "Trigger");
-		}
-	}
-	
-	// Open all doors in the map
-	if (g_CurrentMapConfig.open_doors_after_setup)
-	{
-		int door = MaxClients + 1;
-		while ((door = FindEntityByClassname(door, "func_door")) != -1)
-		{
-			AcceptEntityInput(door, "Open");
-		}
-	}
-	
-	return Plugin_Continue;
-}
-
-public Action OnRoundFinished(const char[] output, int caller, int activator, float delay)
-{
-	ForceRoundWin(TFTeam_Props);
-	RemoveEntity(caller);
-	
-	return Plugin_Continue;
 }

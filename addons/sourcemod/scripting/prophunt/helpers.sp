@@ -205,3 +205,15 @@ void ForceRoundWin(TFTeam team)
 			RemoveEntity(win);
 	}
 }
+
+void ShowKeyHintText(int client, const char[] format, any...)
+{
+	char buffer[256];
+	SetGlobalTransTarget(client);
+	VFormat(buffer, sizeof(buffer), format, 3);
+	
+	BfWrite bf = UserMessageToBfWrite(StartMessageOne("KeyHintText", client));
+	bf.WriteByte(1);	//One message
+	bf.WriteString(buffer);
+	EndMessage();
+}

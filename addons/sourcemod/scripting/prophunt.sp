@@ -124,8 +124,15 @@ public void OnPluginStart()
 	}
 }
 
+public void OnPluginEnd()
+{
+	ConVars_ToggleAll(false);
+}
+
 public void OnMapStart()
 {
+	ConVars_ToggleAll(true);
+	
 	g_CurrentMapConfig.hunter_setup_freeze = ph_hunter_setup_freeze.BoolValue;
 	g_CurrentMapConfig.open_doors_after_setup = ph_open_doors_after_setup.BoolValue;
 	g_CurrentMapConfig.setup_time = ph_setup_time.IntValue;
@@ -141,6 +148,15 @@ public void OnMapStart()
 			g_CurrentMapConfig.ReadFromKv(kv);
 		
 		delete kv;
+	}
+}
+
+public void OnEntityCreated(int entity, const char[] classname)
+{
+	// Prevent arena from trying to enable the control point
+	if (strcmp(classname, "tf_logic_arena") == 0)
+	{
+		DispatchKeyValue(entity, "CapEnableDelay", "0");
 	}
 }
 
@@ -334,4 +350,53 @@ public Action Timer_SetForcedTauntCam(Handle timer, int userid)
 		
 		TF2_AddCondition(client, TFCond_AfterburnImmune);
 	}
+}
+
+public Action OnSetupFinished(const char[] output, int caller, int activator, float delay)
+{
+	g_InSetup = false;
+	
+	// Make all Hunters move
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		if (IsClientInGame(client) && !IsFakeClient(client))
+		{
+			if (PHPlayer(client).IsHunter())
+				SetEntityMoveType(client, MOVETYPE_WALK);
+		}
+	}
+	
+	// Trigger named relay
+	if (g_CurrentMapConfig.relay_name[0] != '\0')
+	{
+		int relay = MaxClients + 1;
+		while ((relay = FindEntityByClassname(relay, "logic_relay")) != -1)
+		{
+			char name[64];
+			GetEntPropString(relay, Prop_Data, "m_iName", name, sizeof(name));
+			
+			if (strcmp(name, g_CurrentMapConfig.relay_name) == 0)
+				AcceptEntityInput(relay, "Trigger");
+		}
+	}
+	
+	// Open all doors in the map
+	if (g_CurrentMapConfig.open_doors_after_setup)
+	{
+		int door = MaxClients + 1;
+		while ((door = FindEntityByClassname(door, "func_door")) != -1)
+		{
+			AcceptEntityInput(door, "Open");
+		}
+	}
+	
+	return Plugin_Continue;
+}
+
+public Action OnRoundFinished(const char[] output, int caller, int activator, float delay)
+{
+	ForceRoundWin(TFTeam_Props);
+	RemoveEntity(caller);
+	
+	return Plugin_Continue;
 }
