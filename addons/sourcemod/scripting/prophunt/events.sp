@@ -40,6 +40,8 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 	
 	if (PHPlayer(client).IsProp())
 	{
+		AcceptEntityInput(client, "DisableShadow");
+		
 		// Restore third-person setting to props
 		CreateTimer(0.1, Timer_SetForcedTauntCam, userid);
 		
@@ -52,9 +54,7 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 		}
 	}
 	
-	// Always spawn players with their default model
-	SetVariantString("");
-	AcceptEntityInput(client, "SetCustomModel");
+	ClearCustomModel(client);
 }
 
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
@@ -105,6 +105,8 @@ public void Event_PostInventoryApplication(Event event, const char[] name, bool 
 
 public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
+	g_InSetup = false;
+	
 	for (int client = 1; client <= MaxClients; client++)
 	{
 		PHPlayer(client).Reset();

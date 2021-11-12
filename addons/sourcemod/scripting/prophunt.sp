@@ -361,6 +361,19 @@ void SetCustomModel(int client, const char[] model)
 	PrintToChat(client, "%t", "Selected Prop", model);
 	
 	SetEntProp(client, Prop_Data, "m_bloodColor", DONT_BLEED);
+	
+	LogMessage("[PROP HUNT] %N chose prop \"%s\"", client, model);
+}
+
+void ClearCustomModel(int client)
+{
+	SetVariantString("");
+	AcceptEntityInput(client, "SetCustomModel");
+	
+	SetVariantString("0 0 0");
+	AcceptEntityInput(client, "SetCustomModelOffset");
+	
+	AcceptEntityInput(client, "ClearCustomModelRotation");
 }
 
 public void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue)

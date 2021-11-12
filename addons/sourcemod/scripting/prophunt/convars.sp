@@ -33,9 +33,9 @@ void ConVars_Initialize()
 	ph_prop_min_size = CreateConVar("ph_prop_min_size", "50.0", "Minimum size of props to be able to select them.");
 	ph_prop_max_size = CreateConVar("ph_prop_max_size", "400.0", "Maximum size of props to be able to select them.");
 	ph_prop_max_select_distance = CreateConVar("ph_prop_max_select_distance", "128.0", "Players must have at least this distance to the prop to be able to select it.");
-	ph_hunter_damagemod_guns = CreateConVar("ph_hunter_damagemod_guns", "0.5", "Modifier of damage taken from gun-based weapons.");
-	ph_hunter_damagemod_melee = CreateConVar("ph_hunter_damagemod_melee", "0.25", "Modifier of damage taken from melee-based weapons.");
-	ph_hunter_damage_flamethrower = CreateConVar("ph_hunter_damage_flamethrower", "2.0", "Amount of damage taken when using the flame thrower.");
+	ph_hunter_damagemod_guns = CreateConVar("ph_hunter_damagemod_guns", "0.4", "Modifier of damage taken from gun-based weapons.");
+	ph_hunter_damagemod_melee = CreateConVar("ph_hunter_damagemod_melee", "0.2", "Modifier of damage taken from melee-based weapons.");
+	ph_hunter_damage_flamethrower = CreateConVar("ph_hunter_damage_flamethrower", "1.0", "Amount of damage taken when using the flame thrower.");
 	ph_hunter_damage_grapplinghook = CreateConVar("ph_hunter_damage_grapplinghook", "15.0", "Amount of damage taken when using the grappling hook.");
 	
 	// These may be overridden by map configs
