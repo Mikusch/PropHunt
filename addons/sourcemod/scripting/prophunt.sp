@@ -239,6 +239,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	if (!PHPlayer(client).IsProp() || !IsPlayerAlive(client))
 		return Plugin_Continue;
 	
+	// TODO: Only allow unlocking by moving after the player has fully released their movement keys
 	static float latestUnlockTime[MAXPLAYERS + 1];
 	
 	// IN_ATTACK locks the player's prop view
@@ -311,6 +312,7 @@ public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int item
 		TF2Attrib_SetByDefIndex(entity, ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH, 0.0);
 	delete attributes;
 	
+	// TODO: Do this for ALL health sources
 	// Significantly reduce Medic's healing
 	if (strcmp(classname, "tf_weapon_medigun") == 0)
 	{
@@ -495,6 +497,7 @@ public Action Timer_SetForcedTauntCam(Handle timer, int userid)
 		SetVariantInt(PHPlayer(client).InForcedTauntCam);
 		AcceptEntityInput(client, "SetForcedTauntCam");
 		
+		// TODO: This is bad. Move this somewhere else or find a better way.
 		TF2_AddCondition(client, TFCond_AfterburnImmune);
 	}
 	
