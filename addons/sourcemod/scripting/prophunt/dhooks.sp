@@ -157,7 +157,7 @@ public MRESReturn DHook_CanPlayerMove_Post(int player, DHookReturn ret)
 
 public MRESReturn DHook_Spawn_Pre(int player)
 {
-	// player_spawn event gets fired too early to manipulate player class
+	// player_spawn event gets fired too early to manipulate player class properly
 	if (PHPlayer(player).IsProp())
 	{
 		// Check valid prop class

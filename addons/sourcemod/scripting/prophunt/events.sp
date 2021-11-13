@@ -74,10 +74,8 @@ public void Event_PostInventoryApplication(Event event, const char[] name, bool 
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	if (PHPlayer(client).IsProp())
 	{
-		// Force props to play Scout
-		// FIXME: This doesn't change the viewmodel
-		if (TF2_GetPlayerClass(client) != TFClass_Scout)
-			TF2_SetPlayerClass(client, TFClass_Scout, _, false);
+		// The game doesn't always remove weapons on its own, do it ourselves
+		TF2_RemoveAllWeapons(client);
 	}
 	else if (PHPlayer(client).IsHunter())
 	{
