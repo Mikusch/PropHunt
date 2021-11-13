@@ -43,14 +43,6 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 		
 		// Restore third-person setting to props
 		CreateTimer(0.1, Timer_SetForcedTauntCam, userid);
-		
-		// FIXME: This works, but makes the player persist as scout.
-		// Passing persist = true will freeze the server.
-		if (TF2_GetPlayerClass(client) != TFClass_Scout)
-		{
-			TF2_SetPlayerClass(client, TFClass_Scout);
-			TF2_RespawnPlayer(client);
-		}
 	}
 	
 	ClearCustomModel(client);
@@ -84,6 +76,11 @@ public void Event_PostInventoryApplication(Event event, const char[] name, bool 
 	{
 		// Better than removing everything manually, this also removes wearables
 		SDKCall_RemoveAllWeapons(client);
+		
+		// Force props to play Scout
+		// FIXME: This doesn't change the viewmodel
+		if (TF2_GetPlayerClass(client) != TFClass_Scout)
+			TF2_SetPlayerClass(client, TFClass_Scout, _, false);
 	}
 	else if (PHPlayer(client).IsHunter())
 	{
