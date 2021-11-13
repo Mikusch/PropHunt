@@ -20,6 +20,23 @@
 // sizeof(WeaponData_t)
 #define WEAPONDATA_SIZE	58
 
+static TFClassType g_ValidPropClasses[] = 
+{
+	TFClass_Scout, 
+};
+
+static TFClassType g_ValidHunterClasses[] = 
+{
+	TFClass_Scout, 
+	TFClass_Sniper, 
+	TFClass_Soldier, 
+	TFClass_DemoMan, 
+	TFClass_Medic, 
+	TFClass_Heavy, 
+	TFClass_Pyro, 
+	TFClass_Engineer, 
+};
+
 any Min(any a, any b)
 {
 	return (a <= b) ? a : b;
@@ -208,4 +225,34 @@ void ShowKeyHintText(int client, const char[] format, any...)
 	bf.WriteByte(1);	//One message
 	bf.WriteString(buffer);
 	EndMessage();
+}
+
+bool IsValidPropClass(TFClassType class)
+{
+	for (int i = 0; i < sizeof(g_ValidPropClasses); i++)
+	{
+		if (g_ValidPropClasses[i] == class)
+			return true;
+	}
+	return false;
+}
+
+TFClassType GetRandomPropClass()
+{
+	return g_ValidPropClasses[GetRandomInt(0, sizeof(g_ValidPropClasses) - 1)];
+}
+
+bool IsValidHunterClass(TFClassType class)
+{
+	for (int i = 0; i < sizeof(g_ValidHunterClasses); i++)
+	{
+		if (g_ValidHunterClasses[i] == class)
+			return true;
+	}
+	return false;
+}
+
+TFClassType GetRandomHunterClass()
+{
+	return g_ValidHunterClasses[GetRandomInt(0, sizeof(g_ValidHunterClasses) - 1)];
 }

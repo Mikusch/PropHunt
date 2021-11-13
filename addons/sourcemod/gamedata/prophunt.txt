@@ -44,6 +44,11 @@
 				"linux"		"163"
 				"windows"	"162"
 			}
+			"CBaseEntity::Spawn"
+			{
+				"linux"		"23"
+				"windows"	"22"
+			}
 			"CBaseEntity::GetDamageType"
 			{
 				"linux"		"128"
@@ -113,6 +118,13 @@
 				"signature"	"CTFPlayer::CanPlayerMove"
 				"callconv"	"thiscall"
 				"return"	"bool"
+				"this"		"entity"
+			}
+			"CBaseEntity::Spawn"
+			{
+				"offset"	"CBaseEntity::Spawn"
+				"hooktype"	"entity"
+				"return"	"void"
 				"this"		"entity"
 			}
 			"CTFWeaponBaseGun::FireProjectile"

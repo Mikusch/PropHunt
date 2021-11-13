@@ -17,6 +17,7 @@
 
 static DynamicHook g_DHookFireProjectile;
 static DynamicHook g_DHookSmack;
+static DynamicHook g_DHookSpawn;
 
 void DHooks_Initialize(GameData gamedata)
 {
@@ -24,8 +25,15 @@ void DHooks_Initialize(GameData gamedata)
 	DHooks_CreateDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHook_HookTarget_Pre, _);
 	DHooks_CreateDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHook_CanPlayerMove_Post);
 	
+	g_DHookSpawn = CreateDynamicHook(gamedata, "CBaseEntity::Spawn");
 	g_DHookFireProjectile = CreateDynamicHook(gamedata, "CTFWeaponBaseGun::FireProjectile");
 	g_DHookSmack = CreateDynamicHook(gamedata, "CTFWeaponBaseMelee::Smack");
+}
+
+void DHooks_HookClient(int client)
+{
+	if (g_DHookSpawn)
+		g_DHookSpawn.HookEntity(Hook_Pre, client, DHook_Spawn_Pre);
 }
 
 void DHooks_HookBaseGun(int weapon)
@@ -145,6 +153,27 @@ public MRESReturn DHook_CanPlayerMove_Post(int player, DHookReturn ret)
 	}
 	
 	return MRES_Ignored;
+}
+
+public MRESReturn DHook_Spawn_Pre(int player)
+{
+	// player_spawn event gets fired too early to manipulate player class
+	if (PHPlayer(player).IsProp())
+	{
+		// Check valid prop class
+		if (!IsValidPropClass(TF2_GetPlayerClass(player)))
+		{
+			TF2_SetPlayerClass(player, GetRandomPropClass(), _, false);
+		}
+	}
+	else if (PHPlayer(player).IsHunter())
+	{
+		// Check valid hunter class
+		if (!IsValidHunterClass(TF2_GetPlayerClass(player)))
+		{
+			TF2_SetPlayerClass(player, GetRandomHunterClass(), _, false);
+		}
+	}
 }
 
 public MRESReturn DHook_FireProjectile_Pre(int weapon, DHookReturn ret, DHookParam params)

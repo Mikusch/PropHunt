@@ -104,7 +104,6 @@ public void OnPluginStart()
 	
 	RegAdminCmd("ph_setprop", ConCmd_SetCustomModel, ADMFLAG_CHEATS);
 	
-	AddCommandListener(CommandListener_JoinClass, "joinclass");
 	AddCommandListener(CommandListener_Build, "build");
 	
 	g_PropConfigs = new StringMap();
@@ -216,6 +215,8 @@ public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname
 public void OnClientPutInServer(int client)
 {
 	PHPlayer(client).Reset();
+	
+	DHooks_HookClient(client);
 	
 	// Fixes arena HUD messing up
 	if (!IsFakeClient(client))
@@ -598,26 +599,6 @@ public Action OnControlPointMasterSpawnPost(int master)
 		SetVariantString(outputName);
 		AcceptEntityInput(arenaLogic, "AddOutput");
 	}
-}
-
-public Action CommandListener_JoinClass(int client, const char[] command, int argc)
-{
-	if (argc < 1)
-		return Plugin_Handled;
-	
-	char arg[32];
-	GetCmdArg(1, arg, sizeof(arg));
-	TFClassType class = TF2_GetClass(arg);
-	
-	// Hunters may not play as some of the classes
-	if (PHPlayer(client).IsHunter() && class == TFClass_Spy)
-	{
-		PrintCenterText(client, "%t", "Hunter Class Unavailable");
-		ShowVGUIPanel(client, TF2_GetClientTeam(client) == TFTeam_Red ? "class_red" : "class_blue");
-		return Plugin_Handled;
-	}
-	
-	return Plugin_Continue;
 }
 
 public Action CommandListener_Build(int client, const char[] command, int argc)
