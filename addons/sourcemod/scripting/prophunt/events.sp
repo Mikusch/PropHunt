@@ -74,9 +74,6 @@ public void Event_PostInventoryApplication(Event event, const char[] name, bool 
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	if (PHPlayer(client).IsProp())
 	{
-		// Better than removing everything manually, this also removes wearables
-		SDKCall_RemoveAllWeapons(client);
-		
 		// Force props to play Scout
 		// FIXME: This doesn't change the viewmodel
 		if (TF2_GetPlayerClass(client) != TFClass_Scout)

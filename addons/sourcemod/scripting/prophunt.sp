@@ -304,6 +304,15 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	return Plugin_Continue;
 }
 
+public Action TF2Items_OnGiveNamedItem(int client, char[] classname, int itemDefIndex, Handle &item)
+{
+	// Make sure that props stay naked
+	if (PHPlayer(client).IsProp())
+		return Plugin_Handled;
+	
+	return Plugin_Continue;
+}
+
 public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int itemDefIndex, int level, int quality, int entity)
 {
 	// Is CTFWeaponBaseGun?
@@ -316,9 +325,12 @@ public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int item
 	
 	// Nullify cheating attributes
 	ArrayList attributes = TF2Econ_GetItemStaticAttributes(itemDefIndex);
-	int index = attributes.FindValue(ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH);
-	if (index != -1)
-		TF2Attrib_SetByDefIndex(entity, ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH, 0.0);
+	if (attributes)
+	{
+		int index = attributes.FindValue(ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH);
+		if (index != -1)
+			TF2Attrib_SetByDefIndex(entity, ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH, 0.0);
+	}
 	delete attributes;
 	
 	// TODO: Do this for ALL health sources

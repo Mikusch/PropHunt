@@ -15,7 +15,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-static Handle g_SDKCallRemoveAllWeapons;
 static Handle g_SDKCallSetSwitchTeams;
 static Handle g_SDKCallGetProjectileDamage;
 static Handle g_SDKCallGetMeleeDamage;
@@ -23,23 +22,10 @@ static Handle g_SDKCallGetDamageType;
 
 void SDKCalls_Initialize(GameData gamedata)
 {
-	g_SDKCallRemoveAllWeapons = PrepSDKCall_RemoveAllWeapons(gamedata);
 	g_SDKCallSetSwitchTeams = PrepSDKCall_SetSwitchTeams(gamedata);
 	g_SDKCallGetProjectileDamage = PrepSDKCall_GetProjectileDamage(gamedata);
 	g_SDKCallGetMeleeDamage = PrepSDKCall_GetMeleeDamage(gamedata);
 	g_SDKCallGetDamageType = PrepSDKCall_GetDamageType(gamedata);
-}
-
-static Handle PrepSDKCall_RemoveAllWeapons(GameData gamedata)
-{
-	StartPrepSDKCall(SDKCall_Player);
-	PrepSDKCall_SetFromConf(gamedata, SDKConf_Virtual, "CTFPlayer::RemoveAllWeapons");
-	
-	Handle call = EndPrepSDKCall();
-	if (!call)
-		LogMessage("Failed to create SDK call: CTFPlayer::RemoveAllWeapons");
-	
-	return call;
 }
 
 static Handle PrepSDKCall_SetSwitchTeams(GameData gamedata)
@@ -95,12 +81,6 @@ static Handle PrepSDKCall_GetDamageType(GameData gamedata)
 		LogMessage("Failed to create SDK call: CBaseEntity::GetDamageType");
 	
 	return call;
-}
-
-void SDKCall_RemoveAllWeapons(int player)
-{
-	if (g_SDKCallRemoveAllWeapons)
-		SDKCall(g_SDKCallRemoveAllWeapons, player);
 }
 
 void SDKCall_SetSwitchTeams(bool shouldSwitch)

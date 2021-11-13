@@ -39,11 +39,6 @@
 		}
 		"Offsets"
 		{
-			"CTFPlayer::RemoveAllWeapons"
-			{
-				"linux"		"308"
-				"windows"	"307"
-			}
 			"CTeamplayRules::SetSwitchTeams"
 			{
 				"linux"		"163"
