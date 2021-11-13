@@ -49,6 +49,11 @@
 				"linux"		"163"
 				"windows"	"162"
 			}
+			"CBaseEntity::GetDamageType"
+			{
+				"linux"		"128"
+				"windows"	"127"
+			}
 			"CTFWeaponBaseGun::FireProjectile"
 			{
 				"linux"		"470"
