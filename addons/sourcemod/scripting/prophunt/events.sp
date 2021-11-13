@@ -37,7 +37,6 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 		return;
 	}
 	
-	
 	if (PHPlayer(client).IsProp())
 	{
 		AcceptEntityInput(client, "DisableShadow");
@@ -107,6 +106,18 @@ public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBr
 {
 	g_InSetup = false;
 	
+	// Create a team_control_point_master if it doesn't exist already
+	if (FindEntityByClassname(MaxClients + 1, "team_control_point_master") == -1)
+	{
+		int master = CreateEntityByName("team_control_point_master");
+		if (master != -1)
+		{
+			DispatchKeyValue(master, "targetname", "ph_control_point_master");
+			DispatchKeyValue(master, "StartDisabled", "0");
+			DispatchSpawn(master);
+		}
+	}
+	
 	for (int client = 1; client <= MaxClients; client++)
 	{
 		PHPlayer(client).Reset();
@@ -121,6 +132,8 @@ public void Event_TeamplayRoundWin(Event event, const char[] name, bool dontBroa
 
 public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
+	g_InSetup = true;
+	
 	for (int client = 1; client <= MaxClients; client++)
 	{
 		if (IsClientInGame(client) && !IsFakeClient(client))
@@ -128,28 +141,9 @@ public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroad
 			// Kick cheaters out of the game
 			QueryClientConVar(client, "r_staticpropinfo", ConVarQuery_StaticPropInfo);
 			
+			// Show prop controls
 			if (PHPlayer(client).IsProp())
-			{
 				ShowKeyHintText(client, "%t", "Prop Controls");
-			}
 		}
-	}
-	
-	// Create the setup and round timer
-	int timer = CreateEntityByName("team_round_timer");
-	
-	SetEntProp(timer, Prop_Data, "m_nTimerInitialLength", g_CurrentMapConfig.round_time);
-	SetEntProp(timer, Prop_Data, "m_nSetupTimeLength", g_CurrentMapConfig.setup_time);
-	DispatchKeyValue(timer, "auto_countdown", "1");
-	DispatchKeyValue(timer, "show_in_hud", "1");
-	
-	if (DispatchSpawn(timer))
-	{
-		g_InSetup = true;
-		
-		AcceptEntityInput(timer, "Enable");
-		
-		HookSingleEntityOutput(timer, "OnSetupFinished", OnSetupFinished, true);
-		HookSingleEntityOutput(timer, "OnFinished", OnRoundFinished, true);
 	}
 }

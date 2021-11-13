@@ -35,6 +35,8 @@
 #define ITEM_DEFINDEX_GRAPPLINGHOOK			1152
 #define ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH	269
 
+#define ROUND_TIMER_TARGETNAME	"ph_round_timer"
+
 #define CONFIG_FILEPATH	"configs/prophunt/maps/%s"
 
 #define LOCK_SOUND		"buttons/button3.wav"
@@ -191,6 +193,10 @@ public void OnEntityCreated(int entity, const char[] classname)
 		// Remove all capture areas, we don't need them
 		RemoveEntity(entity);
 	}
+	else if (strcmp(classname, "team_control_point_master") == 0)
+	{
+		SDKHook(entity, SDKHook_SpawnPost, OnControlPointMasterSpawnPost);
+	}
 }
 
 public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname, bool &result)
@@ -210,6 +216,10 @@ public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname
 public void OnClientPutInServer(int client)
 {
 	PHPlayer(client).Reset();
+	
+	// Fixes arena HUD messing up
+	if (!IsFakeClient(client))
+		FindConVar("tf_arena_round_time").ReplicateToClient(client, "1");
 }
 
 void TogglePropLock(int client, bool toggle)
@@ -541,12 +551,41 @@ public Action OnSetupFinished(const char[] output, int caller, int activator, fl
 	return Plugin_Continue;
 }
 
-public Action OnRoundFinished(const char[] output, int caller, int activator, float delay)
+public Action OnControlPointMasterSpawnPost(int master)
 {
-	ForceRoundWin(TFTeam_Props);
-	RemoveEntity(caller);
+	// Create the setup and round timer
+	int timer = CreateEntityByName("team_round_timer");
+	if (timer != -1)
+	{
+		SetEntProp(timer, Prop_Data, "m_nTimerInitialLength", g_CurrentMapConfig.round_time);
+		SetEntProp(timer, Prop_Data, "m_nSetupTimeLength", g_CurrentMapConfig.setup_time);
+		DispatchKeyValue(timer, "targetname", ROUND_TIMER_TARGETNAME);
+		DispatchKeyValue(timer, "auto_countdown", "1");
+		
+		if (DispatchSpawn(timer))
+			HookSingleEntityOutput(timer, "OnSetupFinished", OnSetupFinished, true);
+	}
 	
-	return Plugin_Continue;
+	int arenaLogic = FindEntityByClassname(MaxClients + 1, "tf_logic_arena");
+	if (arenaLogic != -1)
+	{
+		char outputName[64];
+		
+		char masterName[64];
+		GetEntPropString(master, Prop_Data, "m_iName", masterName, sizeof(masterName));
+		
+		Format(outputName, sizeof(outputName), "OnFinished %s:SetWinnerAndForceCaps:%d:0:-1", masterName, TFTeam_Props);
+		SetVariantString(outputName);
+		AcceptEntityInput(timer, "AddOutput");
+		
+		Format(outputName, sizeof(outputName), "OnArenaRoundStart %s:ShowInHUD:1:0:-1", ROUND_TIMER_TARGETNAME);
+		SetVariantString(outputName);
+		AcceptEntityInput(arenaLogic, "AddOutput");
+		
+		Format(outputName, sizeof(outputName), "OnArenaRoundStart %s:Enable:0:0:-1", ROUND_TIMER_TARGETNAME);
+		SetVariantString(outputName);
+		AcceptEntityInput(arenaLogic, "AddOutput");
+	}
 }
 
 public Action CommandListener_JoinClass(int client, const char[] command, int argc)

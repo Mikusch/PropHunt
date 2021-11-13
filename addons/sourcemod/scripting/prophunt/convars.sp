@@ -53,7 +53,7 @@ void ConVars_Initialize()
 	ConVars_Track("tf_arena_use_queue", "0");
 	ConVars_Track("tf_arena_first_blood", "0");
 	ConVars_Track("mp_show_voice_icons", "0");
-	ConVars_Track("mp_forcecamera", "0");
+	ConVars_Track("mp_forcecamera", "1");
 	ConVars_Track("sv_gravity", "500");
 }
 
