@@ -386,6 +386,9 @@ bool SearchForEntityProps(int client)
 		PHPlayer(client).PropIndex = EntIndexToEntRef(entity);
 		SetCustomModel(client, model);
 		
+		SetEntProp(client, Prop_Send, "m_bForcedSkin", true);
+		SetEntProp(client, Prop_Send, "m_nForcedSkin", GetEntProp(entity, Prop_Data, "m_nSkin"));
+		
 		return true;
 	}
 	
@@ -499,6 +502,9 @@ void ClearCustomModel(int client)
 	
 	SetVariantInt(1);
 	AcceptEntityInput(client, "SetCustomModelVisibletoSelf");
+	
+	SetEntProp(client, Prop_Send, "m_bForcedSkin", false);
+	SetEntProp(client, Prop_Send, "m_nForcedSkin", 0);
 }
 
 public void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue)
