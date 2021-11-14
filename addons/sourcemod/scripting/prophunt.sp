@@ -620,6 +620,7 @@ public bool EnumerateTriggers(int entity, int client)
 				trace = TR_TraceRayFilterEx(origin, endPos, MASK_PLAYERSOLID, RayType_EndPoint, TraceEntityFilter_IgnoreEntity, client);
 				if (TR_DidHit(trace))
 					didHit = false;
+				delete trace;
 			}
 			
 			g_DisallowPropLocking = didHit;
