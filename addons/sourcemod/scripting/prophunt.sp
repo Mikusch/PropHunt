@@ -192,7 +192,11 @@ public void OnEntityCreated(int entity, const char[] classname)
 	}
 	else if (strcmp(classname, "trigger_capture_area") == 0)
 	{
-		SDKHook(entity, SDKHook_StartTouch, OnTriggerCaptureAreaStartTouch);
+		RemoveEntity(entity);
+	}
+	else if (strcmp(classname, "prop_dynamic") == 0)
+	{
+		SDKHook(entity, SDKHook_SpawnPost, OnPropDynamicSpawnPost);
 	}
 }
 
@@ -586,16 +590,30 @@ public Action OnRoundTimerFinished(const char[] output, int caller, int activato
 	SetWinningTeam(TFTeam_Props);
 }
 
-public Action OnTriggerCaptureAreaStartTouch(int trigger, int other)
+public void OnPropDynamicSpawnPost(int prop)
+{
+	char model[PLATFORM_MAX_PATH];
+	GetEntPropString(prop, Prop_Data, "m_ModelName", model, sizeof(model));
+	
+	// Hook the control point prop
+	if (strcmp(model, "models/props_gameplay/cap_point_base.mdl") == 0)
+	{
+		SDKHook(prop, SDKHook_StartTouch, OnControlPointStartTouch);
+	}
+}
+
+public Action OnControlPointStartTouch(int prop, int other)
 {
 	// Players touching the capture area receive a health bonus
 	if (IsEntityClient(other) && !PHPlayer(other).HasReceivedBonus)
 	{
-		CastSelfHeal(other);
-		EmitGameSoundToAll("Halloween.spell_overheal", other);
-		PrintToChat(other, "%t", "Control Point Bonus Received");
-		
-		PHPlayer(other).HasReceivedBonus = true;
+		if (SDKCall_CastSelfHeal(other))
+		{
+			EmitGameSoundToAll("Halloween.spell_overheal", other);
+			PrintToChat(other, "%t", "Control Point Bonus Received");
+			
+			PHPlayer(other).HasReceivedBonus = true;
+		}
 	}
 	
 	// Do not allow capturing
@@ -669,6 +687,9 @@ public Action ConCmd_SetCustomModel(int client, int args)
 
 public Action Timer_RefreshControlPointBonus(Handle timer)
 {
+	if (timer != g_ControlPointBonusTimer)
+		return Plugin_Stop;
+	
 	for (int client = 1; client <= MaxClients; client++)
 	{
 		PHPlayer(client).HasReceivedBonus = false;

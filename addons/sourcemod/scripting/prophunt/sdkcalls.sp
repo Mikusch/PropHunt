@@ -87,7 +87,7 @@ static Handle PrepSDKCall_GetDamageType(GameData gamedata)
 
 static Handle PrepSDKCall_CastSelfHeal(GameData gamedata)
 {
-	StartPrepSDKCall(SDKCall_Entity);
+	StartPrepSDKCall(SDKCall_Static);
 	PrepSDKCall_SetFromConf(gamedata, SDKConf_Signature, "CTFSpellBook::CastSelfHeal");
 	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
 	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_ByValue);
@@ -129,10 +129,10 @@ int SDKCall_GetDamageType(int entity)
 		return DMG_GENERIC;
 }
 
-bool SDKCall_CastSelfHeal(int spellbook, int player)
+bool SDKCall_CastSelfHeal(int player)
 {
 	if (g_SDKCallCastSelfHeal)
-		return SDKCall(g_SDKCallCastSelfHeal, spellbook, player);
+		return SDKCall(g_SDKCallCastSelfHeal, player);
 	else
 		return false;
 }

@@ -22,20 +22,20 @@
 // Valid prop classes
 static TFClassType g_ValidPropClasses[] = 
 {
-	TFClass_Scout, 
+	TFClass_Scout,
 };
 
 // Valid hunter classes
 static TFClassType g_ValidHunterClasses[] = 
 {
-	TFClass_Scout, 
-	TFClass_Sniper, 
-	TFClass_Soldier, 
-	TFClass_DemoMan, 
-	TFClass_Medic, 
-	TFClass_Heavy, 
-	TFClass_Pyro, 
-	TFClass_Engineer, 
+	TFClass_Scout,
+	TFClass_Sniper,
+	TFClass_Soldier,
+	TFClass_DemoMan,
+	TFClass_Medic,
+	TFClass_Heavy,
+	TFClass_Pyro,
+	TFClass_Engineer,
 };
 
 any Min(any a, any b)
@@ -226,17 +226,6 @@ void ShowKeyHintText(int client, const char[] format, any...)
 	bf.WriteByte(1);	//One message
 	bf.WriteString(buffer);
 	EndMessage();
-}
-
-void CastSelfHeal(int player)
-{
-	// Gives the player overheal and knocks back nearby enemies
-	int spellbook = CreateEntityByName("tf_weapon_spellbook");
-	if (spellbook != -1)
-	{
-		SDKCall_CastSelfHeal(spellbook, player);
-		RemoveEntity(spellbook);
-	}
 }
 
 void SetWinningTeam(TFTeam team)
