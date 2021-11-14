@@ -256,7 +256,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 		// Check if the player is currently above a trigger_hurt
 		float origin[3];
 		GetClientAbsOrigin(client, origin);
-		TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, EnumerateTriggers);
+		TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, EnumerateTriggers, client);
 		
 		// Don't allow them to lock to avoid props hovering above deadly areas
 		if (!g_DisallowPropLocking)
@@ -596,16 +596,31 @@ public Action OnTriggerCaptureAreaStartTouch(int trigger, int other)
 	return Plugin_Handled;
 }
 
-public bool EnumerateTriggers(int entity)
+public bool EnumerateTriggers(int entity, int client)
 {
 	char classname[16];
 	if (GetEntityClassname(entity, classname, sizeof(classname)) && strcmp(classname, "trigger_hurt") == 0)
 	{
 		if (!GetEntProp(entity, Prop_Data, "m_bDisabled"))
 		{
-			Handle trace = TR_ClipCurrentRayToEntityEx(MASK_ALL, entity);
+			Handle trace = TR_ClipCurrentRayToEntityEx(MASK_PLAYERSOLID, entity);
 			bool didHit = TR_DidHit(trace);
+			
+			float endPos[3];
+			TR_GetEndPosition(endPos, trace);
+			
 			delete trace;
+			
+			if (didHit)
+			{
+				float origin[3];
+				GetClientAbsOrigin(client, origin);
+				
+				// If it hit, do a second trace to determine whether the player is directly above the trigger
+				trace = TR_TraceRayFilterEx(origin, endPos, MASK_PLAYERSOLID, RayType_EndPoint, TraceEntityFilter_IgnoreEntity, client);
+				if (TR_DidHit(trace))
+					didHit = false;
+			}
 			
 			g_DisallowPropLocking = didHit;
 			return !didHit;
