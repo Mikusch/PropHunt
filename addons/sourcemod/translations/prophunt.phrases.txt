@@ -52,4 +52,14 @@
 	{
 		"en"		"This class is unavailable on the Hunter team."
 	}
+	
+	"Control Point Bonus Refreshed"
+	{
+		"en"		"Control point bonus refreshed!"
+	}
+	
+	"Control Point Bonus Received"
+	{
+		"en"		"Control point bonus! Health restored."
+	}
 }

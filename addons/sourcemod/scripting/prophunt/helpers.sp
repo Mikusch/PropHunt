@@ -17,14 +17,15 @@
 
 #define FLOAT_EPSILON	0.0001
 
-// sizeof(WeaponData_t)
-#define WEAPONDATA_SIZE	58
+#define WEAPONDATA_SIZE	58	// sizeof(WeaponData_t)
 
+// Valid prop classes
 static TFClassType g_ValidPropClasses[] = 
 {
 	TFClass_Scout, 
 };
 
+// Valid hunter classes
 static TFClassType g_ValidHunterClasses[] = 
 {
 	TFClass_Scout, 
@@ -225,6 +226,17 @@ void ShowKeyHintText(int client, const char[] format, any...)
 	bf.WriteByte(1);	//One message
 	bf.WriteString(buffer);
 	EndMessage();
+}
+
+void CastSelfHeal(int player)
+{
+	// Gives the player overheal and knocks back nearby enemies
+	int spellbook = CreateEntityByName("tf_weapon_spellbook");
+	if (spellbook != -1)
+	{
+		SDKCall_CastSelfHeal(spellbook, player);
+		RemoveEntity(spellbook);
+	}
 }
 
 bool IsValidPropClass(TFClassType class)

@@ -36,13 +36,14 @@ void ConVars_Initialize()
 	ph_hunter_damagemod_guns = CreateConVar("ph_hunter_damagemod_guns", "0.4", "Modifier of damage taken from gun-based weapons.");
 	ph_hunter_damagemod_melee = CreateConVar("ph_hunter_damagemod_melee", "0.2", "Modifier of damage taken from melee-based weapons.");
 	ph_hunter_damage_flamethrower = CreateConVar("ph_hunter_damage_flamethrower", "1.0", "Amount of damage taken when using the flame thrower.");
-	ph_hunter_damage_grapplinghook = CreateConVar("ph_hunter_damage_grapplinghook", "15.0", "Amount of damage taken when using the grappling hook.");
+	ph_hunter_damage_grapplinghook = CreateConVar("ph_hunter_damage_grapplinghook", "10.0", "Amount of damage taken when using the grappling hook.");
+	ph_bonus_refresh_time = CreateConVar("ph_bonus_refresh_time", "60.0", "Time in seconds for control point bonus to refresh.");
 	
 	// These may be overridden by map configs
 	ph_hunter_setup_freeze = CreateConVar("ph_hunter_setup_freeze", "1", "If set to 1, Hunters cannot move during setup time.");
 	ph_open_doors_after_setup = CreateConVar("ph_open_doors_after_setup", "1", "If set to 1, all doors in the map will open after setup time.");
 	ph_setup_time = CreateConVar("ph_setup_time", "30", "Length of the hiding time for props.");
-	ph_round_time = CreateConVar("ph_round_time", "175", "Length of the round time.");
+	ph_round_time = CreateConVar("ph_round_time", "180", "Length of the round time.");
 	ph_relay_name = CreateConVar("ph_relay_name", "hidingover", "Name of the relay to fire after setup time.");
 	
 	g_GameConVars = new StringMap();

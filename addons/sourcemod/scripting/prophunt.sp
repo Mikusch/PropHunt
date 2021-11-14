@@ -54,6 +54,7 @@ enum PHPropType
 
 // Globals
 bool g_InSetup;
+Handle g_ControlPointBonusTimer;
 
 // Offsets
 int g_OffsetWeaponMode;
@@ -69,6 +70,7 @@ ConVar ph_hunter_damagemod_melee;
 ConVar ph_hunter_damage_flamethrower;
 ConVar ph_hunter_damage_grapplinghook;
 ConVar ph_hunter_setup_freeze;
+ConVar ph_bonus_refresh_time;
 ConVar ph_open_doors_after_setup;
 ConVar ph_setup_time;
 ConVar ph_round_time;
@@ -189,8 +191,7 @@ public void OnEntityCreated(int entity, const char[] classname)
 	}
 	else if (strcmp(classname, "trigger_capture_area") == 0)
 	{
-		// Remove all capture areas, we don't need them
-		RemoveEntity(entity);
+		SDKHook(entity, SDKHook_StartTouch, OnTriggerCaptureAreaStartTouch);
 	}
 	else if (strcmp(classname, "team_control_point_master") == 0)
 	{
@@ -334,7 +335,6 @@ public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int item
 	}
 	delete attributes;
 	
-	// TODO: Do this for ALL health sources
 	// Significantly reduce Medic's healing
 	if (strcmp(classname, "tf_weapon_medigun") == 0)
 	{
@@ -518,9 +518,6 @@ public Action Timer_SetForcedTauntCam(Handle timer, int userid)
 	{
 		SetVariantInt(PHPlayer(client).InForcedTauntCam);
 		AcceptEntityInput(client, "SetForcedTauntCam");
-		
-		// TODO: This is bad. Move this somewhere else or find a better way.
-		TF2_AddCondition(client, TFCond_AfterburnImmune);
 	}
 	
 	return Plugin_Continue;
@@ -529,6 +526,10 @@ public Action Timer_SetForcedTauntCam(Handle timer, int userid)
 public Action OnSetupFinished(const char[] output, int caller, int activator, float delay)
 {
 	g_InSetup = false;
+	
+	// Setup control point bonus
+	g_ControlPointBonusTimer = CreateTimer(ph_bonus_refresh_time.FloatValue, Timer_RefreshControlPointBonus, _, TIMER_REPEAT);
+	TriggerTimer(g_ControlPointBonusTimer);
 	
 	// Refresh speed of all clients to allow hunters to move
 	for (int client = 1; client <= MaxClients; client++)
@@ -562,6 +563,22 @@ public Action OnSetupFinished(const char[] output, int caller, int activator, fl
 	}
 	
 	return Plugin_Continue;
+}
+
+public Action OnTriggerCaptureAreaStartTouch(int trigger, int other)
+{
+	// Players touching the capture area receive a health bonus
+	if (IsEntityClient(other) && !PHPlayer(other).HasReceivedBonus)
+	{
+		CastSelfHeal(other);
+		EmitGameSoundToAll("Halloween.spell_overheal", other);
+		PrintToChat(other, "%t", "Control Point Bonus Received");
+		
+		PHPlayer(other).HasReceivedBonus = true;
+	}
+	
+	// Do not allow capturing
+	return Plugin_Handled;
 }
 
 public Action OnControlPointMasterSpawnPost(int master)
@@ -629,4 +646,16 @@ public Action ConCmd_SetCustomModel(int client, int args)
 	SetCustomModel(client, model);
 	
 	return Plugin_Handled;
+}
+
+public Action Timer_RefreshControlPointBonus(Handle timer)
+{
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		PHPlayer(client).HasReceivedBonus = false;
+	}
+	
+	PrintToChatAll("Control Point Bonus Refreshed");
+	
+	return Plugin_Continue;
 }

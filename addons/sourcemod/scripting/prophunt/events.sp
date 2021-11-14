@@ -74,7 +74,7 @@ public void Event_PostInventoryApplication(Event event, const char[] name, bool 
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	if (PHPlayer(client).IsProp())
 	{
-		// The game doesn't always remove weapons on its own, do it ourselves
+		// Fixes an exploit where you could keep your hunter weapons as a prop
 		TF2_RemoveAllWeapons(client);
 	}
 	else if (PHPlayer(client).IsHunter())
@@ -98,6 +98,8 @@ public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBr
 {
 	g_InSetup = false;
 	
+	delete g_ControlPointBonusTimer;
+	
 	// Create a team_control_point_master if it doesn't exist already
 	if (FindEntityByClassname(MaxClients + 1, "team_control_point_master") == -1)
 	{
@@ -118,6 +120,8 @@ public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBr
 
 public void Event_TeamplayRoundWin(Event event, const char[] name, bool dontBroadcast)
 {
+	delete g_ControlPointBonusTimer;
+	
 	// Always switch teams on round end
 	SDKCall_SetSwitchTeams(true);
 }

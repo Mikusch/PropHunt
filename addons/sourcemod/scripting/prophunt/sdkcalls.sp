@@ -19,6 +19,7 @@ static Handle g_SDKCallSetSwitchTeams;
 static Handle g_SDKCallGetProjectileDamage;
 static Handle g_SDKCallGetMeleeDamage;
 static Handle g_SDKCallGetDamageType;
+static Handle g_SDKCallCastSelfHeal;
 
 void SDKCalls_Initialize(GameData gamedata)
 {
@@ -26,6 +27,7 @@ void SDKCalls_Initialize(GameData gamedata)
 	g_SDKCallGetProjectileDamage = PrepSDKCall_GetProjectileDamage(gamedata);
 	g_SDKCallGetMeleeDamage = PrepSDKCall_GetMeleeDamage(gamedata);
 	g_SDKCallGetDamageType = PrepSDKCall_GetDamageType(gamedata);
+	g_SDKCallCastSelfHeal = PrepSDKCall_CastSelfHeal(gamedata);
 }
 
 static Handle PrepSDKCall_SetSwitchTeams(GameData gamedata)
@@ -83,6 +85,20 @@ static Handle PrepSDKCall_GetDamageType(GameData gamedata)
 	return call;
 }
 
+static Handle PrepSDKCall_CastSelfHeal(GameData gamedata)
+{
+	StartPrepSDKCall(SDKCall_Entity);
+	PrepSDKCall_SetFromConf(gamedata, SDKConf_Signature, "CTFSpellBook::CastSelfHeal");
+	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
+	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_ByValue);
+	
+	Handle call = EndPrepSDKCall();
+	if (!call)
+		LogMessage("Failed to create SDK call: CTFSpellBook::CastSelfHeal");
+	
+	return call;
+}
+
 void SDKCall_SetSwitchTeams(bool shouldSwitch)
 {
 	if (g_SDKCallSetSwitchTeams)
@@ -111,4 +127,12 @@ int SDKCall_GetDamageType(int entity)
 		return SDKCall(g_SDKCallGetDamageType, entity);
 	else
 		return DMG_GENERIC;
+}
+
+bool SDKCall_CastSelfHeal(int spellbook, int player)
+{
+	if (g_SDKCallCastSelfHeal)
+		return SDKCall(g_SDKCallCastSelfHeal, spellbook, player);
+	else
+		return false;
 }
