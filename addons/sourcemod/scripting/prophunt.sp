@@ -98,9 +98,6 @@ public void OnPluginStart()
 {
 	LoadTranslations("prophunt.phrases");
 	
-	PrecacheSound(LOCK_SOUND);
-	PrecacheSound(UNLOCK_SOUND);
-	
 	ConVars_Initialize();
 	Events_Initialize();
 	
@@ -162,6 +159,9 @@ public void OnPluginEnd()
 
 public void OnMapStart()
 {
+	PrecacheSound(LOCK_SOUND);
+	PrecacheSound(UNLOCK_SOUND);
+	
 	ConVars_ToggleAll(true);
 	
 	g_CurrentMapConfig.hunter_setup_freeze = ph_hunter_setup_freeze.BoolValue;
