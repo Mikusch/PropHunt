@@ -107,7 +107,6 @@ public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBr
 		if (master != -1)
 		{
 			DispatchKeyValue(master, "targetname", "ph_control_point_master");
-			DispatchKeyValue(master, "StartDisabled", "0");
 			DispatchSpawn(master);
 		}
 	}
@@ -115,6 +114,10 @@ public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBr
 	for (int client = 1; client <= MaxClients; client++)
 	{
 		PHPlayer(client).Reset();
+		
+		// Afterburn is too strong
+		if (IsClientInGame(client) && PHPlayer(client).IsProp())
+			TF2_AddCondition(client, TFCond_AfterburnImmune);
 	}
 }
 
