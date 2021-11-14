@@ -239,6 +239,18 @@ void CastSelfHeal(int player)
 	}
 }
 
+void SetWinningTeam(TFTeam team)
+{
+	int round_win = CreateEntityByName("game_round_win");
+	if (round_win != -1)
+	{
+		DispatchKeyValue(round_win, "force_map_reset", "1");
+		SetEntProp(round_win, Prop_Data, "m_iTeamNum", team);
+		
+		AcceptEntityInput(round_win, "RoundWin");
+	}
+}
+
 bool IsValidPropClass(TFClassType class)
 {
 	for (int i = 0; i < sizeof(g_ValidPropClasses); i++)

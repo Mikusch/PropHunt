@@ -42,7 +42,7 @@ void ConVars_Initialize()
 	// These may be overridden by map configs
 	ph_hunter_setup_freeze = CreateConVar("ph_hunter_setup_freeze", "1", "If set to 1, Hunters cannot move during setup time.");
 	ph_open_doors_after_setup = CreateConVar("ph_open_doors_after_setup", "1", "If set to 1, all doors in the map will open after setup time.");
-	ph_setup_time = CreateConVar("ph_setup_time", "30", "Length of the hiding time for props.");
+	ph_setup_time = CreateConVar("ph_setup_time", "45", "Length of the hiding time for props.");
 	ph_round_time = CreateConVar("ph_round_time", "180", "Length of the round time.");
 	ph_relay_name = CreateConVar("ph_relay_name", "hidingover", "Name of the relay to fire after setup time.");
 	

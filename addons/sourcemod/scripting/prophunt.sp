@@ -35,8 +35,6 @@
 #define ITEM_DEFINDEX_GRAPPLINGHOOK			1152
 #define ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH	269
 
-#define ROUND_TIMER_TARGETNAME	"ph_round_timer"
-
 #define CONFIG_FILEPATH	"configs/prophunt/maps/%s"
 
 #define LOCK_SOUND		"buttons/button3.wav"
@@ -192,10 +190,6 @@ public void OnEntityCreated(int entity, const char[] classname)
 	else if (strcmp(classname, "trigger_capture_area") == 0)
 	{
 		SDKHook(entity, SDKHook_StartTouch, OnTriggerCaptureAreaStartTouch);
-	}
-	else if (strcmp(classname, "team_control_point_master") == 0)
-	{
-		SDKHook(entity, SDKHook_SpawnPost, OnControlPointMasterSpawnPost);
 	}
 }
 
@@ -523,7 +517,7 @@ public Action Timer_SetForcedTauntCam(Handle timer, int userid)
 	return Plugin_Continue;
 }
 
-public Action OnSetupFinished(const char[] output, int caller, int activator, float delay)
+public Action OnSetupTimerFinished(const char[] output, int caller, int activator, float delay)
 {
 	g_InSetup = false;
 	
@@ -565,6 +559,11 @@ public Action OnSetupFinished(const char[] output, int caller, int activator, fl
 	return Plugin_Continue;
 }
 
+public Action OnRoundTimerFinished(const char[] output, int caller, int activator, float delay)
+{
+	SetWinningTeam(TFTeam_Props);
+}
+
 public Action OnTriggerCaptureAreaStartTouch(int trigger, int other)
 {
 	// Players touching the capture area receive a health bonus
@@ -579,43 +578,6 @@ public Action OnTriggerCaptureAreaStartTouch(int trigger, int other)
 	
 	// Do not allow capturing
 	return Plugin_Handled;
-}
-
-public Action OnControlPointMasterSpawnPost(int master)
-{
-	// Create the setup and round timer
-	int timer = CreateEntityByName("team_round_timer");
-	if (timer != -1)
-	{
-		SetEntProp(timer, Prop_Data, "m_nTimerInitialLength", g_CurrentMapConfig.round_time);
-		SetEntProp(timer, Prop_Data, "m_nSetupTimeLength", g_CurrentMapConfig.setup_time);
-		DispatchKeyValue(timer, "targetname", ROUND_TIMER_TARGETNAME);
-		DispatchKeyValue(timer, "auto_countdown", "1");
-		
-		if (DispatchSpawn(timer))
-			HookSingleEntityOutput(timer, "OnSetupFinished", OnSetupFinished, true);
-	}
-	
-	int arenaLogic = FindEntityByClassname(MaxClients + 1, "tf_logic_arena");
-	if (arenaLogic != -1)
-	{
-		char outputName[64];
-		
-		char masterName[64];
-		GetEntPropString(master, Prop_Data, "m_iName", masterName, sizeof(masterName));
-		
-		Format(outputName, sizeof(outputName), "OnFinished %s:SetWinnerAndForceCaps:%d:0:-1", masterName, TFTeam_Props);
-		SetVariantString(outputName);
-		AcceptEntityInput(timer, "AddOutput");
-		
-		Format(outputName, sizeof(outputName), "OnArenaRoundStart %s:ShowInHUD:1:0:-1", ROUND_TIMER_TARGETNAME);
-		SetVariantString(outputName);
-		AcceptEntityInput(arenaLogic, "AddOutput");
-		
-		Format(outputName, sizeof(outputName), "OnArenaRoundStart %s:Enable:0:0:-1", ROUND_TIMER_TARGETNAME);
-		SetVariantString(outputName);
-		AcceptEntityInput(arenaLogic, "AddOutput");
-	}
 }
 
 public Action CommandListener_Build(int client, const char[] command, int argc)

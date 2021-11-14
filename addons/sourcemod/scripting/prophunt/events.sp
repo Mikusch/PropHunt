@@ -100,17 +100,6 @@ public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBr
 	
 	delete g_ControlPointBonusTimer;
 	
-	// Create a team_control_point_master if it doesn't exist already
-	if (FindEntityByClassname(MaxClients + 1, "team_control_point_master") == -1)
-	{
-		int master = CreateEntityByName("team_control_point_master");
-		if (master != -1)
-		{
-			DispatchKeyValue(master, "targetname", "ph_control_point_master");
-			DispatchSpawn(master);
-		}
-	}
-	
 	for (int client = 1; client <= MaxClients; client++)
 	{
 		PHPlayer(client).Reset();
@@ -132,6 +121,23 @@ public void Event_TeamplayRoundWin(Event event, const char[] name, bool dontBroa
 public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	g_InSetup = true;
+	
+	// Create the setup and round timer
+	int timer = CreateEntityByName("team_round_timer");
+	if (timer != -1)
+	{
+		DispatchKeyValue(timer, "show_in_hud", "1");
+		SetEntProp(timer, Prop_Data, "m_nTimerInitialLength", g_CurrentMapConfig.round_time);
+		SetEntProp(timer, Prop_Data, "m_nSetupTimeLength", g_CurrentMapConfig.setup_time);
+		
+		if (DispatchSpawn(timer))
+		{
+			AcceptEntityInput(timer, "Enable");
+			
+			HookSingleEntityOutput(timer, "OnSetupFinished", OnSetupTimerFinished, true);
+			HookSingleEntityOutput(timer, "OnFinished", OnRoundTimerFinished, true);
+		}
+	}
 	
 	for (int client = 1; client <= MaxClients; client++)
 	{
