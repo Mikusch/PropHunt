@@ -35,6 +35,8 @@
 #define ITEM_DEFINDEX_GRAPPLINGHOOK			1152
 #define ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH	269
 
+#define DOWN_VECTOR	view_as<float>( { 90.0, 0.0, 0.0 } )
+
 #define CONFIG_FILEPATH	"configs/prophunt/maps/%s"
 
 #define LOCK_SOUND		"buttons/button3.wav"
@@ -52,6 +54,7 @@ enum PHPropType
 
 // Globals
 bool g_InSetup;
+bool g_DisallowPropLocking;
 Handle g_ControlPointBonusTimer;
 
 // Offsets
@@ -250,11 +253,24 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	// IN_ATTACK locks the player's prop view
 	if (buttons & IN_ATTACK && buttonsChanged & IN_ATTACK)
 	{
-		bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
-		TogglePropLock(client, locked);
+		// Check whether the play is currently above a trigger_hurt
+		float origin[3];
+		GetClientAbsOrigin(client, origin);
+		TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, EnumerateTriggers);
 		
-		
-		latestUnlockTime[client] = GetGameTime() + 1.0;
+		// Don't allow them to lock to avoid props hovering above deadly areas
+		if (!g_DisallowPropLocking)
+		{
+			bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
+			TogglePropLock(client, locked);
+			
+			latestUnlockTime[client] = GetGameTime() + 1.0;
+		}
+		else
+		{
+			PrintHintText(client, "%t", "PropLock Unavailable");
+			g_DisallowPropLocking = false;
+		}
 	}
 	
 	// IN_ATTACK2 switches betweeen first-person and third-person view
@@ -580,6 +596,25 @@ public Action OnTriggerCaptureAreaStartTouch(int trigger, int other)
 	return Plugin_Handled;
 }
 
+public bool EnumerateTriggers(int entity)
+{
+	char classname[16];
+	if (GetEntityClassname(entity, classname, sizeof(classname)) && strcmp(classname, "trigger_hurt") == 0)
+	{
+		if (!GetEntProp(entity, Prop_Data, "m_bDisabled"))
+		{
+			Handle trace = TR_ClipCurrentRayToEntityEx(MASK_ALL, entity);
+			bool didHit = TR_DidHit(trace);
+			delete trace;
+			
+			g_DisallowPropLocking = didHit;
+			return !didHit;
+		}
+	}
+	
+	return true;
+}
+
 public Action CommandListener_Build(int client, const char[] command, int argc)
 {
 	if (TF2_GetPlayerClass(client) == TFClass_Engineer)
@@ -617,7 +652,7 @@ public Action Timer_RefreshControlPointBonus(Handle timer)
 		PHPlayer(client).HasReceivedBonus = false;
 	}
 	
-	PrintToChatAll("Control Point Bonus Refreshed");
+	PrintToChatAll("%t", "Control Point Bonus Refreshed");
 	
 	return Plugin_Continue;
 }

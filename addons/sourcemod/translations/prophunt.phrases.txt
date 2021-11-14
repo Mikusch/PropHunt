@@ -25,7 +25,12 @@
 	
 	"PropLock Engaged"
 	{
-		"en"		"PropLock Engaged"
+		"en"		"PropLock engaged"
+	}
+	
+	"PropLock Unavailable"
+	{
+		"en"		"PropLock unavailable in current location"
 	}
 	
 	"No Valid Prop"
