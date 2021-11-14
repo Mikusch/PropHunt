@@ -253,7 +253,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	// IN_ATTACK locks the player's prop view
 	if (buttons & IN_ATTACK && buttonsChanged & IN_ATTACK)
 	{
-		// Check whether the play is currently above a trigger_hurt
+		// Check if the player is currently above a trigger_hurt
 		float origin[3];
 		GetClientAbsOrigin(client, origin);
 		TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, EnumerateTriggers);
