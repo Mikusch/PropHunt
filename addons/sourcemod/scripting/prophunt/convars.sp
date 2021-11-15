@@ -30,20 +30,18 @@ static StringMap g_GameConVars;
 
 void ConVars_Initialize()
 {
-	ph_prop_min_size = CreateConVar("ph_prop_min_size", "50.0", "Minimum size of props to be able to select them.");
-	ph_prop_max_size = CreateConVar("ph_prop_max_size", "400.0", "Maximum size of props to be able to select them.");
-	ph_prop_max_select_distance = CreateConVar("ph_prop_max_select_distance", "128.0", "Players must have at least this distance to the prop to be able to select it.");
+	ph_prop_min_size = CreateConVar("ph_prop_min_size", "40.0", "Minimum size of props to be selectable by players.");
+	ph_prop_max_size = CreateConVar("ph_prop_max_size", "400.0", "Maximum size of props to be selectable by players.");
+	ph_prop_select_distance = CreateConVar("ph_prop_select_distance", "128.0", "Minimum required distance to a prop to be able to select it, in HU.");
 	ph_hunter_damagemod_guns = CreateConVar("ph_hunter_damagemod_guns", "0.4", "Modifier of damage taken from gun-based weapons.");
 	ph_hunter_damagemod_melee = CreateConVar("ph_hunter_damagemod_melee", "0.2", "Modifier of damage taken from melee-based weapons.");
-	ph_hunter_damage_flamethrower = CreateConVar("ph_hunter_damage_flamethrower", "1.0", "Amount of damage taken when using the flame thrower.");
-	ph_bonus_refresh_time = CreateConVar("ph_bonus_refresh_time", "60.0", "Time in seconds for control point bonus to refresh.");
-	
-	// These may be overridden by map configs
-	ph_hunter_setup_freeze = CreateConVar("ph_hunter_setup_freeze", "1", "If set to 1, Hunters cannot move during setup time.");
-	ph_open_doors_after_setup = CreateConVar("ph_open_doors_after_setup", "1", "If set to 1, all doors in the map will open after setup time.");
-	ph_setup_time = CreateConVar("ph_setup_time", "45", "Length of the hiding time for props.");
-	ph_round_time = CreateConVar("ph_round_time", "180", "Length of the round time.");
-	ph_relay_name = CreateConVar("ph_relay_name", "hidingover", "Name of the relay to fire after setup time.");
+	ph_hunter_damage_flamethrower = CreateConVar("ph_hunter_damage_flamethrower", "1.0", "Amount of damage taken from Flame Throwers.");
+	ph_bonus_refresh_time = CreateConVar("ph_bonus_refresh_time", "60.0", "Refresh interval of the control point bonus, in seconds.");
+	ph_hunter_setup_freeze = CreateConVar("ph_hunter_setup_freeze", "1", "When set to 1, Hunters may not move during setup time.");
+	ph_open_doors_after_setup = CreateConVar("ph_open_doors_after_setup", "1", "When set to 1, all doors in the map automatically open after setup time.");
+	ph_setup_time = CreateConVar("ph_setup_time", "45", "Length of the setup time, in seconds.");
+	ph_round_time = CreateConVar("ph_round_time", "180", "Length of the round time, in seconds.");
+	ph_relay_name = CreateConVar("ph_relay_name", "hidingover", "Name of the relay to trigger when setup time ends.");
 	
 	g_GameConVars = new StringMap();
 	

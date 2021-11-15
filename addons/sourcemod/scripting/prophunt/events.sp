@@ -127,9 +127,9 @@ public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroad
 	if (timer != -1)
 	{
 		DispatchKeyValue(timer, "show_in_hud", "1");
-		SetEntProp(timer, Prop_Data, "m_nSetupTimeLength", g_CurrentMapConfig.setup_time);
-		SetEntProp(timer, Prop_Data, "m_nTimerInitialLength", g_CurrentMapConfig.round_time);
-		SetEntProp(timer, Prop_Data, "m_nTimerMaxLength", g_CurrentMapConfig.round_time);
+		SetEntProp(timer, Prop_Data, "m_nSetupTimeLength", ph_setup_time.IntValue);
+		SetEntProp(timer, Prop_Data, "m_nTimerInitialLength", ph_round_time.IntValue);
+		SetEntProp(timer, Prop_Data, "m_nTimerMaxLength", ph_round_time.IntValue);
 		
 		if (DispatchSpawn(timer))
 		{

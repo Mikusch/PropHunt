@@ -201,7 +201,7 @@ bool GetMapConfigFilepath(char[] filePath, int length)
 	strcopy(tidyMapName, sizeof(tidyMapName), nameParts[0]);
 	
 	//Build file path
-	BuildPath(Path_SM, tidyMapName, sizeof(tidyMapName), CONFIG_FILEPATH, tidyMapName);
+	BuildPath(Path_SM, tidyMapName, sizeof(tidyMapName), MAP_CONFIG_FILEPATH, tidyMapName);
 	
 	for (int i = 1; i < partsCount; i++)
 	{

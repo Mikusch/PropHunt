@@ -19,23 +19,9 @@ enum struct MapConfig
 {
 	ArrayList prop_whitelist;
 	ArrayList prop_blacklist;
-	bool hunter_setup_freeze;
-	bool open_doors_after_setup;
-	int setup_time;
-	int round_time;
-	char relay_name[64];
 	
 	void ReadFromKv(KeyValues kv)
 	{
-		this.hunter_setup_freeze = view_as<bool>(kv.GetNum("hunter_setup_freeze", ph_hunter_setup_freeze.BoolValue));
-		this.open_doors_after_setup = view_as<bool>(kv.GetNum("open_doors_after_setup", ph_open_doors_after_setup.BoolValue));
-		this.setup_time = kv.GetNum("setup_time", ph_setup_time.IntValue);
-		this.round_time = kv.GetNum("round_time", ph_round_time.IntValue);
-		
-		// TODO: SM 1.11 says hello
-		ph_relay_name.GetString(this.relay_name, 256);
-		kv.GetString("relay_name", this.relay_name, 256, this.relay_name);
-		
 		// Prop whitelist (overrides blacklist)
 		if (kv.JumpToKey("prop_whitelist"))
 		{

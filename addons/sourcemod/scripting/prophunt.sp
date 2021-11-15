@@ -37,7 +37,8 @@
 
 #define DOWN_VECTOR	view_as<float>( { 90.0, 0.0, 0.0 } )
 
-#define CONFIG_FILEPATH	"configs/prophunt/maps/%s"
+#define MAP_CONFIG_FILEPATH		"configs/prophunt/maps/%s"
+#define PROP_CONFIG_FILEPATH	"configs/prophunt/props.cfg"
 
 #define LOCK_SOUND		"buttons/button3.wav"
 #define UNLOCK_SOUND	"buttons/button24.wav"
@@ -65,7 +66,7 @@ int g_OffsetBulletsPerShot;
 // ConVars
 ConVar ph_prop_min_size;
 ConVar ph_prop_max_size;
-ConVar ph_prop_max_select_distance;
+ConVar ph_prop_select_distance;
 ConVar ph_hunter_damagemod_guns;
 ConVar ph_hunter_damagemod_melee;
 ConVar ph_hunter_damage_flamethrower;
@@ -163,12 +164,6 @@ public void OnMapStart()
 	PrecacheSound(UNLOCK_SOUND);
 	
 	ConVars_ToggleAll(true);
-	
-	g_CurrentMapConfig.hunter_setup_freeze = ph_hunter_setup_freeze.BoolValue;
-	g_CurrentMapConfig.open_doors_after_setup = ph_open_doors_after_setup.BoolValue;
-	g_CurrentMapConfig.setup_time = ph_setup_time.IntValue;
-	g_CurrentMapConfig.round_time = ph_round_time.IntValue;
-	ph_relay_name.GetString(g_CurrentMapConfig.relay_name, sizeof(g_CurrentMapConfig.relay_name));
 	
 	char filepath[PLATFORM_MAX_PATH];
 	if (GetMapConfigFilepath(filepath, sizeof(filepath)))
@@ -411,7 +406,7 @@ bool SearchForStaticProps(int client)
 	TR_GetEndPosition(endPosition);
 	
 	float distance = GetVectorDistance(eyePosition, endPosition);
-	distance = Clamp(distance, 0.0, ph_prop_max_select_distance.FloatValue);
+	distance = Clamp(distance, 0.0, ph_prop_select_distance.FloatValue);
 	
 	// Iterate all static props in the world
 	int total = GetTotalNumberOfStaticProps();
@@ -562,7 +557,10 @@ public Action OnSetupTimerFinished(const char[] output, int caller, int activato
 	}
 	
 	// Trigger named relays
-	if (g_CurrentMapConfig.relay_name[0] != '\0')
+	char relayName[MAX_COMMAND_LENGTH];
+	ph_relay_name.GetString(relayName, sizeof(relayName));
+	
+	if (relayName[0] != '\0')
 	{
 		int relay = MaxClients + 1;
 		while ((relay = FindEntityByClassname(relay, "logic_relay")) != -1)
@@ -570,13 +568,13 @@ public Action OnSetupTimerFinished(const char[] output, int caller, int activato
 			char name[64];
 			GetEntPropString(relay, Prop_Data, "m_iName", name, sizeof(name));
 			
-			if (strcmp(name, g_CurrentMapConfig.relay_name) == 0)
+			if (strcmp(name, relayName) == 0)
 				AcceptEntityInput(relay, "Trigger");
 		}
 	}
 	
 	// Open all doors in the map
-	if (g_CurrentMapConfig.open_doors_after_setup)
+	if (ph_open_doors_after_setup.BoolValue)
 	{
 		int door = MaxClients + 1;
 		while ((door = FindEntityByClassname(door, "func_door")) != -1)

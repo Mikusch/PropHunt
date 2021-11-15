@@ -151,7 +151,7 @@ public MRESReturn DHook_HookTarget_Pre(int projectile, DHookParam params)
 
 public MRESReturn DHook_CanPlayerMove_Post(int player, DHookReturn ret)
 {
-	if (g_InSetup)
+	if (g_InSetup && ph_hunter_setup_freeze.BoolValue)
 	{
 		if (PHPlayer(player).IsHunter())
 		{
