@@ -147,9 +147,9 @@
 				"return"	"void"
 				"this"		"entity"
 			}
-			"CTFPlayer::ModifyOrAppendCriteria"
+			"CBaseEntity::ModifyOrAppendCriteria"
 			{
-				"offset"	"CTFPlayer::ModifyOrAppendCriteria"
+				"offset"	"CBaseEntity::ModifyOrAppendCriteria"
 				"hooktype"	"entity"
 				"return"	"void"
 				"this"		"entity"
