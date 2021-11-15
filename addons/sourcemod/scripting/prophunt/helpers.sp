@@ -167,6 +167,22 @@ int GetPlayerMaxHealth(int client)
 	return GetEntProp(GetPlayerResourceEntity(), Prop_Send, "m_iMaxHealth", _, client);
 }
 
+int GetEntitySkin(int entity)
+{
+	if (HasEntProp(entity, Prop_Data, "m_nForcedSkin"))
+	{
+		int forcedSkin = GetEntProp(entity, Prop_Data, "m_nForcedSkin");
+		if (forcedSkin == 0)
+			return GetEntProp(entity, Prop_Data, "m_nSkin");
+		else
+			return GetEntProp(entity, Prop_Data, "m_nForcedSkin");
+	}
+	else
+	{
+		return GetEntProp(entity, Prop_Data, "m_nSkin");
+	}
+}
+
 int CountCharInString(const char[] string, char letter)
 {
 	int i, count;

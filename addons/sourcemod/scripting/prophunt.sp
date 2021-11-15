@@ -389,7 +389,7 @@ bool SearchForEntityProps(int client)
 		SetCustomModel(client, model);
 		
 		SetEntProp(client, Prop_Send, "m_bForcedSkin", true);
-		SetEntProp(client, Prop_Send, "m_nForcedSkin", GetEntProp(entity, Prop_Data, "m_nSkin"));
+		SetEntProp(client, Prop_Send, "m_nForcedSkin", GetEntitySkin(entity));
 		
 		return true;
 	}
