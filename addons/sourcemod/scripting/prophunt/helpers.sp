@@ -53,11 +53,6 @@ any Clamp(any val, any min, any max)
 	return Min(Max(val, min), max);
 }
 
-bool IsNaN(float value)
-{
-	return value != value;
-}
-
 // Thanks to ficool2 for helping me with scary vector math
 bool IntersectionLineAABBFast(const float mins[3], const float maxs[3], const float start[3], const float dir[3], float far)
 {
@@ -167,7 +162,7 @@ bool IsEntityClient(int entity)
 	return 0 < entity < MaxClients;
 }
 
-int GetMaxHealth(int client)
+int GetPlayerMaxHealth(int client)
 {
 	return GetEntProp(GetPlayerResourceEntity(), Prop_Send, "m_iMaxHealth", _, client);
 }

@@ -101,7 +101,7 @@ public MRESReturn DHook_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
 				else
 				{
 					// Prop we disguised as is now invalid, don't update max health until we redisguise
-					health = GetEntProp(GetPlayerResourceEntity(), Prop_Send, "m_iMaxHealth", _, player);
+					health = GetPlayerMaxHealth(player);
 				}
 			}
 			default:
@@ -170,17 +170,13 @@ public MRESReturn DHook_Spawn_Pre(int player)
 	{
 		// Check valid prop class
 		if (!IsValidPropClass(TF2_GetPlayerClass(player)))
-		{
 			TF2_SetPlayerClass(player, GetRandomPropClass(), _, false);
-		}
 	}
 	else if (IsPlayerHunter(player))
 	{
 		// Check valid hunter class
 		if (!IsValidHunterClass(TF2_GetPlayerClass(player)))
-		{
 			TF2_SetPlayerClass(player, GetRandomHunterClass(), _, false);
-		}
 	}
 }
 
@@ -193,14 +189,10 @@ public MRESReturn DHook_FireProjectile_Pre(int weapon, DHookReturn ret, DHookPar
 	
 	if (IsPlayerHunter(player))
 	{
-		float damage = SDKCall_GetProjectileDamage(weapon) * GetBulletsPerShot(weapon);
-		if (!IsNaN(damage))
-		{
-			damage *= ph_hunter_damagemod_guns.FloatValue;
-			int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
-			
-			SDKHooks_TakeDamage(player, weapon, player, damage, damageType, weapon);
-		}
+		float damage = SDKCall_GetProjectileDamage(weapon) * GetBulletsPerShot(weapon) * ph_hunter_damagemod_guns.FloatValue;
+		int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
+		
+		SDKHooks_TakeDamage(player, weapon, player, damage, damageType, weapon);
 	}
 	
 	return MRES_Ignored;
@@ -216,13 +208,9 @@ public MRESReturn DHook_Smack_Pre(int weapon)
 	if (IsPlayerHunter(owner))
 	{
 		int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
-		float damage = SDKCall_GetMeleeDamage(weapon, owner, damageType, 0);
-		if (!IsNaN(damage))
-		{
-			damage *= ph_hunter_damagemod_melee.FloatValue;
-			
-			SDKHooks_TakeDamage(owner, weapon, owner, damage, damageType, weapon);
-		}
+		float damage = SDKCall_GetMeleeDamage(weapon, owner, damageType, 0) * ph_hunter_damagemod_melee.FloatValue;
+		
+		SDKHooks_TakeDamage(owner, weapon, owner, damage, damageType, weapon);
 	}
 	
 	return MRES_Ignored;

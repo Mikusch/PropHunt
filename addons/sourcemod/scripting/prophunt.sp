@@ -35,6 +35,7 @@
 #define ITEM_DEFINDEX_GRAPPLINGHOOK			1152
 #define ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH	269
 
+#define ZERO_VECTOR	view_as<float>( { 0.0, 0.0, 0.0 } )
 #define DOWN_VECTOR	view_as<float>( { 90.0, 0.0, 0.0 } )
 
 #define MAP_CONFIG_FILEPATH		"configs/prophunt/maps/%s"
@@ -43,8 +44,8 @@
 #define LOCK_SOUND		"buttons/button3.wav"
 #define UNLOCK_SOUND	"buttons/button24.wav"
 
-const TFTeam TFTeam_Hunters = TFTeam_Blue;
 const TFTeam TFTeam_Props = TFTeam_Red;
+const TFTeam TFTeam_Hunters = TFTeam_Blue;
 
 enum PHPropType
 {
@@ -102,7 +103,7 @@ public void OnPluginStart()
 	ConVars_Initialize();
 	Events_Initialize();
 	
-	RegAdminCmd("ph_setprop", ConCmd_SetCustomModel, ADMFLAG_CHEATS);
+	RegAdminCmd("ph_forceprop", ConCmd_ForceProp, ADMFLAG_CHEATS);
 	
 	AddCommandListener(CommandListener_Build, "build");
 	
@@ -130,6 +131,7 @@ public void OnPluginStart()
 	}
 	delete kv;
 	
+	// Set up everything that needs gamedata
 	GameData gamedata = new GameData("prophunt");
 	if (gamedata)
 	{
@@ -474,7 +476,7 @@ void SetCustomModel(int client, const char[] model)
 	}
 	else
 	{
-		SetVariantVector3D(view_as<float>( { 0.0, 0.0, 0.0 } ));
+		SetVariantVector3D(ZERO_VECTOR);
 		AcceptEntityInput(client, "SetCustomModelOffset");
 		
 		AcceptEntityInput(client, "ClearCustomModelRotation");
@@ -492,7 +494,7 @@ void ClearCustomModel(int client)
 	SetVariantString("");
 	AcceptEntityInput(client, "SetCustomModel");
 	
-	SetVariantVector3D(view_as<float>( { 0.0, 0.0, 0.0 } ));
+	SetVariantVector3D(ZERO_VECTOR);
 	AcceptEntityInput(client, "SetCustomModelOffset");
 	
 	AcceptEntityInput(client, "ClearCustomModelRotation");
@@ -668,7 +670,7 @@ public Action CommandListener_Build(int client, const char[] command, int argc)
 	return Plugin_Continue;
 }
 
-public Action ConCmd_SetCustomModel(int client, int args)
+public Action ConCmd_ForceProp(int client, int args)
 {
 	if (args < 1)
 		return Plugin_Handled;
