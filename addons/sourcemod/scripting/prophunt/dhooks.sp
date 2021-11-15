@@ -76,7 +76,7 @@ static DynamicHook CreateDynamicHook(GameData gamedata, const char[] name)
 
 public MRESReturn DHook_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
 {
-	if (PHPlayer(player).IsProp())
+	if (IsPlayerProp(player))
 	{
 		int health;
 		float mins[3], maxs[3];
@@ -129,7 +129,7 @@ public MRESReturn DHook_HookTarget_Pre(int projectile, DHookParam params)
 	
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	
-	if (PHPlayer(owner).IsHunter())
+	if (IsPlayerHunter(owner))
 	{
 		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
 		float damage = SDKCall_GetProjectileDamage(launcher);
@@ -141,7 +141,7 @@ public MRESReturn DHook_HookTarget_Pre(int projectile, DHookParam params)
 		if (!params.IsNull(1))
 		{
 			int other = params.Get(1);
-			if (IsEntityClient(other) && PHPlayer(other).IsProp())
+			if (IsEntityClient(other) && IsPlayerProp(other))
 				return MRES_Supercede;
 		}
 	}
@@ -153,7 +153,7 @@ public MRESReturn DHook_CanPlayerMove_Post(int player, DHookReturn ret)
 {
 	if (g_InSetup && ph_hunter_setup_freeze.BoolValue)
 	{
-		if (PHPlayer(player).IsHunter())
+		if (IsPlayerHunter(player))
 		{
 			ret.Value = false;
 			return MRES_Supercede;
@@ -166,7 +166,7 @@ public MRESReturn DHook_CanPlayerMove_Post(int player, DHookReturn ret)
 public MRESReturn DHook_Spawn_Pre(int player)
 {
 	// player_spawn event gets fired too early to manipulate player class properly
-	if (PHPlayer(player).IsProp())
+	if (IsPlayerProp(player))
 	{
 		// Check valid prop class
 		if (!IsValidPropClass(TF2_GetPlayerClass(player)))
@@ -174,7 +174,7 @@ public MRESReturn DHook_Spawn_Pre(int player)
 			TF2_SetPlayerClass(player, GetRandomPropClass(), _, false);
 		}
 	}
-	else if (PHPlayer(player).IsHunter())
+	else if (IsPlayerHunter(player))
 	{
 		// Check valid hunter class
 		if (!IsValidHunterClass(TF2_GetPlayerClass(player)))
@@ -191,7 +191,7 @@ public MRESReturn DHook_FireProjectile_Pre(int weapon, DHookReturn ret, DHookPar
 	
 	int player = params.Get(1);
 	
-	if (PHPlayer(player).IsHunter())
+	if (IsPlayerHunter(player))
 	{
 		float damage = SDKCall_GetProjectileDamage(weapon) * GetBulletsPerShot(weapon);
 		if (!IsNaN(damage))
@@ -213,7 +213,7 @@ public MRESReturn DHook_Smack_Pre(int weapon)
 	
 	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
 	
-	if (PHPlayer(owner).IsHunter())
+	if (IsPlayerHunter(owner))
 	{
 		int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
 		float damage = SDKCall_GetMeleeDamage(weapon, owner, damageType, 0);

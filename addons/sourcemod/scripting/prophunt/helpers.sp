@@ -240,6 +240,16 @@ void SetWinningTeam(TFTeam team)
 	}
 }
 
+bool IsPlayerProp(int client)
+{
+	return TF2_GetClientTeam(client) == TFTeam_Props;
+}
+
+bool IsPlayerHunter(int client)
+{
+	return TF2_GetClientTeam(client) == TFTeam_Hunters;
+}
+
 bool IsValidPropClass(TFClassType class)
 {
 	for (int i = 0; i < sizeof(g_ValidPropClasses); i++)

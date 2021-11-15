@@ -37,7 +37,7 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 		return;
 	}
 	
-	if (PHPlayer(client).IsProp())
+	if (IsPlayerProp(client))
 	{
 		AcceptEntityInput(client, "DisableShadow");
 		
@@ -72,12 +72,12 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 public void Event_PostInventoryApplication(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
-	if (PHPlayer(client).IsProp())
+	if (IsPlayerProp(client))
 	{
 		// Fixes an exploit where you could keep your hunter weapons as a prop
 		TF2_RemoveAllWeapons(client);
 	}
-	else if (PHPlayer(client).IsHunter())
+	else if (IsPlayerHunter(client))
 	{
 		// Give Hunters a Grappling Hook to get around quicker
 		Handle item = TF2Items_CreateItem(PRESERVE_ATTRIBUTES);
@@ -105,7 +105,7 @@ public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBr
 		PHPlayer(client).Reset();
 		
 		// Afterburn is too strong
-		if (IsClientInGame(client) && PHPlayer(client).IsProp())
+		if (IsClientInGame(client) && IsPlayerProp(client))
 			TF2_AddCondition(client, TFCond_AfterburnImmune);
 	}
 }
@@ -148,7 +148,7 @@ public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroad
 			QueryClientConVar(client, "r_staticpropinfo", ConVarQuery_StaticPropInfo);
 			
 			// Show prop controls
-			if (PHPlayer(client).IsProp())
+			if (IsPlayerProp(client))
 				ShowKeyHintText(client, "%t", "Prop Controls");
 		}
 	}

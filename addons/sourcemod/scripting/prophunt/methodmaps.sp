@@ -96,16 +96,6 @@ methodmap PHPlayer
 		}
 	}
 	
-	public bool IsProp()
-	{
-		return TF2_GetClientTeam(this.Client) == TFTeam_Props;
-	}
-	
-	public bool IsHunter()
-	{
-		return TF2_GetClientTeam(this.Client) == TFTeam_Hunters;
-	}
-	
 	public void Reset()
 	{
 		this.PropType = Prop_None;

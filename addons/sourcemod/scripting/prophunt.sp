@@ -18,8 +18,8 @@
 #include <sourcemod>
 #include <sdktools>
 #include <tf2_stocks>
-#include <dhooks>
 #include <sdkhooks>
+#include <dhooks>
 #include <StaticProps>
 #include <tf2items>
 #include <tf2attributes>
@@ -108,6 +108,7 @@ public void OnPluginStart()
 	
 	g_PropConfigs = new StringMap();
 	
+	// Read global prop config
 	char file[PLATFORM_MAX_PATH];
 	BuildPath(Path_SM, file, sizeof(file), "configs/prophunt/props.cfg");
 	
@@ -165,14 +166,15 @@ public void OnMapStart()
 	
 	ConVars_ToggleAll(true);
 	
-	char filepath[PLATFORM_MAX_PATH];
-	if (GetMapConfigFilepath(filepath, sizeof(filepath)))
+	// Read map config
+	char file[PLATFORM_MAX_PATH];
+	if (GetMapConfigFilepath(file, sizeof(file)))
 	{
 		KeyValues kv = new KeyValues("PropHunt");
-		
-		if (kv.ImportFromFile(filepath))
+		if (kv.ImportFromFile(file))
+		{
 			g_CurrentMapConfig.ReadFromKv(kv);
-		
+		}
 		delete kv;
 	}
 }
@@ -201,9 +203,7 @@ public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname
 	
 	// Flame throwers are a special case, as always
 	if (strcmp(weaponname, "tf_weapon_flamethrower") == 0)
-	{
 		SDKHooks_TakeDamage(client, weapon, client, ph_hunter_damage_flamethrower.FloatValue, DMG_PREVENT_PHYSICS_FORCE, weapon);
-	}
 	
 	return Plugin_Continue;
 }
@@ -242,7 +242,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	int buttonsChanged = GetEntProp(client, Prop_Data, "m_afButtonPressed") | GetEntProp(client, Prop_Data, "m_afButtonReleased");
 	
 	// Prop-only functionality below this point
-	if (!PHPlayer(client).IsProp() || !IsPlayerAlive(client))
+	if (!IsPlayerProp(client) || !IsPlayerAlive(client))
 		return Plugin_Continue;
 	
 	// TODO: Only allow unlocking by moving after the player has fully released their movement keys
@@ -317,7 +317,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 public Action TF2Items_OnGiveNamedItem(int client, char[] classname, int itemDefIndex, Handle &item)
 {
 	// Make sure that props stay naked
-	if (PHPlayer(client).IsProp())
+	if (IsPlayerProp(client))
 		return Plugin_Handled;
 	
 	return Plugin_Continue;
@@ -345,9 +345,7 @@ public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int item
 	
 	// Significantly reduce Medic's healing
 	if (strcmp(classname, "tf_weapon_medigun") == 0)
-	{
 		TF2Attrib_SetByName(entity, "heal rate penalty", 0.1);
-	}
 }
 
 bool SearchForEntityProps(int client)
@@ -598,9 +596,7 @@ public void OnPropDynamicSpawnPost(int prop)
 	
 	// Hook the control point prop
 	if (strcmp(model, "models/props_gameplay/cap_point_base.mdl") == 0)
-	{
 		SDKHook(prop, SDKHook_StartTouch, OnControlPointStartTouch);
-	}
 }
 
 public Action OnControlPointStartTouch(int prop, int other)
@@ -617,8 +613,7 @@ public Action OnControlPointStartTouch(int prop, int other)
 		}
 	}
 	
-	// Do not allow capturing
-	return Plugin_Handled;
+	return Plugin_Continue;
 }
 
 public bool EnumerateTriggers(int entity, int client)
