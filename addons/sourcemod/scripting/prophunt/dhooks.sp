@@ -86,7 +86,7 @@ public MRESReturn DHook_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
 		{
 			case Prop_Static:
 			{
-				if (StaticProp_GetWorldSpaceBounds(PHPlayer(player).PropIndex, mins, maxs))
+				if (StaticProp_GetOBBBounds(PHPlayer(player).PropIndex, mins, maxs))
 					health = RoundToCeil(GetVectorDistance(mins, maxs));
 			}
 			case Prop_Entity:

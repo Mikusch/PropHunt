@@ -417,18 +417,22 @@ bool SearchForStaticProps(int client)
 	int total = GetTotalNumberOfStaticProps();
 	for (int i = 0; i < total; i++)
 	{
-		float mins[3], maxs[3];
-		if (!StaticProp_GetWorldSpaceBounds(i, mins, maxs))
+		float aabbMins[3], aabbMaxs[3];
+		if (!StaticProp_GetWorldSpaceBounds(i, aabbMins, aabbMaxs))
 			continue;
 		
 		// Check whether the player is looking at this prop.
 		// The engine completely ignores any non-solid props regardless of trace settings,
 		// so we only use the engine trace to get the distance to the next wall and solve the intersection ourselves.
-		if (!IntersectionLineAABBFast(mins, maxs, eyePosition, eyeAngleFwd, distance))
+		if (!IntersectionLineAABBFast(aabbMins, aabbMaxs, eyePosition, eyeAngleFwd, distance))
+			continue;
+		
+		float obbMins[3], obbMaxs[3];
+		if (!StaticProp_GetOBBBounds(i, obbMins, obbMaxs))
 			continue;
 		
 		// Check the size of the prop
-		if (!IsValidBboxSize(mins, maxs))
+		if (!IsValidBboxSize(obbMins, obbMaxs))
 			continue;
 		
 		char name[PLATFORM_MAX_PATH];
@@ -477,10 +481,10 @@ void SetCustomModel(int client, const char[] model)
 	}
 	else
 	{
-		AcceptEntityInput(client, "ClearCustomModelRotation");
-		
 		SetVariantVector3D(view_as<float>( { 0.0, 0.0, 0.0 } ));
 		AcceptEntityInput(client, "SetCustomModelOffset");
+		
+		AcceptEntityInput(client, "ClearCustomModelRotation");
 	}
 	
 	SetEntProp(client, Prop_Data, "m_bloodColor", DONT_BLEED);
