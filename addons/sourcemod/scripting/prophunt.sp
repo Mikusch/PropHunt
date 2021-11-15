@@ -616,7 +616,7 @@ public Action OnControlPointStartTouch(int prop, int other)
 	{
 		if (SDKCall_CastSelfHeal(other))
 		{
-			EmitGameSoundToAll("Halloween.spell_overheal", other);
+			EmitGameSoundToClient(other, "Announcer.MVM_Bonus");
 			PrintToChat(other, "%t", "Control Point Bonus Received");
 			
 			PHPlayer(other).HasReceivedBonus = true;
