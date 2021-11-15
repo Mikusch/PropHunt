@@ -373,6 +373,10 @@ bool SearchForEntityProps(int client)
 		if (!g_CurrentMapConfig.IsWhitelisted(model) && g_CurrentMapConfig.IsBlacklisted(model))
 			return false;
 		
+		char customModel[PLATFORM_MAX_PATH];
+		if (GetEntPropString(client, Prop_Send, "m_iszCustomModel", customModel, sizeof(customModel)) > 0 && strcmp(customModel, model) == 0)
+			return false;
+		
 		float mins[3], maxs[3];
 		GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
 		GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
@@ -438,6 +442,10 @@ bool SearchForStaticProps(int client)
 			return false;
 		
 		if (!g_CurrentMapConfig.IsWhitelisted(name) && g_CurrentMapConfig.IsBlacklisted(name))
+			continue;
+		
+		char customModel[PLATFORM_MAX_PATH];
+		if (GetEntPropString(client, Prop_Send, "m_iszCustomModel", customModel, sizeof(customModel)) > 0 && strcmp(customModel, name) == 0)
 			continue;
 		
 		// Finally, set the player's prop
