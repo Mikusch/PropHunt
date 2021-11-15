@@ -36,7 +36,6 @@ void ConVars_Initialize()
 	ph_hunter_damagemod_guns = CreateConVar("ph_hunter_damagemod_guns", "0.4", "Modifier of damage taken from gun-based weapons.");
 	ph_hunter_damagemod_melee = CreateConVar("ph_hunter_damagemod_melee", "0.2", "Modifier of damage taken from melee-based weapons.");
 	ph_hunter_damage_flamethrower = CreateConVar("ph_hunter_damage_flamethrower", "1.0", "Amount of damage taken when using the flame thrower.");
-	ph_hunter_damage_grapplinghook = CreateConVar("ph_hunter_damage_grapplinghook", "10.0", "Amount of damage taken when using the grappling hook.");
 	ph_bonus_refresh_time = CreateConVar("ph_bonus_refresh_time", "60.0", "Time in seconds for control point bonus to refresh.");
 	
 	// These may be overridden by map configs

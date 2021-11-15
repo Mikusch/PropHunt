@@ -69,7 +69,6 @@ ConVar ph_prop_max_select_distance;
 ConVar ph_hunter_damagemod_guns;
 ConVar ph_hunter_damagemod_melee;
 ConVar ph_hunter_damage_flamethrower;
-ConVar ph_hunter_damage_grapplinghook;
 ConVar ph_hunter_setup_freeze;
 ConVar ph_bonus_refresh_time;
 ConVar ph_open_doors_after_setup;

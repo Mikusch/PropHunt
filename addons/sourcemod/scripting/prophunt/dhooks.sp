@@ -131,11 +131,19 @@ public MRESReturn DHook_HookTarget_Pre(int projectile, DHookParam params)
 	
 	if (PHPlayer(owner).IsHunter())
 	{
-		float damage = ph_hunter_damage_grapplinghook.FloatValue;
-		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
 		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
+		float damage = SDKCall_GetProjectileDamage(launcher);
+		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
 		
 		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
+		
+		// Don't allow hunters to hook onto props
+		if (!params.IsNull(1))
+		{
+			int other = params.Get(1);
+			if (IsEntityClient(other) && PHPlayer(other).IsProp())
+				return MRES_Supercede;
+		}
 	}
 	
 	return MRES_Ignored;
