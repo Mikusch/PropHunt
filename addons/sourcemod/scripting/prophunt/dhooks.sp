@@ -15,9 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+static DynamicHook g_DHookSpawn;
+static DynamicHook g_DHookModifyOrAppendCriteria;
 static DynamicHook g_DHookFireProjectile;
 static DynamicHook g_DHookSmack;
-static DynamicHook g_DHookSpawn;
 
 void DHooks_Initialize(GameData gamedata)
 {
@@ -26,6 +27,7 @@ void DHooks_Initialize(GameData gamedata)
 	DHooks_CreateDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHook_CanPlayerMove_Post);
 	
 	g_DHookSpawn = CreateDynamicHook(gamedata, "CBaseEntity::Spawn");
+	g_DHookModifyOrAppendCriteria = CreateDynamicHook(gamedata, "CBaseEntity::ModifyOrAppendCriteria");
 	g_DHookFireProjectile = CreateDynamicHook(gamedata, "CTFWeaponBaseGun::FireProjectile");
 	g_DHookSmack = CreateDynamicHook(gamedata, "CTFWeaponBaseMelee::Smack");
 }
@@ -34,6 +36,9 @@ void DHooks_HookClient(int client)
 {
 	if (g_DHookSpawn)
 		g_DHookSpawn.HookEntity(Hook_Pre, client, DHook_Spawn_Pre);
+	
+	if (g_DHookModifyOrAppendCriteria)
+		g_DHookModifyOrAppendCriteria.HookEntity(Hook_Post, client, DHook_ModifyOrAppendCriteria_Post);
 }
 
 void DHooks_HookBaseGun(int weapon)
@@ -178,6 +183,23 @@ public MRESReturn DHook_Spawn_Pre(int player)
 		if (!IsValidHunterClass(TF2_GetPlayerClass(player)))
 			TF2_SetPlayerClass(player, GetRandomHunterClass(), _, false);
 	}
+}
+
+public MRESReturn DHook_ModifyOrAppendCriteria_Post(int player, DHookParam params)
+{
+	if (IsPlayerHunter(player))
+	{
+		int criteriaSet = params.Get(1);
+		
+		if (SDKCall_FindCriterionIndex(criteriaSet, "crosshair_enemy") == -1)
+			return MRES_Ignored;
+		
+		// Prevent Hunters from revealing props using voice lines
+		SDKCall_RemoveCriteria(criteriaSet, "crosshair_on");
+		SDKCall_RemoveCriteria(criteriaSet, "crosshair_enemy");
+	}
+	
+	return MRES_Ignored;
 }
 
 public MRESReturn DHook_FireProjectile_Pre(int weapon, DHookReturn ret, DHookParam params)

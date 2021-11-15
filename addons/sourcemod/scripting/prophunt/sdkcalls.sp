@@ -20,6 +20,8 @@ static Handle g_SDKCallGetProjectileDamage;
 static Handle g_SDKCallGetMeleeDamage;
 static Handle g_SDKCallGetDamageType;
 static Handle g_SDKCallCastSelfHeal;
+static Handle g_SDKCallFindCriterionIndex;
+static Handle g_SDKCallRemoveCriteria;
 
 void SDKCalls_Initialize(GameData gamedata)
 {
@@ -28,6 +30,8 @@ void SDKCalls_Initialize(GameData gamedata)
 	g_SDKCallGetMeleeDamage = PrepSDKCall_GetMeleeDamage(gamedata);
 	g_SDKCallGetDamageType = PrepSDKCall_GetDamageType(gamedata);
 	g_SDKCallCastSelfHeal = PrepSDKCall_CastSelfHeal(gamedata);
+	g_SDKCallFindCriterionIndex = PrepSDKCall_FindCriterionIndex(gamedata);
+	g_SDKCallRemoveCriteria = PrepSDKCall_RemoveCriteria(gamedata);
 }
 
 static Handle PrepSDKCall_SetSwitchTeams(GameData gamedata)
@@ -99,6 +103,33 @@ static Handle PrepSDKCall_CastSelfHeal(GameData gamedata)
 	return call;
 }
 
+static Handle PrepSDKCall_FindCriterionIndex(GameData gamedata)
+{
+	StartPrepSDKCall(SDKCall_Raw);
+	PrepSDKCall_SetFromConf(gamedata, SDKConf_Signature, "AI_CriteriaSet::FindCriterionIndex");
+	PrepSDKCall_AddParameter(SDKType_String, SDKPass_Pointer);
+	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
+	
+	Handle call = EndPrepSDKCall();
+	if (!call)
+		LogMessage("Failed to create SDK call: AI_CriteriaSet::FindCriterionIndex");
+	
+	return call;
+}
+
+static Handle PrepSDKCall_RemoveCriteria(GameData gamedata)
+{
+	StartPrepSDKCall(SDKCall_Raw);
+	PrepSDKCall_SetFromConf(gamedata, SDKConf_Signature, "AI_CriteriaSet::RemoveCriteria");
+	PrepSDKCall_AddParameter(SDKType_String, SDKPass_Pointer);
+	
+	Handle call = EndPrepSDKCall();
+	if (!call)
+		LogMessage("Failed to create SDK call: AI_CriteriaSet::RemoveCriteria");
+	
+	return call;
+}
+
 void SDKCall_SetSwitchTeams(bool shouldSwitch)
 {
 	if (g_SDKCallSetSwitchTeams)
@@ -135,4 +166,18 @@ bool SDKCall_CastSelfHeal(int player)
 		return SDKCall(g_SDKCallCastSelfHeal, player);
 	else
 		return false;
+}
+
+int SDKCall_FindCriterionIndex(int criteriaSet, const char[] criteria)
+{
+	if (g_SDKCallFindCriterionIndex)
+		return SDKCall(g_SDKCallFindCriterionIndex, criteriaSet, criteria);
+	else
+		return -1;
+}
+
+void SDKCall_RemoveCriteria(int criteriaSet, const char[] criteria)
+{
+	if (g_SDKCallRemoveCriteria)
+		SDKCall(g_SDKCallRemoveCriteria, criteriaSet, criteria);
 }

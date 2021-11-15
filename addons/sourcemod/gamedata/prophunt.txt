@@ -41,6 +41,16 @@
 				"linux"		"@_ZN12CTFSpellBook12CastSelfHealEP9CTFPlayer"
 				"windows"	"\x53\x8B\xDC\x83\xEC\x08\x83\xE4\xF0\x83\xC4\x04\x55\x8B\x6B\x04\x89\x6C\x24\x04\x8B\xEC\x81\xEC\x98\x01\x00\x00\x56"
 			}
+			"AI_CriteriaSet::FindCriterionIndex"
+			{
+				"linux"		"@_ZNK14AI_CriteriaSet18FindCriterionIndexEPKc"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x48\x56\xFF\x75\x08"
+			}
+			"AI_CriteriaSet::RemoveCriteria"
+			{
+				"linux"		"@_ZN14AI_CriteriaSet14RemoveCriteriaEPKc"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x48\x56\x57\xFF\x75\x08"
+			}
 		}
 		"Offsets"
 		{
@@ -53,6 +63,11 @@
 			{
 				"linux"		"23"
 				"windows"	"22"
+			}
+			"CBaseEntity::ModifyOrAppendCriteria"
+			{
+				"linux"		"119"
+				"windows"	"118"
 			}
 			"CBaseEntity::GetDamageType"
 			{
@@ -131,6 +146,20 @@
 				"hooktype"	"entity"
 				"return"	"void"
 				"this"		"entity"
+			}
+			"CTFPlayer::ModifyOrAppendCriteria"
+			{
+				"offset"	"CTFPlayer::ModifyOrAppendCriteria"
+				"hooktype"	"entity"
+				"return"	"void"
+				"this"		"entity"
+				"arguments"
+				{
+					"criteriaSet"
+					{
+						"type"	"int"
+					}
+				}
 			}
 			"CTFWeaponBaseGun::FireProjectile"
 			{

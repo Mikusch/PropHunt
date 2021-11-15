@@ -661,23 +661,6 @@ public bool EnumerateTriggers(int entity, int client)
 	return true;
 }
 
-public Action CommandListener_Build(int client, const char[] command, int argc)
-{
-	if (TF2_GetPlayerClass(client) == TFClass_Engineer)
-	{
-		char arg[16];
-		if (argc > 0 && GetCmdArg(1, arg, sizeof(arg)) > 0)
-		{
-			//Prevent Engineers from building sentry guns
-			TFObjectType type = view_as<TFObjectType>(StringToInt(arg));
-			if (type == TFObject_Sentry)
-				return Plugin_Handled;
-		}
-	}
-	
-	return Plugin_Continue;
-}
-
 public Action ConCmd_ForceProp(int client, int args)
 {
 	if (args < 1)
@@ -689,6 +672,26 @@ public Action ConCmd_ForceProp(int client, int args)
 	SetCustomModel(client, model);
 	
 	return Plugin_Handled;
+}
+
+public Action CommandListener_Build(int client, const char[] command, int argc)
+{
+	if (argc < 1)
+		return Plugin_Continue;
+	
+	if (TF2_GetPlayerClass(client) != TFClass_Engineer)
+		return Plugin_Continue;
+	
+	char arg[8];
+	GetCmdArg(1, arg, sizeof(arg));
+	
+	TFObjectType type = view_as<TFObjectType>(StringToInt(arg));
+	
+	// Prevent Engineers from building sentry guns
+	if (type == TFObject_Sentry)
+		return Plugin_Handled;
+	
+	return Plugin_Continue;
 }
 
 public Action Timer_RefreshControlPointBonus(Handle timer)
