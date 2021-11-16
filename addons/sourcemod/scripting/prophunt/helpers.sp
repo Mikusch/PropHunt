@@ -146,10 +146,30 @@ int GetBulletsPerShot(int weapon)
 	return LoadFromAddress(view_as<Address>(weaponData + g_OffsetBulletsPerShot), NumberType_Int8);
 }
 
+bool GetConfigByModel(const char[] model, PropConfig config)
+{
+	for (int i = 0; i < g_PropConfigs.Length; i++)
+	{
+		if (g_PropConfigs.GetArray(i, config) > 0)
+		{
+			// Try to fetch config by exact match first
+			if (config.model[0] != '\0' && strcmp(config.model, model) == 0)
+				return true;
+			
+			// Then, try the regular expression
+			if (config.regex && config.regex.Match(model) > 0)
+				return true;
+		}
+	}
+	
+	// No match found
+	return false;
+}
+
 bool IsPropBlacklisted(const char[] model)
 {
 	PropConfig config;
-	return g_PropConfigs.GetArray(model, config, sizeof(config)) && config.blacklisted;
+	return GetConfigByModel(model, config) && config.blacklisted;
 }
 
 void GetModelTidyName(const char[] model, char[] buffer, int maxlength)

@@ -86,6 +86,7 @@ MapConfig g_CurrentMapConfig;
 enum struct PropConfig
 {
 	char model[PLATFORM_MAX_PATH];
+	Regex regex;
 	bool blacklisted;
 	float offset[3];
 	float rotation[3];
@@ -93,10 +94,23 @@ enum struct PropConfig
 	void ReadFromKv(KeyValues kv)
 	{
 		kv.GetString("model", this.model, PLATFORM_MAX_PATH);
+		
+		char pattern[256];
+		kv.GetString("model_pattern", pattern, sizeof(pattern));
+		if (pattern[0] != '\0')
+		{
+			RegexError errcode;
+			char message[256];
+			this.regex = new Regex(pattern, _, message, sizeof(message), errcode);
+			
+			if (!this.regex)
+				LogError("Failed to compile regular expression [errcode %d]: %s", errcode, message);
+		}
+		
 		this.blacklisted = view_as<bool>(kv.GetNum("blacklisted"));
 		kv.GetVector("offset", this.offset);
 		kv.GetVector("rotation", this.rotation);
 	}
 }
 
-StringMap g_PropConfigs;
+ArrayList g_PropConfigs;

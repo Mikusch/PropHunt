@@ -106,7 +106,7 @@ public void OnPluginStart()
 	
 	AddCommandListener(CommandListener_Build, "build");
 	
-	g_PropConfigs = new StringMap();
+	g_PropConfigs = new ArrayList(sizeof(PropConfig));
 	
 	// Read global prop config
 	char file[PLATFORM_MAX_PATH];
@@ -121,7 +121,7 @@ public void OnPluginStart()
 			{
 				PropConfig config;
 				config.ReadFromKv(kv);
-				g_PropConfigs.SetArray(config.model, config, sizeof(config));
+				g_PropConfigs.PushArray(config);
 			}
 			while (kv.GotoNextKey(false));
 			kv.GoBack();
@@ -493,7 +493,7 @@ void SetCustomModel(int client, const char[] model)
 	AcceptEntityInput(client, "SetCustomModel");
 	
 	PropConfig config;
-	if (g_PropConfigs.GetArray(model, config, sizeof(config)))
+	if (GetConfigByModel(model, config))
 	{
 		SetVariantVector3D(config.offset);
 		AcceptEntityInput(client, "SetCustomModelOffset");
