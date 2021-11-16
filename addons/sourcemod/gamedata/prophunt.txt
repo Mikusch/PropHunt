@@ -66,33 +66,33 @@
 			}
 			"CBaseEntity::ModifyOrAppendCriteria"
 			{
-				"linux"		"119"
-				"windows"	"118"
+				"linux"		"122"
+				"windows"	"121"
 			}
 			"CBaseEntity::GetDamageType"
 			{
-				"linux"		"128"
-				"windows"	"127"
+				"linux"		"131"
+				"windows"	"130"
 			}
 			"CTFWeaponBaseGun::FireProjectile"
 			{
-				"linux"		"470"
-				"windows"	"463"
+				"linux"		"473"
+				"windows"	"466"
 			}
 			"CTFWeaponBaseMelee::Smack"
 			{
-				"linux"		"470"
-				"windows"	"463"
+				"linux"		"473"
+				"windows"	"466"
 			}
 			"CTFWeaponBaseGun::GetProjectileDamage"
 			{
-				"linux"		"485"
-				"windows"	"478"
+				"linux"		"488"
+				"windows"	"481"
 			}
 			"CTFWeaponBaseMelee::GetMeleeDamage"
 			{
-				"linux"		"474"
-				"windows"	"467"
+				"linux"		"477"
+				"windows"	"470"
 			}
 			"CTFWeaponBase::m_iWeaponMode"
 			{
