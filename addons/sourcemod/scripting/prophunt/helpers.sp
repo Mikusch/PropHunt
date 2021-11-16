@@ -152,6 +152,21 @@ bool IsPropBlacklisted(const char[] model)
 	return g_PropConfigs.GetArray(model, config, sizeof(config)) && config.blacklisted;
 }
 
+void GetModelTidyName(const char[] model, char[] buffer, int maxlength)
+{
+	// Always copy first
+	strcopy(buffer, maxlength, model);
+	
+	// Remove models/ at the start
+	if (StrContains(buffer, "models/") == 0)
+		strcopy(buffer, maxlength, buffer[7]);
+	
+	// Remove .mdl at the end
+	int start = StrContains(buffer, ".mdl");
+	if (start != -1)
+		buffer[start] = '\0';
+}
+
 bool IsEntityClient(int entity)
 {
 	return 0 < entity < MaxClients;

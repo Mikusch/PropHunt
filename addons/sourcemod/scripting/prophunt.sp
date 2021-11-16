@@ -447,18 +447,18 @@ bool DoModelNameChecks(int client, const char[] model)
 	if (model[0] == '*')
 		return false;
 	
+	// Ignore the model if the player is already disguised as it
+	char customModel[PLATFORM_MAX_PATH];
+	if (GetEntPropString(client, Prop_Send, "m_iszCustomModel", customModel, sizeof(customModel)) > 0 && strcmp(customModel, model) == 0)
+		return false;
+	
 	// Is this prop blacklisted?
 	if (IsPropBlacklisted(model) || (!g_CurrentMapConfig.IsWhitelisted(model) && g_CurrentMapConfig.IsBlacklisted(model)))
 	{
-		CPrintToChat(client, "%t", "Selected Prop Blacklisted", model);
-		return false;
-	}
-	
-	// Is the player trying to pick the same prop twice?
-	char customModel[PLATFORM_MAX_PATH];
-	if (GetEntPropString(client, Prop_Send, "m_iszCustomModel", customModel, sizeof(customModel)) > 0 && strcmp(customModel, model) == 0)
-	{
-		CPrintToChat(client, "%t", "Selected Prop Already Disguised", model);
+		char modelTidyName[PLATFORM_MAX_PATH];
+		GetModelTidyName(model, modelTidyName, sizeof(modelTidyName));
+		
+		CPrintToChat(client, "%t", "Selected Prop Blacklisted", modelTidyName);
 		return false;
 	}
 	
@@ -469,17 +469,20 @@ bool DoModelSizeChecks(int client, const char[] model, const float mins[3], cons
 {
 	float size = GetVectorDistance(mins, maxs);
 	
+	char modelTidyName[PLATFORM_MAX_PATH];
+	GetModelTidyName(model, modelTidyName, sizeof(modelTidyName));
+	
 	// Is the prop too small?
 	if (size < ph_prop_min_size.FloatValue)
 	{
-		CPrintToChat(client, "%t", "Selected Prop Too Small", model);
+		CPrintToChat(client, "%t", "Selected Prop Too Small", modelTidyName);
 		return false;
 	}
 	
 	// Is the prop too big?
 	if (size > ph_prop_max_size.FloatValue)
 	{
-		CPrintToChat(client, "%t", "Selected Prop Too Big", model);
+		CPrintToChat(client, "%t", "Selected Prop Too Big", modelTidyName);
 		return false;
 	}
 	
@@ -517,7 +520,10 @@ void SetCustomModel(int client, const char[] model)
 	
 	SetEntProp(client, Prop_Data, "m_bloodColor", DONT_BLEED);
 	
-	CPrintToChat(client, "%t", "Selected Prop", model);
+	char modelTidyName[PLATFORM_MAX_PATH];
+	GetModelTidyName(model, modelTidyName, sizeof(modelTidyName));
+	
+	CPrintToChat(client, "%t", "Selected Prop", modelTidyName);
 	
 	LogMessage("[PROP HUNT] %N chose prop \"%s\"", client, model);
 }

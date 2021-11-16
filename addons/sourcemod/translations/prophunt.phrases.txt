@@ -30,31 +30,25 @@
 	"Selected Prop"
 	{
 		"#format"	"{1:s}"
-		"en"		"You have been disguised as {cyan}{1}{default}."
+		"en"		"You have been disguised as {cyan}{1}{default}!"
 	}
 	
 	"Selected Prop Too Small"
 	{
 		"#format"	"{1:s}"
-		"en"		"{cyan}{1} {default}doesn't meet the minimum required size."
+		"en"		"You may not disguise as {cyan}{1} {default}because it is too small."
 	}
 	
 	"Selected Prop Too Big"
 	{
 		"#format"	"{1:s}"
-		"en"		"{cyan}{1} {default}exceeds the maximum allowed size."
+		"en"		"You may not disguise as {cyan}{1} {default}because it is too big."
 	}
 	
 	"Selected Prop Blacklisted"
 	{
 		"#format"	"{1:s}"
-		"en"		"You are not allowed to disguise as {cyan}{1}{default}."
-	}
-	
-	"Selected Prop Already Disguised"
-	{
-		"#format"	"{1:s}"
-		"en"		"You are already disguised as {cyan}{1}{default}."
+		"en"		"You may not disguise as {cyan}{1} {default}because it is blacklisted."
 	}
 	
 	"r_staticpropinfo Enabled"
