@@ -127,11 +127,6 @@ bool CloseEnough(float a, float b, float epsilon)
 	return FloatAbs(a - b) <= epsilon;
 }
 
-bool IsValidBboxSize(const float mins[3], const float maxs[3])
-{
-	return ph_prop_min_size.FloatValue < GetVectorDistance(mins, maxs) < ph_prop_max_size.FloatValue;
-}
-
 bool IsWeaponBaseGun(int entity)
 {
 	return HasEntProp(entity, Prop_Data, "CTFWeaponBaseGunZoomOutIn");

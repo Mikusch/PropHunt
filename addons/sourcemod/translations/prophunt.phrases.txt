@@ -17,12 +17,6 @@
 
 "Phrases"
 {
-	"Selected Prop"
-	{
-		"#format"	"{1:s}"
-		"en"		"You have chosen: {1}"
-	}
-	
 	"PropLock Engaged"
 	{
 		"en"		"PropLock engaged"
@@ -33,9 +27,34 @@
 		"en"		"PropLock unavailable in current location"
 	}
 	
-	"No Valid Prop"
+	"Selected Prop"
 	{
-		"en"		"You are not looking at a valid prop!"
+		"#format"	"{1:s}"
+		"en"		"You have been disguised as {cyan}{1}{default}."
+	}
+	
+	"Selected Prop Too Small"
+	{
+		"#format"	"{1:s}"
+		"en"		"{cyan}{1} {default}doesn't meet the minimum required size."
+	}
+	
+	"Selected Prop Too Big"
+	{
+		"#format"	"{1:s}"
+		"en"		"{cyan}{1} {default}exceeds the maximum allowed size."
+	}
+	
+	"Selected Prop Blacklisted"
+	{
+		"#format"	"{1:s}"
+		"en"		"You are not allowed to disguise as {cyan}{1}{default}."
+	}
+	
+	"Selected Prop Already Disguised"
+	{
+		"#format"	"{1:s}"
+		"en"		"You are already disguised as {cyan}{1}{default}."
 	}
 	
 	"r_staticpropinfo Enabled"
@@ -51,11 +70,6 @@
 	"Prop Controls"
 	{
 		"en"		"%%+attack%% LOCK PROP ROTATION %%+attack2%% TOGGLE THIRDPERSON %%+reload%% SELECT PROP"
-	}
-	
-	"Hunter Class Unavailable"
-	{
-		"en"		"This class is unavailable on the Hunter team."
 	}
 	
 	"Control Point Bonus Refreshed"

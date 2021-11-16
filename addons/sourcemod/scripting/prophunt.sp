@@ -19,6 +19,7 @@
 #include <sdktools>
 #include <tf2_stocks>
 #include <sdkhooks>
+#include <morecolors>
 #include <dhooks>
 #include <StaticProps>
 #include <tf2items>
@@ -288,8 +289,8 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	// IN_RELOAD allows the player to pick a prop
 	if (buttons & IN_RELOAD && buttonsChanged & IN_RELOAD)
 	{
-		if (!SearchForEntityProps(client) && !SearchForStaticProps(client))
-			PrintToChat(client, "%t", "No Valid Prop");
+		if (!SearchForEntityProps(client))
+			SearchForStaticProps(client);
 	}
 	
 	// Prevent the player from auto-unlocking themselves with movement keys for one second
@@ -352,49 +353,36 @@ public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int item
 
 bool SearchForEntityProps(int client)
 {
-	// For entities, we can simply go with whatever is under the player's crosshair
+	// For entities, we can go with whatever is under the player's crosshair
 	int entity = GetClientAimTarget(client, false);
 	if (entity == -1)
 		return false;
 	
-	char classname[256];
-	if (GetEntityClassname(entity, classname, sizeof(classname)) && HasEntProp(entity, Prop_Data, "m_ModelName"))
-	{
-		char model[PLATFORM_MAX_PATH];
-		GetEntPropString(entity, Prop_Data, "m_ModelName", model, sizeof(model));
-		
-		// Ignore brush entities
-		if (model[0] == '*')
-			return false;
-		
-		if (IsPropBlacklisted(model))
-			return false;
-		
-		if (!g_CurrentMapConfig.IsWhitelisted(model) && g_CurrentMapConfig.IsBlacklisted(model))
-			return false;
-		
-		char customModel[PLATFORM_MAX_PATH];
-		if (GetEntPropString(client, Prop_Send, "m_iszCustomModel", customModel, sizeof(customModel)) > 0 && strcmp(customModel, model) == 0)
-			return false;
-		
-		float mins[3], maxs[3];
-		GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
-		GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
-		
-		if (!IsValidBboxSize(mins, maxs))
-			return false;
-		
-		PHPlayer(client).PropType = Prop_Entity;
-		PHPlayer(client).PropIndex = EntIndexToEntRef(entity);
-		SetCustomModel(client, model);
-		
-		SetEntProp(client, Prop_Send, "m_bForcedSkin", true);
-		SetEntProp(client, Prop_Send, "m_nForcedSkin", GetEntitySkin(entity));
-		
-		return true;
-	}
+	if (!HasEntProp(entity, Prop_Data, "m_ModelName"))
+		return false;
 	
-	return false;
+	char model[PLATFORM_MAX_PATH];
+	GetEntPropString(entity, Prop_Data, "m_ModelName", model, sizeof(model));
+	
+	if (!DoModelNameChecks(client, model))
+		return false;
+	
+	float mins[3], maxs[3];
+	GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
+	GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
+	
+	if (!DoModelSizeChecks(client, model, mins, maxs))
+		return false;
+	
+	PHPlayer(client).PropType = Prop_Entity;
+	PHPlayer(client).PropIndex = EntIndexToEntRef(entity);
+	SetCustomModel(client, model);
+	
+	// Copy skin of selected model
+	SetEntProp(client, Prop_Send, "m_bForcedSkin", true);
+	SetEntProp(client, Prop_Send, "m_nForcedSkin", GetEntitySkin(entity));
+	
+	return true;
 }
 
 bool SearchForStaticProps(int client)
@@ -421,32 +409,24 @@ bool SearchForStaticProps(int client)
 			continue;
 		
 		// Check whether the player is looking at this prop.
-		// The engine completely ignores any non-solid props regardless of trace settings,
-		// so we only use the engine trace to get the distance to the next wall and solve the intersection ourselves.
+		// The engine completely ignores any non-solid props regardless of trace settings, so we only
+		// use the engine trace to get the distance to the next wall and solve the intersection ourselves.
 		if (!IntersectionLineAABBFast(aabbMins, aabbMaxs, eyePosition, eyeAngleFwd, distance))
-			continue;
-		
-		float obbMins[3], obbMaxs[3];
-		if (!StaticProp_GetOBBBounds(i, obbMins, obbMaxs))
-			continue;
-		
-		// Check the size of the prop
-		if (!IsValidBboxSize(obbMins, obbMaxs))
 			continue;
 		
 		char name[PLATFORM_MAX_PATH];
 		if (!StaticProp_GetModelName(i, name, sizeof(name)))
-			continue;
-		
-		if (IsPropBlacklisted(name))
 			return false;
 		
-		if (!g_CurrentMapConfig.IsWhitelisted(name) && g_CurrentMapConfig.IsBlacklisted(name))
-			continue;
+		if (!DoModelNameChecks(client, name))
+			return false;
 		
-		char customModel[PLATFORM_MAX_PATH];
-		if (GetEntPropString(client, Prop_Send, "m_iszCustomModel", customModel, sizeof(customModel)) > 0 && strcmp(customModel, name) == 0)
-			continue;
+		float obbMins[3], obbMaxs[3];
+		if (!StaticProp_GetOBBBounds(i, obbMins, obbMaxs))
+			return false;
+		
+		if (!DoModelSizeChecks(client, name, obbMins, obbMaxs))
+			return false;
 		
 		// Finally, set the player's prop
 		PHPlayer(client).PropType = Prop_Static;
@@ -457,8 +437,53 @@ bool SearchForStaticProps(int client)
 		return true;
 	}
 	
-	// Exhausted all options...
+	// We have not found a prop at this point
 	return false;
+}
+
+bool DoModelNameChecks(int client, const char[] model)
+{
+	// Ignore brush entities
+	if (model[0] == '*')
+		return false;
+	
+	// Is this prop blacklisted?
+	if (IsPropBlacklisted(model) || (!g_CurrentMapConfig.IsWhitelisted(model) && g_CurrentMapConfig.IsBlacklisted(model)))
+	{
+		CPrintToChat(client, "%t", "Selected Prop Blacklisted", model);
+		return false;
+	}
+	
+	// Is the player trying to pick the same prop twice?
+	char customModel[PLATFORM_MAX_PATH];
+	if (GetEntPropString(client, Prop_Send, "m_iszCustomModel", customModel, sizeof(customModel)) > 0 && strcmp(customModel, model) == 0)
+	{
+		CPrintToChat(client, "%t", "Selected Prop Already Disguised", model);
+		return false;
+	}
+	
+	return true;
+}
+
+bool DoModelSizeChecks(int client, const char[] model, const float mins[3], const float maxs[3])
+{
+	float size = GetVectorDistance(mins, maxs);
+	
+	// Is the prop too small?
+	if (size < ph_prop_min_size.FloatValue)
+	{
+		CPrintToChat(client, "%t", "Selected Prop Too Small", model);
+		return false;
+	}
+	
+	// Is the prop too big?
+	if (size > ph_prop_max_size.FloatValue)
+	{
+		CPrintToChat(client, "%t", "Selected Prop Too Big", model);
+		return false;
+	}
+	
+	return true;
 }
 
 void SetCustomModel(int client, const char[] model)
@@ -492,7 +517,7 @@ void SetCustomModel(int client, const char[] model)
 	
 	SetEntProp(client, Prop_Data, "m_bloodColor", DONT_BLEED);
 	
-	PrintToChat(client, "%t", "Selected Prop", model);
+	CPrintToChat(client, "%t", "Selected Prop", model);
 	
 	LogMessage("[PROP HUNT] %N chose prop \"%s\"", client, model);
 }
@@ -617,7 +642,7 @@ public Action OnControlPointStartTouch(int prop, int other)
 		if (SDKCall_CastSelfHeal(other))
 		{
 			EmitGameSoundToClient(other, "Announcer.MVM_Bonus");
-			PrintToChat(other, "%t", "Control Point Bonus Received");
+			CPrintToChat(other, "%t", "Control Point Bonus Received");
 			
 			PHPlayer(other).HasReceivedBonus = true;
 		}
@@ -704,7 +729,7 @@ public Action Timer_RefreshControlPointBonus(Handle timer)
 		PHPlayer(client).HasReceivedBonus = false;
 	}
 	
-	PrintToChatAll("%t", "Control Point Bonus Refreshed");
+	CPrintToChatAll("%t", "Control Point Bonus Refreshed");
 	
 	return Plugin_Continue;
 }
