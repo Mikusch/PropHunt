@@ -77,21 +77,6 @@ public void Event_PostInventoryApplication(Event event, const char[] name, bool 
 		// Fixes an exploit where you could keep your hunter weapons as a prop
 		TF2_RemoveAllWeapons(client);
 	}
-	else if (IsPlayerHunter(client))
-	{
-		// Give Hunters a Grappling Hook to get around quicker
-		Handle item = TF2Items_CreateItem(PRESERVE_ATTRIBUTES);
-		
-		char classname[256];
-		TF2Econ_GetItemClassName(ITEM_DEFINDEX_GRAPPLINGHOOK, classname, sizeof(classname));
-		
-		TF2Items_SetClassname(item, classname);
-		TF2Items_SetItemIndex(item, ITEM_DEFINDEX_GRAPPLINGHOOK);
-		TF2Items_SetLevel(item, 1);
-		
-		int grapplingHook = TF2Items_GiveNamedItem(client, item);
-		EquipPlayerWeapon(client, grapplingHook);
-	}
 }
 
 public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBroadcast)

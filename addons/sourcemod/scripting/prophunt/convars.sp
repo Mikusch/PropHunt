@@ -50,6 +50,7 @@ void ConVars_Initialize()
 	ConVars_Track("tf_arena_override_cap_enable_time", "0");
 	ConVars_Track("tf_arena_use_queue", "0");
 	ConVars_Track("tf_arena_first_blood", "0");
+	ConVars_Track("tf_grapplinghook_enable", "1");
 	ConVars_Track("tf_weapon_criticals", "0");
 	ConVars_Track("mp_show_voice_icons", "0");
 	ConVars_Track("mp_forcecamera", "1");
