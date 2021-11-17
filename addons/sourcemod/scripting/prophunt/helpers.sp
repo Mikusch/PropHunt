@@ -168,7 +168,7 @@ bool GetConfigByModel(const char[] model, PropConfig config)
 bool IsPropBlacklisted(const char[] model)
 {
 	PropConfig config;
-	return GetConfigByModel(model, config) && config.blacklisted;
+	return GetConfigByModel(model, config) && config.blacklist;
 }
 
 void GetModelTidyName(const char[] model, char[] buffer, int maxlength)

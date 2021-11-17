@@ -87,12 +87,16 @@ enum struct PropConfig
 {
 	char model[PLATFORM_MAX_PATH];
 	Regex regex;
-	bool blacklisted;
+	bool blacklist;
 	float offset[3];
 	float rotation[3];
 	
 	void ReadFromKv(KeyValues kv)
 	{
+		char section[256];
+		if (!kv.GetSectionName(section, sizeof(section)))
+			return;
+		
 		kv.GetString("model", this.model, PLATFORM_MAX_PATH);
 		
 		char pattern[256];
@@ -104,10 +108,10 @@ enum struct PropConfig
 			this.regex = new Regex(pattern, _, message, sizeof(message), errcode);
 			
 			if (!this.regex)
-				LogError("Failed to compile regular expression [errcode %d]: %s", errcode, message);
+				LogError("%s: Failed to compile regular expression [errcode %d]: %s", section, errcode, message);
 		}
 		
-		this.blacklisted = view_as<bool>(kv.GetNum("blacklisted"));
+		this.blacklist = view_as<bool>(kv.GetNum("blacklist"));
 		kv.GetVector("offset", this.offset);
 		kv.GetVector("rotation", this.rotation);
 	}
