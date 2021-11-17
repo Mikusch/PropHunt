@@ -287,8 +287,9 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	// IN_RELOAD allows the player to pick a prop
 	if (buttons & IN_RELOAD && buttonsChanged & IN_RELOAD)
 	{
-		if (!SearchForEntityProps(client))
-			SearchForStaticProps(client);
+		char message[256];
+		if (SearchForProps(client, message, sizeof(message)))
+			CPrintToChat(client, message);
 	}
 	
 	// Prevent the player from auto-unlocking themselves with movement keys for one second
@@ -349,7 +350,12 @@ public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int item
 		TF2Attrib_SetByName(entity, "heal rate penalty", 0.1);
 }
 
-bool SearchForEntityProps(int client)
+bool SearchForProps(int client, char[] message, int maxlength)
+{
+	return !SearchForEntityProps(client, message, maxlength) && !SearchForStaticProps(client, message, maxlength);
+}
+
+bool SearchForEntityProps(int client, char[] message, int maxlength)
 {
 	// For entities, we can go with whatever is under the player's crosshair
 	int entity = GetClientAimTarget(client, false);
@@ -362,14 +368,14 @@ bool SearchForEntityProps(int client)
 	char model[PLATFORM_MAX_PATH];
 	GetEntPropString(entity, Prop_Data, "m_ModelName", model, sizeof(model));
 	
-	if (!DoModelNameChecks(client, model))
+	if (!DoModelNameChecks(client, model, message, maxlength))
 		return false;
 	
 	float mins[3], maxs[3];
 	GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
 	GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
 	
-	if (!DoModelSizeChecks(client, model, mins, maxs))
+	if (!DoModelSizeChecks(client, model, mins, maxs, message, maxlength))
 		return false;
 	
 	PHPlayer(client).PropType = Prop_Entity;
@@ -383,7 +389,7 @@ bool SearchForEntityProps(int client)
 	return true;
 }
 
-bool SearchForStaticProps(int client)
+bool SearchForStaticProps(int client, char[] message, int maxlength)
 {
 	float eyePosition[3], eyeAngles[3], eyeAngleFwd[3];
 	GetClientEyePosition(client, eyePosition);
@@ -414,17 +420,17 @@ bool SearchForStaticProps(int client)
 		
 		char name[PLATFORM_MAX_PATH];
 		if (!StaticProp_GetModelName(i, name, sizeof(name)))
-			return false;
+			continue;
 		
-		if (!DoModelNameChecks(client, name))
-			return false;
+		if (!DoModelNameChecks(client, name, message, maxlength))
+			continue;
 		
 		float obbMins[3], obbMaxs[3];
 		if (!StaticProp_GetOBBBounds(i, obbMins, obbMaxs))
-			return false;
+			continue;
 		
-		if (!DoModelSizeChecks(client, name, obbMins, obbMaxs))
-			return false;
+		if (!DoModelSizeChecks(client, name, obbMins, obbMaxs, message, maxlength))
+			continue;
 		
 		// Finally, set the player's prop
 		PHPlayer(client).PropType = Prop_Static;
@@ -439,7 +445,7 @@ bool SearchForStaticProps(int client)
 	return false;
 }
 
-bool DoModelNameChecks(int client, const char[] model)
+bool DoModelNameChecks(int client, const char[] model, char[] message, int maxlength)
 {
 	// Ignore brush entities
 	if (model[0] == '*')
@@ -456,14 +462,14 @@ bool DoModelNameChecks(int client, const char[] model)
 		char modelTidyName[PLATFORM_MAX_PATH];
 		GetModelTidyName(model, modelTidyName, sizeof(modelTidyName));
 		
-		CPrintToChat(client, "%t", "Selected Prop Blacklisted", modelTidyName);
+		Format(message, maxlength, "%T", "Selected Prop Blacklisted", client, modelTidyName);
 		return false;
 	}
 	
 	return true;
 }
 
-bool DoModelSizeChecks(int client, const char[] model, const float mins[3], const float maxs[3])
+bool DoModelSizeChecks(int client, const char[] model, const float mins[3], const float maxs[3], char[] message, int maxlength)
 {
 	float size = GetVectorDistance(mins, maxs);
 	
@@ -473,14 +479,14 @@ bool DoModelSizeChecks(int client, const char[] model, const float mins[3], cons
 	// Is the prop too small?
 	if (size < ph_prop_min_size.FloatValue)
 	{
-		CPrintToChat(client, "%t", "Selected Prop Too Small", modelTidyName);
+		Format(message, maxlength, "%T", "Selected Prop Too Small", client, modelTidyName);
 		return false;
 	}
 	
 	// Is the prop too big?
 	if (size > ph_prop_max_size.FloatValue)
 	{
-		CPrintToChat(client, "%t", "Selected Prop Too Big", modelTidyName);
+		Format(message, maxlength, "%T", "Selected Prop Too Big", client, modelTidyName);
 		return false;
 	}
 	

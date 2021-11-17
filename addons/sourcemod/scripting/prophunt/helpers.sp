@@ -162,7 +162,6 @@ bool GetConfigByModel(const char[] model, PropConfig config)
 		}
 	}
 	
-	// No match found
 	return false;
 }
 
