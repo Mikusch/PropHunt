@@ -33,6 +33,7 @@ void ConVars_Initialize()
 	ph_prop_min_size = CreateConVar("ph_prop_min_size", "40.0", "Minimum size of props to be selectable by players.");
 	ph_prop_max_size = CreateConVar("ph_prop_max_size", "400.0", "Maximum size of props to be selectable by players.");
 	ph_prop_select_distance = CreateConVar("ph_prop_select_distance", "128.0", "Minimum required distance to a prop to be able to select it, in HU.");
+	ph_prop_max_health = CreateConVar("ph_prop_max_health", "300", "Maximum health of props, regardless of prop size. Set to 0 to unrestrict health.");
 	ph_hunter_damagemod_guns = CreateConVar("ph_hunter_damagemod_guns", "0.4", "Modifier of damage taken from gun-based weapons.");
 	ph_hunter_damagemod_melee = CreateConVar("ph_hunter_damagemod_melee", "0.2", "Modifier of damage taken from melee-based weapons.");
 	ph_hunter_damage_flamethrower = CreateConVar("ph_hunter_damage_flamethrower", "1.0", "Amount of damage taken from Flame Throwers.");

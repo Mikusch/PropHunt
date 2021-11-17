@@ -81,50 +81,51 @@ static DynamicHook CreateDynamicHook(GameData gamedata, const char[] name)
 
 public MRESReturn DHook_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
 {
-	if (IsPlayerProp(player))
+	if (!IsPlayerProp(player))
+		return MRES_Ignored;
+	
+	int health;
+	float mins[3], maxs[3];
+	
+	// Determine health based on prop bounding box size
+	switch (PHPlayer(player).PropType)
 	{
-		int health;
-		float mins[3], maxs[3];
-		
-		// Determine health based on prop bounding box size
-		switch (PHPlayer(player).PropType)
+		case Prop_Static:
 		{
-			case Prop_Static:
+			if (StaticProp_GetOBBBounds(PHPlayer(player).PropIndex, mins, maxs))
+				health = RoundToCeil(GetVectorDistance(mins, maxs));
+		}
+		case Prop_Entity:
+		{
+			int entity = EntRefToEntIndex(PHPlayer(player).PropIndex);
+			if (entity != -1)
 			{
-				if (StaticProp_GetOBBBounds(PHPlayer(player).PropIndex, mins, maxs))
-					health = RoundToCeil(GetVectorDistance(mins, maxs));
+				GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
+				GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
+				health = RoundToCeil(GetVectorDistance(mins, maxs));
 			}
-			case Prop_Entity:
+			else
 			{
-				int entity = EntRefToEntIndex(PHPlayer(player).PropIndex);
-				if (entity != -1)
-				{
-					GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
-					GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
-					health = RoundToCeil(GetVectorDistance(mins, maxs));
-				}
-				else
-				{
-					// Prop we disguised as is now invalid, don't update max health until we redisguise
-					health = GetPlayerMaxHealth(player);
-				}
-			}
-			default:
-			{
-				// Use class default health if we are not a prop
-				return MRES_Ignored;
+				// Prop we disguised as is now invalid, don't update max health until we redisguise
+				health = GetPlayerMaxHealth(player);
 			}
 		}
-		
-		// Refill health during setup time
-		if (GameRules_GetRoundState() == RoundState_Preround || g_InSetup)
-			SetEntityHealth(player, health);
-		
-		ret.Value = health;
-		return MRES_Supercede;
+		default:
+		{
+			// Use class default health if we are not a prop
+			return MRES_Ignored;
+		}
 	}
 	
-	return MRES_Ignored;
+	if (ph_prop_max_health.IntValue > 0)
+		health = Min(health, ph_prop_max_health.IntValue);
+	
+	// Refill health during setup time
+	if (GameRules_GetRoundState() == RoundState_Preround || g_InSetup)
+		SetEntityHealth(player, health);
+	
+	ret.Value = health;
+	return MRES_Supercede;
 }
 
 public MRESReturn DHook_HookTarget_Pre(int projectile, DHookParam params)
