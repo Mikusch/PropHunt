@@ -247,9 +247,6 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	if (!IsPlayerProp(client) || !IsPlayerAlive(client))
 		return Plugin_Continue;
 	
-	// TODO: Only allow unlocking by moving after the player has fully released their movement keys
-	static float latestUnlockTime[MAXPLAYERS + 1];
-	
 	// IN_ATTACK locks the player's prop view
 	if (buttons & IN_ATTACK && buttonsChanged & IN_ATTACK)
 	{
@@ -263,8 +260,6 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 		{
 			bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
 			TogglePropLock(client, locked);
-			
-			latestUnlockTime[client] = GetGameTime() + 1.0;
 		}
 		else
 		{
@@ -293,19 +288,13 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 			CPrintToChat(client, message);
 	}
 	
-	// Prevent the player from auto-unlocking themselves with movement keys for one second
-	if (PHPlayer(client).InForcedTauntCam && latestUnlockTime[client] > GetGameTime())
-	{
-		buttons &= ~IN_FORWARD;
-		buttons &= ~IN_BACK;
-		buttons &= ~IN_MOVELEFT;
-		buttons &= ~IN_MOVERIGHT;
-		
-		return Plugin_Changed;
-	}
-	
-	// Movement keys will undo a prop lock
-	if (buttons & IN_FORWARD || buttons & IN_BACK || buttons & IN_MOVELEFT || buttons & IN_MOVERIGHT)
+	// Pressing movement keys will undo a prop lock
+	if ((buttons & IN_FORWARD && buttonsChanged & IN_FORWARD) ||
+		(buttons & IN_BACK && buttonsChanged & IN_BACK) ||
+		(buttons & IN_MOVELEFT && buttonsChanged & IN_MOVELEFT) ||
+		(buttons & IN_MOVERIGHT && buttonsChanged & IN_MOVERIGHT) ||
+		(buttons & IN_JUMP && buttonsChanged & IN_JUMP) ||
+		(buttons & IN_DUCK && buttonsChanged & IN_DUCK))
 	{
 		if (PHPlayer(client).PropLockEnabled)
 		{
