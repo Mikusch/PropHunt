@@ -89,6 +89,7 @@ ConVar ph_relay_name;
 #include "prophunt/events.sp"
 #include "prophunt/helpers.sp"
 #include "prophunt/sdkcalls.sp"
+#include "prophunt/sdkhooks.sp"
 
 public Plugin myinfo = 
 {
@@ -184,6 +185,8 @@ public void OnMapStart()
 
 public void OnEntityCreated(int entity, const char[] classname)
 {
+	SDKHooks_OnEntityCreated(entity, classname);
+	
 	if (strcmp(classname, "tf_logic_arena") == 0)
 	{
 		// Prevent arena from trying to enable the control point
@@ -192,10 +195,6 @@ public void OnEntityCreated(int entity, const char[] classname)
 	else if (strcmp(classname, "trigger_capture_area") == 0)
 	{
 		RemoveEntity(entity);
-	}
-	else if (strcmp(classname, "prop_dynamic") == 0)
-	{
-		SDKHook(entity, SDKHook_SpawnPost, SDKHookCB_PropDynamic_SpawnPost);
 	}
 }
 
@@ -221,6 +220,7 @@ public void OnClientPutInServer(int client)
 	PHPlayer(client).Reset();
 	
 	DHooks_HookClient(client);
+	SDKHooks_HookClient(client);
 	
 	// Fixes arena HUD messing up
 	if (!IsFakeClient(client))
@@ -247,30 +247,33 @@ void TogglePropLock(int client, bool toggle)
 
 public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
 {
-	int buttonsChanged = GetEntProp(client, Prop_Data, "m_afButtonPressed") | GetEntProp(client, Prop_Data, "m_afButtonReleased");
-	
 	// Prop-only functionality below this point
 	if (!IsPlayerProp(client) || !IsPlayerAlive(client))
 		return Plugin_Continue;
 	
+	int buttonsChanged = GetEntProp(client, Prop_Data, "m_afButtonPressed") | GetEntProp(client, Prop_Data, "m_afButtonReleased");
+	
 	// IN_ATTACK locks the player's prop view
 	if (buttons & IN_ATTACK && buttonsChanged & IN_ATTACK)
 	{
-		// Check if the player is currently above a trigger_hurt
-		float origin[3];
-		GetClientAbsOrigin(client, origin);
-		TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, TraceEntityEnumerator_EnumerateTriggers, client);
-		
-		// Don't allow them to lock to avoid props hovering above deadly areas
-		if (!g_DisallowPropLocking)
+		if (GameRules_GetRoundState() != RoundState_Preround)
 		{
-			bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
-			TogglePropLock(client, locked);
-		}
-		else
-		{
-			PrintHintText(client, "%t", "PropLock Unavailable");
-			g_DisallowPropLocking = false;
+			// Check if the player is currently above a trigger_hurt
+			float origin[3];
+			GetClientAbsOrigin(client, origin);
+			TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, TraceEntityEnumerator_EnumerateTriggers, client);
+			
+			// Don't allow them to lock to avoid props hovering above deadly areas
+			if (!g_DisallowPropLocking)
+			{
+				bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
+				TogglePropLock(client, locked);
+			}
+			else
+			{
+				PrintHintText(client, "%t", "PropLock Unavailable");
+				g_DisallowPropLocking = false;
+			}
 		}
 	}
 	
@@ -620,33 +623,6 @@ public Action EntityOutput_OnSetupFinished(const char[] output, int caller, int 
 public Action EntityOutput_OnFinished(const char[] output, int caller, int activator, float delay)
 {
 	SetWinningTeam(TFTeam_Props);
-}
-
-public void SDKHookCB_PropDynamic_SpawnPost(int prop)
-{
-	char model[PLATFORM_MAX_PATH];
-	GetEntPropString(prop, Prop_Data, "m_ModelName", model, sizeof(model));
-	
-	// Hook the control point prop
-	if (strcmp(model, "models/props_gameplay/cap_point_base.mdl") == 0)
-		SDKHook(prop, SDKHook_StartTouch, SDKHookCB_ControlPoint_StartTouch);
-}
-
-public Action SDKHookCB_ControlPoint_StartTouch(int prop, int other)
-{
-	// Players touching the capture area receive a health bonus
-	if (IsEntityClient(other) && !PHPlayer(other).HasReceivedBonus)
-	{
-		if (SDKCall_CastSelfHeal(other))
-		{
-			EmitGameSoundToClient(other, "Announcer.MVM_Bonus");
-			CPrintToChat(other, "%t", "Control Point Bonus Received");
-			
-			PHPlayer(other).HasReceivedBonus = true;
-		}
-	}
-	
-	return Plugin_Continue;
 }
 
 public bool TraceEntityEnumerator_EnumerateTriggers(int entity, int client)
