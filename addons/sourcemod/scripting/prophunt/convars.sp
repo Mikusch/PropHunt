@@ -34,9 +34,10 @@ void ConVars_Initialize()
 	ph_prop_max_size = CreateConVar("ph_prop_max_size", "400.0", "Maximum size of props to be selectable by players.");
 	ph_prop_select_distance = CreateConVar("ph_prop_select_distance", "128.0", "Minimum required distance to a prop to be able to select it, in HU.");
 	ph_prop_max_health = CreateConVar("ph_prop_max_health", "300", "Maximum health of props, regardless of prop size. Set to 0 to unrestrict health.");
-	ph_hunter_damagemod_guns = CreateConVar("ph_hunter_damagemod_guns", "0.4", "Modifier of damage taken from gun-based weapons.");
-	ph_hunter_damagemod_melee = CreateConVar("ph_hunter_damagemod_melee", "0.2", "Modifier of damage taken from melee-based weapons.");
-	ph_hunter_damage_flamethrower = CreateConVar("ph_hunter_damage_flamethrower", "1.0", "Amount of damage taken from Flame Throwers.");
+	ph_hunter_damagemod_guns = CreateConVar("ph_hunter_damagemod_guns", "0.4", "Modifier of self-damage taken from gun-based weapons.");
+	ph_hunter_damagemod_melee = CreateConVar("ph_hunter_damagemod_melee", "0.2", "Modifier of self-damage taken from melee-based weapons.");
+	ph_hunter_damagemod_grapplinghook = CreateConVar("ph_hunter_damagemod_grapplinghook", "1.0", "Modifier of self-damage taken from the Grappling Hook.");
+	ph_hunter_damage_flamethrower = CreateConVar("ph_hunter_damage_flamethrower", "1.0", "Amount of self-damage taken from Flame Throwers.");
 	ph_bonus_refresh_time = CreateConVar("ph_bonus_refresh_time", "60.0", "Refresh interval of the control point bonus, in seconds.");
 	ph_hunter_setup_freeze = CreateConVar("ph_hunter_setup_freeze", "1", "When set to 1, Hunters may not move during setup time.");
 	ph_open_doors_after_setup = CreateConVar("ph_open_doors_after_setup", "1", "When set to 1, all doors in the map automatically open after setup time.");

@@ -56,17 +56,17 @@ void DHooks_HookBaseMelee(int weapon)
 static void DHooks_CreateDetour(GameData gamedata, const char[] name, DHookCallback callbackPre = INVALID_FUNCTION, DHookCallback callbackPost = INVALID_FUNCTION)
 {
 	DynamicDetour detour = DynamicDetour.FromConf(gamedata, name);
-	if (!detour)
-	{
-		LogError("Failed to create detour: %s", name);
-	}
-	else
+	if (detour)
 	{
 		if (callbackPre != INVALID_FUNCTION)
 			detour.Enable(Hook_Pre, callbackPre);
 		
 		if (callbackPost != INVALID_FUNCTION)
 			detour.Enable(Hook_Post, callbackPost);
+	}
+	else
+	{
+		LogError("Failed to create detour: %s", name);
 	}
 }
 
@@ -81,51 +81,53 @@ static DynamicHook CreateDynamicHook(GameData gamedata, const char[] name)
 
 public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
 {
-	if (!IsPlayerProp(player))
-		return MRES_Ignored;
-	
-	int health;
-	float mins[3], maxs[3];
-	
-	// Determine health based on prop bounding box size
-	switch (PHPlayer(player).PropType)
+	if (IsPlayerProp(player))
 	{
-		case Prop_Static:
+		int health;
+		float mins[3], maxs[3];
+		
+		// Determine health based on prop bounding box size
+		switch (PHPlayer(player).PropType)
 		{
-			if (StaticProp_GetOBBBounds(PHPlayer(player).PropIndex, mins, maxs))
-				health = RoundToCeil(GetVectorDistance(mins, maxs));
-		}
-		case Prop_Entity:
-		{
-			int entity = EntRefToEntIndex(PHPlayer(player).PropIndex);
-			if (entity != -1)
+			case Prop_Static:
 			{
-				GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
-				GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
-				health = RoundToCeil(GetVectorDistance(mins, maxs));
+				if (StaticProp_GetOBBBounds(PHPlayer(player).PropIndex, mins, maxs))
+					health = RoundToCeil(GetVectorDistance(mins, maxs));
 			}
-			else
+			case Prop_Entity:
 			{
-				// Prop we disguised as is now invalid, don't update max health until we redisguise
-				health = GetPlayerMaxHealth(player);
+				int entity = EntRefToEntIndex(PHPlayer(player).PropIndex);
+				if (entity != -1)
+				{
+					GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
+					GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
+					health = RoundToCeil(GetVectorDistance(mins, maxs));
+				}
+				else
+				{
+					// Prop we disguised as is now invalid, don't update max health until we redisguise
+					health = GetPlayerMaxHealth(player);
+				}
+			}
+			default:
+			{
+				// Use class default health if we are not a prop
+				return MRES_Ignored;
 			}
 		}
-		default:
-		{
-			// Use class default health if we are not a prop
-			return MRES_Ignored;
-		}
+		
+		if (ph_prop_max_health.IntValue > 0)
+			health = Min(health, ph_prop_max_health.IntValue);
+		
+		// Refill health during setup time
+		if (GameRules_GetRoundState() == RoundState_Preround || g_InSetup)
+			SetEntityHealth(player, health);
+		
+		ret.Value = health;
+		return MRES_Supercede;
 	}
 	
-	if (ph_prop_max_health.IntValue > 0)
-		health = Min(health, ph_prop_max_health.IntValue);
-	
-	// Refill health during setup time
-	if (GameRules_GetRoundState() == RoundState_Preround || g_InSetup)
-		SetEntityHealth(player, health);
-	
-	ret.Value = health;
-	return MRES_Supercede;
+	return MRES_Ignored;
 }
 
 public MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params)
@@ -138,7 +140,7 @@ public MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params
 	if (IsPlayerHunter(owner))
 	{
 		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
-		float damage = SDKCall_GetProjectileDamage(launcher);
+		float damage = SDKCall_GetProjectileDamage(launcher) * ph_hunter_damagemod_grapplinghook.FloatValue;
 		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
 		
 		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
