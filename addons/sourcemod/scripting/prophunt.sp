@@ -23,6 +23,7 @@
 #include <dhooks>
 #include <StaticProps>
 #include <tf2attributes>
+#include <tf2items>
 #include <tf_econ_data>
 
 #pragma semicolon 1
@@ -288,7 +289,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	if (buttons & IN_RELOAD && buttonsChanged & IN_RELOAD)
 	{
 		char message[256];
-		if (SearchForProps(client, message, sizeof(message)))
+		if (!SearchForProps(client, message, sizeof(message)))
 			CPrintToChat(client, message);
 	}
 	
@@ -346,7 +347,7 @@ public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int item
 
 bool SearchForProps(int client, char[] message, int maxlength)
 {
-	return !SearchForEntityProps(client, message, maxlength) && !SearchForStaticProps(client, message, maxlength);
+	return SearchForEntityProps(client, message, maxlength) || SearchForStaticProps(client, message, maxlength);
 }
 
 bool SearchForEntityProps(int client, char[] message, int maxlength)
@@ -354,6 +355,14 @@ bool SearchForEntityProps(int client, char[] message, int maxlength)
 	// For entities, we can go with whatever is under the player's crosshair
 	int entity = GetClientAimTarget(client, false);
 	if (entity == -1)
+		return false;
+	
+	float origin1[3], origin2[3];
+	GetClientAbsOrigin(client, origin1);
+	GetEntPropVector(entity, Prop_Data, "m_vecAbsOrigin", origin2);
+	
+	// Check whether the player is close enough
+	if (GetVectorDistance(origin1, origin2) > ph_prop_select_distance.FloatValue)
 		return false;
 	
 	if (!HasEntProp(entity, Prop_Data, "m_ModelName"))
@@ -372,6 +381,7 @@ bool SearchForEntityProps(int client, char[] message, int maxlength)
 	if (!DoModelSizeChecks(client, model, mins, maxs, message, maxlength))
 		return false;
 	
+	// Set the player's prop
 	PHPlayer(client).PropType = Prop_Entity;
 	PHPlayer(client).PropIndex = EntIndexToEntRef(entity);
 	SetCustomModel(client, model);
@@ -426,7 +436,7 @@ bool SearchForStaticProps(int client, char[] message, int maxlength)
 		if (!DoModelSizeChecks(client, name, obbMins, obbMaxs, message, maxlength))
 			continue;
 		
-		// Finally, set the player's prop
+		// Set the player's prop
 		PHPlayer(client).PropType = Prop_Static;
 		PHPlayer(client).PropIndex = i;
 		SetCustomModel(client, name);
