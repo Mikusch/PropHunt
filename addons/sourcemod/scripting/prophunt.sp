@@ -41,6 +41,7 @@
 #define MAP_CONFIG_FILEPATH		"configs/prophunt/maps/%s"
 #define PROP_CONFIG_FILEPATH	"configs/prophunt/props.cfg"
 
+#define SOUND_LAST_PROP	"prophunt/oneandonly_hq.mp3"
 #define LOCK_SOUND		"buttons/button3.wav"
 #define UNLOCK_SOUND	"buttons/button24.wav"
 
@@ -69,6 +70,7 @@ ConVar ph_prop_min_size;
 ConVar ph_prop_max_size;
 ConVar ph_prop_select_distance;
 ConVar ph_prop_max_health;
+ConVar ph_prop_last_man_weapons;
 ConVar ph_hunter_damagemod_guns;
 ConVar ph_hunter_damagemod_melee;
 ConVar ph_hunter_damagemod_grapplinghook;
@@ -104,6 +106,8 @@ public void OnPluginStart()
 {
 	LoadTranslations("common.phrases");
 	LoadTranslations("prophunt.phrases");
+	
+	AddFileToDownloadsTable("sound/" ... SOUND_LAST_PROP);
 	
 	Console_Initialize();
 	ConVars_Initialize();
@@ -165,6 +169,7 @@ public void OnPluginEnd()
 
 public void OnMapStart()
 {
+	PrecacheSound("#" ... SOUND_LAST_PROP);
 	PrecacheSound(LOCK_SOUND);
 	PrecacheSound(UNLOCK_SOUND);
 	
@@ -258,21 +263,24 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	{
 		if (GameRules_GetRoundState() != RoundState_Preround)
 		{
-			// Check if the player is currently above a trigger_hurt
-			float origin[3];
-			GetClientAbsOrigin(client, origin);
-			TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, TraceEntityEnumerator_EnumerateTriggers, client);
-			
-			// Don't allow them to lock to avoid props hovering above deadly areas
-			if (!g_DisallowPropLocking)
+			if (GetPlayerWeaponSlot(client, 0) == -1)
 			{
-				bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
-				TogglePropLock(client, locked);
-			}
-			else
-			{
-				PrintHintText(client, "%t", "PropLock Unavailable");
-				g_DisallowPropLocking = false;
+				// Check if the player is currently above a trigger_hurt
+				float origin[3];
+				GetClientAbsOrigin(client, origin);
+				TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, TraceEntityEnumerator_EnumerateTriggers, client);
+				
+				// Don't allow them to lock to avoid props hovering above deadly areas
+				if (!g_DisallowPropLocking)
+				{
+					bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
+					TogglePropLock(client, locked);
+				}
+				else
+				{
+					PrintHintText(client, "%t", "PropLock Unavailable");
+					g_DisallowPropLocking = false;
+				}
 			}
 		}
 	}
@@ -317,9 +325,20 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 
 public Action TF2Items_OnGiveNamedItem(int client, char[] classname, int itemDefIndex, Handle &item)
 {
-	// Make sure that props stay naked
 	if (IsPlayerProp(client))
-		return Plugin_Handled;
+	{
+		// Make sure that all props except the last stay naked
+		if (!PHPlayer(client).IsLastProp)
+			return Plugin_Handled;
+		
+		// Remove all wearables too
+		if (strncmp(classname, "tf_wearable", 11) == 0)
+			return Plugin_Handled;
+		
+		// Lastly, remove power up canteens and spellbooks
+		if (strcmp(classname, "tf_powerup_bottle") == 0 || strcmp(classname, "tf_weapon_spellbook") == 0)
+			return Plugin_Handled;
+	}
 	
 	return Plugin_Continue;
 }
@@ -334,19 +353,26 @@ public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int item
 	if (IsWeaponBaseMelee(entity))
 		DHooks_HookBaseMelee(entity);
 	
-	// Nullify cheating attributes
-	ArrayList attributes = TF2Econ_GetItemStaticAttributes(itemDefIndex);
-	if (attributes)
-	{
-		int index = attributes.FindValue(ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH);
-		if (index != -1)
-			TF2Attrib_SetByDefIndex(entity, ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH, 0.0);
-	}
-	delete attributes;
+	// Hide the last prop's items
+	if (PHPlayer(client).IsLastProp)
+		SetItemAlpha(entity, 0);
 	
-	// Significantly reduce Medic's healing
-	if (strcmp(classname, "tf_weapon_medigun") == 0)
-		TF2Attrib_SetByName(entity, "heal rate penalty", 0.1);
+	// Nullify cheating attributes
+	if (IsPlayerHunter(client))
+	{
+		ArrayList attributes = TF2Econ_GetItemStaticAttributes(itemDefIndex);
+		if (attributes)
+		{
+			int index = attributes.FindValue(ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH);
+			if (index != -1)
+				TF2Attrib_SetByDefIndex(entity, ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH, 0.0);
+		}
+		delete attributes;
+		
+		// Significantly reduce Medic's healing
+		if (strcmp(classname, "tf_weapon_medigun") == 0)
+			TF2Attrib_SetByName(entity, "heal rate penalty", 0.1);
+	}
 }
 
 bool SearchForProps(int client, char[] message, int maxlength)

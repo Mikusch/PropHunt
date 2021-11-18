@@ -67,15 +67,61 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 			TF2_AddCondition(attacker, TFCond_SpeedBuffAlly, 3.5);
 		}
 	}
+	
+	if (GameRules_GetRoundState() == RoundState_Stalemate)
+	{
+		// Count all living props
+		int propCount = 0;
+		for (int client = 1; client <= MaxClients; client++)
+		{
+			if (IsClientInGame(client) && IsPlayerAlive(client) && IsPlayerProp(client))
+				propCount++;
+		}
+		
+		// The last prop has died, do the last man standing stuff
+		if (IsPlayerProp(victim) && propCount == 2)
+		{
+			EmitSoundToAll("#" ... SOUND_LAST_PROP, _, SNDCHAN_STATIC, SNDLEVEL_NONE);
+			
+			for (int client = 1; client <= MaxClients; client++)
+			{
+				if (IsClientInGame(client) && IsPlayerAlive(client))
+				{
+					if (IsPlayerProp(client) && client != victim)
+					{
+						if (ph_prop_last_man_weapons.BoolValue)
+						{
+							PHPlayer(client).IsLastProp = true;
+							TF2_RegeneratePlayer(client);
+						}
+					}
+					else if (IsPlayerHunter(client))
+					{
+						TF2_AddCondition(client, TFCond_Jarated, 15.0);
+					}
+				}
+			}
+		}
+	}
 }
 
 public void Event_PostInventoryApplication(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
-	if (IsPlayerProp(client))
+	if (IsPlayerProp(client) && !PHPlayer(client).IsLastProp)
 	{
 		// Fixes an exploit where you could keep your hunter weapons as a prop
 		TF2_RemoveAllWeapons(client);
+	}
+	else if (IsPlayerHunter(client))
+	{
+		// Quick and dirty way to restore alpha values from previous round
+		for (int slot = 0; slot <= 5; slot++)
+		{
+			int weapon = GetPlayerWeaponSlot(client, slot);
+			if (weapon != -1)
+				SetItemAlpha(weapon, 255);
+		}
 	}
 }
 
@@ -98,6 +144,12 @@ public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBr
 public void Event_TeamplayRoundWin(Event event, const char[] name, bool dontBroadcast)
 {
 	delete g_ControlPointBonusTimer;
+	
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		// Reset this so no prop spawns with guns next round
+		PHPlayer(client).IsLastProp = false;
+	}
 	
 	// Always switch teams on round end
 	SDKCall_SetSwitchTeams(true);

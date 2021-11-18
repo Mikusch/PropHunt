@@ -20,6 +20,7 @@ static int g_PlayerPropIndex[MAXPLAYERS + 1];
 static bool g_PlayerPropLockEnabled[MAXPLAYERS + 1];
 static bool g_PlayerInForcedTauntCam[MAXPLAYERS + 1];
 static bool g_PlayerHasReceivedBonus[MAXPLAYERS + 1];
+static bool g_PlayerIsLastProp[MAXPLAYERS + 1];
 
 methodmap PHPlayer
 {
@@ -96,6 +97,18 @@ methodmap PHPlayer
 		}
 	}
 	
+	property bool IsLastProp
+	{
+		public get()
+		{
+			return g_PlayerIsLastProp[this.Client];
+		}
+		public set(bool isLastProp)
+		{
+			g_PlayerIsLastProp[this.Client] = isLastProp;
+		}
+	}
+	
 	public void Reset()
 	{
 		this.PropType = Prop_None;
@@ -103,5 +116,6 @@ methodmap PHPlayer
 		this.PropLockEnabled = false;
 		this.InForcedTauntCam = true;
 		this.HasReceivedBonus = false;
+		this.IsLastProp = false;
 	}
 }

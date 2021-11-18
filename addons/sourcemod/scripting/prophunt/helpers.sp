@@ -319,3 +319,33 @@ TFClassType GetRandomHunterClass()
 {
 	return g_ValidHunterClasses[GetRandomInt(0, sizeof(g_ValidHunterClasses) - 1)];
 }
+
+// FIXME: This does not hide weapons with strange stat clock attachments
+void SetItemAlpha(int item, int alpha)
+{
+	// Hide the weapon
+	SetEntityRenderMode(item, RENDER_TRANSCOLOR);
+	SetEntityRenderColor(item, 255, 255, 255, alpha);
+	
+	// Hide extra wearables on the weapon
+	if (HasEntProp(item, Prop_Send, "m_hExtraWearable"))
+	{
+		int extraWearable = GetEntPropEnt(item, Prop_Send, "m_hExtraWearable");
+		if (extraWearable != -1)
+		{
+			SetEntityRenderMode(extraWearable, RENDER_TRANSCOLOR);
+			SetEntityRenderColor(extraWearable, 255, 255, 255, alpha);
+		}
+	}
+	
+	// Hide extra wearables on the viewmodel
+	if (HasEntProp(item, Prop_Send, "m_hExtraWearableViewModel"))
+	{
+		int extraWearable = GetEntPropEnt(item, Prop_Send, "m_hExtraWearableViewModel");
+		if (extraWearable != -1)
+		{
+			SetEntityRenderMode(extraWearable, RENDER_TRANSCOLOR);
+			SetEntityRenderColor(extraWearable, 255, 255, 255, alpha);
+		}
+	}
+}
