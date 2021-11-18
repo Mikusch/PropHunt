@@ -17,10 +17,10 @@
 
 void Console_Initialize()
 {
-	AddMultiTargetFilter("@prop", MultiTargetFilter_FilterProps, "Target: Props", true);
-	AddMultiTargetFilter("@props", MultiTargetFilter_FilterProps, "Target: Props", true);
-	AddMultiTargetFilter("@hunters", MultiTargetFilter_FilterHunters, "Target: Hunters", true);
-	AddMultiTargetFilter("@hunter", MultiTargetFilter_FilterHunters, "Target: Hunters", true);
+	AddMultiTargetFilter("@prop", MultiTargetFilter_FilterProps, "PH_Target_Props", true);
+	AddMultiTargetFilter("@props", MultiTargetFilter_FilterProps, "PH_Target_Props", true);
+	AddMultiTargetFilter("@hunters", MultiTargetFilter_FilterHunters, "PH_Target_Hunters", true);
+	AddMultiTargetFilter("@hunter", MultiTargetFilter_FilterHunters, "PH_Target_Hunters", true);
 	
 	RegAdminCmd("sm_setmodel", ConCmd_SetModel, ADMFLAG_CHEATS);
 	
@@ -78,11 +78,11 @@ public Action ConCmd_SetModel(int client, int args)
 	
 	if (tn_is_ml)
 	{
-		ShowActivity2(client, "[PH] ", "%t", "Model Set", model, target_name);
+		ShowActivity2(client, "[PH] ", "%t", "PH_Command_SetModel_Success", model, target_name);
 	}
 	else
 	{
-		ShowActivity2(client, "[PH] ", "%t", "Model Set", model, "_s", target_name);
+		ShowActivity2(client, "[PH] ", "%t", "PH_Command_SetModel_Success", model, "_s", target_name);
 	}
 	
 	return Plugin_Handled;

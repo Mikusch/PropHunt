@@ -280,6 +280,15 @@ void SetWinningTeam(TFTeam team)
 	}
 }
 
+bool CanPlayerPropChange(int client)
+{
+	return !TF2_IsPlayerInCondition(client, TFCond_OnFire)
+		&& !TF2_IsPlayerInCondition(client, TFCond_Bleeding)
+		&& !TF2_IsPlayerInCondition(client, TFCond_Jarated)
+		&& !TF2_IsPlayerInCondition(client, TFCond_Milked)
+		&& !TF2_IsPlayerInCondition(client, TFCond_Gas);
+}
+
 bool IsPlayerProp(int client)
 {
 	return TF2_GetClientTeam(client) == TFTeam_Props;

@@ -186,7 +186,7 @@ public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroad
 			
 			// Show prop controls
 			if (IsPlayerProp(client))
-				ShowKeyHintText(client, "%t", "Prop Controls");
+				ShowKeyHintText(client, "%t", "PH_PropControls");
 		}
 	}
 }

@@ -58,7 +58,7 @@ public Action SDKHookCB_ControlPoint_StartTouch(int prop, int other)
 		if (SDKCall_CastSelfHeal(other))
 		{
 			EmitGameSoundToClient(other, "Announcer.MVM_Bonus");
-			CPrintToChat(other, "%t", "Control Point Bonus Received");
+			CPrintToChat(other, "%s %t", PLUGIN_TAG, "PH_Bonus_Received");
 			
 			PHPlayer(other).HasReceivedBonus = true;
 		}

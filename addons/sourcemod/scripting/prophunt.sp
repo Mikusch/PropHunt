@@ -31,6 +31,8 @@
 
 #define PLUGIN_VERSION	"1.0.0"
 
+#define PLUGIN_TAG	"[{orange}PropHunt{default}]"
+
 #define DONT_BLEED	0
 
 #define ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH	269
@@ -241,7 +243,7 @@ void TogglePropLock(int client, bool toggle)
 	{
 		EmitSoundToClient(client, LOCK_SOUND, _, SNDCHAN_STATIC);
 		SetEntityMoveType(client, MOVETYPE_NONE);
-		PrintHintText(client, "%t", "PropLock Engaged");
+		PrintHintText(client, "%t", "PH_PropLock_Enabled");
 	}
 	else
 	{
@@ -278,7 +280,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 				}
 				else
 				{
-					PrintHintText(client, "%t", "PropLock Unavailable");
+					PrintHintText(client, "%t", "PH_PropLock_Unavailable");
 					g_DisallowPropLocking = false;
 				}
 			}
@@ -300,9 +302,16 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	// IN_RELOAD allows the player to pick a prop
 	if (buttons & IN_RELOAD && buttonsChanged & IN_RELOAD)
 	{
-		char message[256];
-		if (!SearchForProps(client, message, sizeof(message)))
-			CPrintToChat(client, message);
+		if (CanPlayerPropChange(client))
+		{
+			char message[256];
+			if (!SearchForProps(client, message, sizeof(message)))
+				CPrintToChat(client, message);
+		}
+		else
+		{
+			CPrintToChat(client, "%s %t", PLUGIN_TAG, "PH_PropSelect_NotAllowed");
+		}
 	}
 	
 	// Pressing movement keys will undo a prop lock
@@ -496,7 +505,7 @@ bool DoModelNameChecks(int client, const char[] model, char[] message, int maxle
 		char modelTidyName[PLATFORM_MAX_PATH];
 		GetModelTidyName(model, modelTidyName, sizeof(modelTidyName));
 		
-		Format(message, maxlength, "%T", "Selected Prop Blacklisted", client, modelTidyName);
+		Format(message, maxlength, "%s %T", PLUGIN_TAG, "PH_PropSelect_Blacklisted", client, modelTidyName);
 		return false;
 	}
 	
@@ -513,14 +522,14 @@ bool DoModelSizeChecks(int client, const char[] model, const float mins[3], cons
 	// Is the prop too small?
 	if (size < ph_prop_min_size.FloatValue)
 	{
-		Format(message, maxlength, "%T", "Selected Prop Too Small", client, modelTidyName);
+		Format(message, maxlength, "%s %T", PLUGIN_TAG, "PH_PropSelect_TooSmall", client, modelTidyName);
 		return false;
 	}
 	
 	// Is the prop too big?
 	if (size > ph_prop_max_size.FloatValue)
 	{
-		Format(message, maxlength, "%T", "Selected Prop Too Big", client, modelTidyName);
+		Format(message, maxlength, "%s %T", PLUGIN_TAG, "PH_PropSelect_TooBig", client, modelTidyName);
 		return false;
 	}
 	
@@ -561,7 +570,7 @@ void SetCustomModel(int client, const char[] model)
 	char modelTidyName[PLATFORM_MAX_PATH];
 	GetModelTidyName(model, modelTidyName, sizeof(modelTidyName));
 	
-	CPrintToChat(client, "%t", "Selected Prop", modelTidyName);
+	CPrintToChat(client, "%s %t", PLUGIN_TAG, "PH_PropSelect_Success", modelTidyName);
 	
 	LogMessage("[PROP HUNT] %N chose prop \"%s\"", client, model);
 }
@@ -594,11 +603,11 @@ public void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQue
 		if (value == 0)
 			return;
 		
-		KickClient(client, "%t", "r_staticpropinfo Enabled");
+		KickClient(client, "%t", "PH_ConVarQuery_DisallowedValue", cvarName, cvarValue);
 		return;
 	}
 	
-	KickClient(client, "%t", "r_staticpropinfo Not Okay");
+	KickClient(client, "%t", "PH_ConVarQuery_QueryNotOkay", cvarName);
 }
 
 public Action EntityOutput_OnSetupFinished(const char[] output, int caller, int activator, float delay)
@@ -713,7 +722,7 @@ public Action Timer_RefreshControlPointBonus(Handle timer)
 		PHPlayer(client).HasReceivedBonus = false;
 	}
 	
-	CPrintToChatAll("%t", "Control Point Bonus Refreshed");
+	CPrintToChatAll("%s %t", PLUGIN_TAG, "PH_Bonus_Refreshed");
 	
 	return Plugin_Continue;
 }
