@@ -22,9 +22,9 @@ static DynamicHook g_DHookSmack;
 
 void DHooks_Initialize(GameData gamedata)
 {
-	DHooks_CreateDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHook_GetMaxHealthForBuffing_Post);
-	DHooks_CreateDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHook_HookTarget_Pre, _);
-	DHooks_CreateDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHook_CanPlayerMove_Post);
+	DHooks_CreateDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHookCallback_GetMaxHealthForBuffing_Post);
+	DHooks_CreateDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, _);
+	DHooks_CreateDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHookCallback_CanPlayerMove_Post);
 	
 	g_DHookSpawn = CreateDynamicHook(gamedata, "CBaseEntity::Spawn");
 	g_DHookModifyOrAppendCriteria = CreateDynamicHook(gamedata, "CBaseEntity::ModifyOrAppendCriteria");
@@ -35,22 +35,22 @@ void DHooks_Initialize(GameData gamedata)
 void DHooks_HookClient(int client)
 {
 	if (g_DHookSpawn)
-		g_DHookSpawn.HookEntity(Hook_Pre, client, DHook_Spawn_Pre);
+		g_DHookSpawn.HookEntity(Hook_Pre, client, DHookCallback_Spawn_Pre);
 	
 	if (g_DHookModifyOrAppendCriteria)
-		g_DHookModifyOrAppendCriteria.HookEntity(Hook_Post, client, DHook_ModifyOrAppendCriteria_Post);
+		g_DHookModifyOrAppendCriteria.HookEntity(Hook_Post, client, DHookCallback_ModifyOrAppendCriteria_Post);
 }
 
 void DHooks_HookBaseGun(int weapon)
 {
 	if (g_DHookFireProjectile)
-		g_DHookFireProjectile.HookEntity(Hook_Pre, weapon, DHook_FireProjectile_Pre);
+		g_DHookFireProjectile.HookEntity(Hook_Pre, weapon, DHookCallback_FireProjectile_Pre);
 }
 
 void DHooks_HookBaseMelee(int weapon)
 {
 	if (g_DHookSmack)
-		g_DHookSmack.HookEntity(Hook_Pre, weapon, DHook_Smack_Pre);
+		g_DHookSmack.HookEntity(Hook_Pre, weapon, DHookCallback_Smack_Pre);
 }
 
 static void DHooks_CreateDetour(GameData gamedata, const char[] name, DHookCallback callbackPre = INVALID_FUNCTION, DHookCallback callbackPost = INVALID_FUNCTION)
@@ -79,7 +79,7 @@ static DynamicHook CreateDynamicHook(GameData gamedata, const char[] name)
 	return hook;
 }
 
-public MRESReturn DHook_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
+public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
 {
 	if (!IsPlayerProp(player))
 		return MRES_Ignored;
@@ -128,7 +128,7 @@ public MRESReturn DHook_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
 	return MRES_Supercede;
 }
 
-public MRESReturn DHook_HookTarget_Pre(int projectile, DHookParam params)
+public MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params)
 {
 	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
 		return MRES_Ignored;
@@ -155,7 +155,7 @@ public MRESReturn DHook_HookTarget_Pre(int projectile, DHookParam params)
 	return MRES_Ignored;
 }
 
-public MRESReturn DHook_CanPlayerMove_Post(int player, DHookReturn ret)
+public MRESReturn DHookCallback_CanPlayerMove_Post(int player, DHookReturn ret)
 {
 	if (g_InSetup && ph_hunter_setup_freeze.BoolValue)
 	{
@@ -169,7 +169,7 @@ public MRESReturn DHook_CanPlayerMove_Post(int player, DHookReturn ret)
 	return MRES_Ignored;
 }
 
-public MRESReturn DHook_Spawn_Pre(int player)
+public MRESReturn DHookCallback_Spawn_Pre(int player)
 {
 	// player_spawn event gets fired too early to manipulate player class properly
 	if (IsPlayerProp(player))
@@ -186,7 +186,7 @@ public MRESReturn DHook_Spawn_Pre(int player)
 	}
 }
 
-public MRESReturn DHook_ModifyOrAppendCriteria_Post(int player, DHookParam params)
+public MRESReturn DHookCallback_ModifyOrAppendCriteria_Post(int player, DHookParam params)
 {
 	if (IsPlayerHunter(player))
 	{
@@ -203,7 +203,7 @@ public MRESReturn DHook_ModifyOrAppendCriteria_Post(int player, DHookParam param
 	return MRES_Ignored;
 }
 
-public MRESReturn DHook_FireProjectile_Pre(int weapon, DHookReturn ret, DHookParam params)
+public MRESReturn DHookCallback_FireProjectile_Pre(int weapon, DHookReturn ret, DHookParam params)
 {
 	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
 		return MRES_Ignored;
@@ -221,7 +221,7 @@ public MRESReturn DHook_FireProjectile_Pre(int weapon, DHookReturn ret, DHookPar
 	return MRES_Ignored;
 }
 
-public MRESReturn DHook_Smack_Pre(int weapon)
+public MRESReturn DHookCallback_Smack_Pre(int weapon)
 {
 	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
 		return MRES_Ignored;

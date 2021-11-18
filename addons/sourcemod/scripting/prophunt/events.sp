@@ -120,8 +120,8 @@ public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroad
 		{
 			AcceptEntityInput(timer, "Enable");
 			
-			HookSingleEntityOutput(timer, "OnSetupFinished", OnSetupTimerFinished, true);
-			HookSingleEntityOutput(timer, "OnFinished", OnRoundTimerFinished, true);
+			HookSingleEntityOutput(timer, "OnSetupFinished", EntityOutput_OnSetupFinished, true);
+			HookSingleEntityOutput(timer, "OnFinished", EntityOutput_OnFinished, true);
 		}
 	}
 	

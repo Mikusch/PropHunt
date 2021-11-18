@@ -81,6 +81,7 @@ ConVar ph_relay_name;
 #include "prophunt/methodmaps.sp"
 #include "prophunt/structs.sp"
 
+#include "prophunt/console.sp"
 #include "prophunt/convars.sp"
 #include "prophunt/dhooks.sp"
 #include "prophunt/events.sp"
@@ -98,14 +99,12 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
+	LoadTranslations("common.phrases");
 	LoadTranslations("prophunt.phrases");
 	
+	Console_Initialize();
 	ConVars_Initialize();
 	Events_Initialize();
-	
-	RegAdminCmd("ph_forceprop", ConCmd_ForceProp, ADMFLAG_CHEATS);
-	
-	AddCommandListener(CommandListener_Build, "build");
 	
 	g_PropConfigs = new ArrayList(sizeof(PropConfig));
 	
@@ -194,7 +193,7 @@ public void OnEntityCreated(int entity, const char[] classname)
 	}
 	else if (strcmp(classname, "prop_dynamic") == 0)
 	{
-		SDKHook(entity, SDKHook_SpawnPost, OnPropDynamicSpawnPost);
+		SDKHook(entity, SDKHook_SpawnPost, SDKHookCB_PropDynamic_SpawnPost);
 	}
 }
 
@@ -205,7 +204,12 @@ public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname
 	
 	// Flame throwers are a special case, as always
 	if (strcmp(weaponname, "tf_weapon_flamethrower") == 0)
-		SDKHooks_TakeDamage(client, weapon, client, ph_hunter_damage_flamethrower.FloatValue, DMG_PREVENT_PHYSICS_FORCE, weapon);
+	{
+		float damage = ph_hunter_damage_flamethrower.FloatValue;
+		int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
+		
+		SDKHooks_TakeDamage(client, weapon, client, damage, damageType, weapon);
+	}
 	
 	return Plugin_Continue;
 }
@@ -253,7 +257,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 		// Check if the player is currently above a trigger_hurt
 		float origin[3];
 		GetClientAbsOrigin(client, origin);
-		TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, EnumerateTriggers, client);
+		TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, TraceEntityEnumerator_EnumerateTriggers, client);
 		
 		// Don't allow them to lock to avoid props hovering above deadly areas
 		if (!g_DisallowPropLocking)
@@ -557,24 +561,7 @@ public void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQue
 	KickClient(client, "%t", "r_staticpropinfo Not Okay");
 }
 
-public bool TraceEntityFilter_IgnoreEntity(int entity, int mask, any data)
-{
-	return entity != data;
-}
-
-public Action Timer_SetForcedTauntCam(Handle timer, int userid)
-{
-	int client = GetClientOfUserId(userid);
-	if (client != 0)
-	{
-		SetVariantInt(PHPlayer(client).InForcedTauntCam);
-		AcceptEntityInput(client, "SetForcedTauntCam");
-	}
-	
-	return Plugin_Continue;
-}
-
-public Action OnSetupTimerFinished(const char[] output, int caller, int activator, float delay)
+public Action EntityOutput_OnSetupFinished(const char[] output, int caller, int activator, float delay)
 {
 	g_InSetup = false;
 	
@@ -619,22 +606,22 @@ public Action OnSetupTimerFinished(const char[] output, int caller, int activato
 	return Plugin_Continue;
 }
 
-public Action OnRoundTimerFinished(const char[] output, int caller, int activator, float delay)
+public Action EntityOutput_OnFinished(const char[] output, int caller, int activator, float delay)
 {
 	SetWinningTeam(TFTeam_Props);
 }
 
-public void OnPropDynamicSpawnPost(int prop)
+public void SDKHookCB_PropDynamic_SpawnPost(int prop)
 {
 	char model[PLATFORM_MAX_PATH];
 	GetEntPropString(prop, Prop_Data, "m_ModelName", model, sizeof(model));
 	
 	// Hook the control point prop
 	if (strcmp(model, "models/props_gameplay/cap_point_base.mdl") == 0)
-		SDKHook(prop, SDKHook_StartTouch, OnControlPointStartTouch);
+		SDKHook(prop, SDKHook_StartTouch, SDKHookCB_ControlPoint_StartTouch);
 }
 
-public Action OnControlPointStartTouch(int prop, int other)
+public Action SDKHookCB_ControlPoint_StartTouch(int prop, int other)
 {
 	// Players touching the capture area receive a health bonus
 	if (IsEntityClient(other) && !PHPlayer(other).HasReceivedBonus)
@@ -651,7 +638,7 @@ public Action OnControlPointStartTouch(int prop, int other)
 	return Plugin_Continue;
 }
 
-public bool EnumerateTriggers(int entity, int client)
+public bool TraceEntityEnumerator_EnumerateTriggers(int entity, int client)
 {
 	char classname[16];
 	if (GetEntityClassname(entity, classname, sizeof(classname)) && strcmp(classname, "trigger_hurt") == 0)
@@ -686,35 +673,19 @@ public bool EnumerateTriggers(int entity, int client)
 	return true;
 }
 
-public Action ConCmd_ForceProp(int client, int args)
+public bool TraceEntityFilter_IgnoreEntity(int entity, int mask, any data)
 {
-	if (args < 1)
-		return Plugin_Handled;
-	
-	char model[PLATFORM_MAX_PATH];
-	GetCmdArg(1, model, sizeof(model));
-	
-	SetCustomModel(client, model);
-	
-	return Plugin_Handled;
+	return entity != data;
 }
 
-public Action CommandListener_Build(int client, const char[] command, int argc)
+public Action Timer_SetForcedTauntCam(Handle timer, int userid)
 {
-	if (argc < 1)
-		return Plugin_Continue;
-	
-	if (TF2_GetPlayerClass(client) != TFClass_Engineer)
-		return Plugin_Continue;
-	
-	char arg[8];
-	GetCmdArg(1, arg, sizeof(arg));
-	
-	TFObjectType type = view_as<TFObjectType>(StringToInt(arg));
-	
-	// Prevent Engineers from building sentry guns
-	if (type == TFObject_Sentry)
-		return Plugin_Handled;
+	int client = GetClientOfUserId(userid);
+	if (client != 0)
+	{
+		SetVariantInt(PHPlayer(client).InForcedTauntCam);
+		AcceptEntityInput(client, "SetForcedTauntCam");
+	}
 	
 	return Plugin_Continue;
 }

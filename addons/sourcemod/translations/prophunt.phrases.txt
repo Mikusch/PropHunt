@@ -17,6 +17,16 @@
 
 "Phrases"
 {
+	"Target: Props"
+	{
+		"en"		"Props"
+	}
+	
+	"Target: Hunters"
+	{
+		"en"		"Hunters"
+	}
+	
 	"PropLock Engaged"
 	{
 		"en"		"PropLock engaged"
@@ -74,5 +84,11 @@
 	"Control Point Bonus Received"
 	{
 		"en"		"Control point bonus! Health restored."
+	}
+	
+	"Model Set"
+	{
+		"#format"	"{1:s},{2:t}"
+		"en"		"Forced model {1} on {2}."
 	}
 }
