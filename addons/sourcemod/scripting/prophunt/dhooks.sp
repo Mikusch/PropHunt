@@ -92,7 +92,7 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 			case Prop_Static:
 			{
 				if (StaticProp_GetOBBBounds(PHPlayer(player).PropIndex, mins, maxs))
-					health = RoundToCeil(GetVectorDistance(mins, maxs));
+					health = GetHealthForBbox(mins, maxs);
 			}
 			case Prop_Entity:
 			{
@@ -101,7 +101,7 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 				{
 					GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
 					GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
-					health = RoundToCeil(GetVectorDistance(mins, maxs));
+					health = GetHealthForBbox(mins, maxs);
 				}
 				else
 				{
@@ -115,13 +115,6 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 				return MRES_Ignored;
 			}
 		}
-		
-		if (ph_prop_max_health.IntValue > 0)
-			health = Min(health, ph_prop_max_health.IntValue);
-		
-		// Refill health during setup time
-		if (GameRules_GetRoundState() == RoundState_Preround || g_InSetup)
-			SetEntityHealth(player, health);
 		
 		ret.Value = health;
 		return MRES_Supercede;

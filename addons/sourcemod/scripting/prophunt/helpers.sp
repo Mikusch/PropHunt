@@ -358,3 +358,13 @@ void SetItemAlpha(int item, int alpha)
 		}
 	}
 }
+
+int GetHealthForBbox(const float mins[3], const float maxs[3])
+{
+	int health = RoundToCeil(GetVectorDistance(mins, maxs));
+	
+	if (ph_prop_max_health.IntValue > 0)
+		health = Min(health, ph_prop_max_health.IntValue);
+	
+	return health;
+}

@@ -429,6 +429,10 @@ bool SearchForEntityProps(int client, char[] message, int maxlength)
 	SetEntProp(client, Prop_Send, "m_bForcedSkin", true);
 	SetEntProp(client, Prop_Send, "m_nForcedSkin", GetEntitySkin(entity));
 	
+	// Refill health during setup time
+	if (GameRules_GetRoundState() == RoundState_Preround || g_InSetup)
+		SetEntityHealth(client, GetHealthForBbox(mins, maxs));
+	
 	return true;
 }
 
@@ -479,6 +483,10 @@ bool SearchForStaticProps(int client, char[] message, int maxlength)
 		PHPlayer(client).PropType = Prop_Static;
 		PHPlayer(client).PropIndex = i;
 		SetCustomModel(client, name);
+		
+		// Refill health during setup time
+		if (GameRules_GetRoundState() == RoundState_Preround || g_InSetup)
+			SetEntityHealth(client, GetHealthForBbox(obbMins, obbMaxs));
 		
 		// Exit out after we find a valid prop
 		return true;
