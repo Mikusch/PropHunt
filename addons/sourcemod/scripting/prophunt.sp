@@ -513,7 +513,7 @@ bool DoModelNameChecks(int client, const char[] model, char[] message, int maxle
 		char modelTidyName[PLATFORM_MAX_PATH];
 		GetModelTidyName(model, modelTidyName, sizeof(modelTidyName));
 		
-		Format(message, maxlength, "%s %T", PLUGIN_TAG, "PH_PropSelect_Blacklisted", client, modelTidyName);
+		Format(message, maxlength, "%s %T", PLUGIN_TAG, "PH_PropSelect_CannotDisguise", client, modelTidyName, "PH_PropSelect_Blacklisted", client);
 		return false;
 	}
 	
@@ -530,14 +530,14 @@ bool DoModelSizeChecks(int client, const char[] model, const float mins[3], cons
 	// Is the prop too small?
 	if (size < ph_prop_min_size.FloatValue)
 	{
-		Format(message, maxlength, "%s %T", PLUGIN_TAG, "PH_PropSelect_TooSmall", client, modelTidyName);
+		Format(message, maxlength, "%s %T", PLUGIN_TAG, "PH_PropSelect_CannotDisguise", client, modelTidyName, "PH_PropSelect_TooSmall", client);
 		return false;
 	}
 	
 	// Is the prop too big?
 	if (size > ph_prop_max_size.FloatValue)
 	{
-		Format(message, maxlength, "%s %T", PLUGIN_TAG, "PH_PropSelect_TooBig", client, modelTidyName);
+		Format(message, maxlength, "%s %T", PLUGIN_TAG, "PH_PropSelect_CannotDisguise", client, modelTidyName, "PH_PropSelect_TooBig", client);
 		return false;
 	}
 	

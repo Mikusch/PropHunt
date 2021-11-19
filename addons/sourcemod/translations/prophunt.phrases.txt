@@ -40,30 +40,33 @@
 	"PH_PropSelect_Success"
 	{
 		"#format"	"{1:s}"
-		"en"		"You are now disguised as: {lightgreen}{1}"
+		"en"		"You are now disguised as: {lightblue}{1}"
+	}
+	
+	"PH_PropSelect_CannotDisguise"
+	{
+		"#format"	"{1:s},{2:T}"
+		"en"		"Unable to disguise as: {red}{1} {default}(Reason: {2})"
 	}
 	
 	"PH_PropSelect_TooSmall"
 	{
-		"#format"	"{1:s}"
-		"en"		"Unable to disguise as {red}{1} {default}because it is too small."
+		"en"		"too small"
 	}
 	
 	"PH_PropSelect_TooBig"
 	{
-		"#format"	"{1:s}"
-		"en"		"Unable to disguise as {red}{1} {default}because it is too big."
+		"en"		"too big"
 	}
 	
 	"PH_PropSelect_Blacklisted"
 	{
-		"#format"	"{1:s}"
-		"en"		"Unable to disguise as {red}{1} {default}because it is blacklisted."
+		"en"		"blacklisted"
 	}
 	
 	"PH_PropSelect_NotAllowed"
 	{
-		"en"		"{red}You are not allowed to switch props while under the effect of negative status effects."
+		"en"		"{red}You are not allowed to switch props while under negative status effects."
 	}
 	
 	"PH_ConVarQuery_DisallowedValue"
