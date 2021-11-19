@@ -459,7 +459,6 @@ bool SearchForStaticProps(int client, char[] message, int maxlength)
 		if (!StaticProp_GetWorldSpaceBounds(i, aabbMins, aabbMaxs))
 			continue;
 		
-		// Check whether the player is looking at this prop.
 		// The engine completely ignores any non-solid props regardless of trace settings, so we only
 		// use the engine trace to get the distance to the next wall and solve the intersection ourselves.
 		if (!IntersectionLineAABBFast(aabbMins, aabbMaxs, eyePosition, eyeAngleFwd, distance))
@@ -659,6 +658,9 @@ public Action EntityOutput_OnSetupFinished(const char[] output, int caller, int 
 			AcceptEntityInput(door, "Open");
 		}
 	}
+	
+	// End the truce
+	GameRules_SetProp("m_bTruceActive", false);
 	
 	return Plugin_Continue;
 }
