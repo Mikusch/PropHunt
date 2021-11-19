@@ -545,6 +545,9 @@ bool DoModelSizeChecks(int client, const char[] model, const float mins[3], cons
 
 void SetCustomModel(int client, const char[] model)
 {
+	// Reset everything first
+	ClearCustomModel(client);
+	
 	SetVariantString(model);
 	AcceptEntityInput(client, "SetCustomModel");
 	
