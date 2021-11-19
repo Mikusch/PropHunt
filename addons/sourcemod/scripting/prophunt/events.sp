@@ -57,14 +57,20 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 	if (victim != attacker && IsEntityClient(attacker) && IsClientInGame(attacker) && IsPlayerAlive(attacker))
 	{
 		// Fully regenerate the killing player
-		SetEntityHealth(attacker, GetPlayerMaxHealth(attacker) + 25);
-		TF2_AddCondition(attacker, TFCond_SpeedBuffAlly, 7.0);
+		if (GetEntityHealth(attacker) < GetPlayerMaxHealth(attacker))
+			SetEntityHealth(attacker, GetPlayerMaxHealth(attacker));
+		
+		// Give them some health back
+		AddEntityHealth(attacker, 50);
+		TF2_AddCondition(attacker, TFCond_SpeedBuffAlly, 8.0);
 		
 		if (IsEntityClient(assister) && IsClientInGame(assister) && IsPlayerAlive(assister))
 		{
-			// Give the assister a little bonus
-			SetEntityHealth(assister, GetPlayerMaxHealth(assister));
-			TF2_AddCondition(attacker, TFCond_SpeedBuffAlly, 3.5);
+			// Fully regenerate the assisting player as well
+			if (GetEntityHealth(assister) < GetPlayerMaxHealth(assister))
+				SetEntityHealth(assister, GetPlayerMaxHealth(assister));
+			
+			TF2_AddCondition(assister, TFCond_SpeedBuffAlly, 4.0);
 		}
 	}
 	
