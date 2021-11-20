@@ -506,6 +506,10 @@ bool DoModelNameChecks(int client, const char[] model, char[] message, int maxle
 	if (GetEntPropString(client, Prop_Send, "m_iszCustomModel", customModel, sizeof(customModel)) > 0 && strcmp(customModel, model) == 0)
 		return false;
 	
+	// Ignore the model if this is the player's actual playermodel
+	if (GetEntProp(client, Prop_Data, "m_nModelIndex") == PrecacheModel(model))
+		return false;
+	
 	// Is this prop blacklisted?
 	if (IsPropBlacklisted(model) || (!g_CurrentMapConfig.IsWhitelisted(model) && g_CurrentMapConfig.IsBlacklisted(model)))
 	{
