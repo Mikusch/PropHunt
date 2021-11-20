@@ -19,6 +19,7 @@
 #include <sdktools>
 #include <tf2_stocks>
 #include <sdkhooks>
+#include <regex>
 #include <morecolors>
 #include <dhooks>
 #include <StaticProps>

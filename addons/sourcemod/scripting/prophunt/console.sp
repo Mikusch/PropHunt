@@ -78,11 +78,11 @@ public Action ConCmd_SetModel(int client, int args)
 	
 	if (tn_is_ml)
 	{
-		ShowActivity2(client, "[PH] ", "%t", "PH_Command_SetModel_Success", model, target_name);
+		CShowActivity2(client, "{default}" ... PLUGIN_TAG ... " ", "%t", "PH_Command_SetModel_Success", model, target_name);
 	}
 	else
 	{
-		ShowActivity2(client, "[PH] ", "%t", "PH_Command_SetModel_Success", model, "_s", target_name);
+		CShowActivity2(client, "{default}" ... PLUGIN_TAG ... " ", "%t", "PH_Command_SetModel_Success", model, "_s", target_name);
 	}
 	
 	return Plugin_Handled;

@@ -40,28 +40,28 @@
 	"PH_PropSelect_Success"
 	{
 		"#format"	"{1:s}"
-		"en"		"You are now disguised as: {lightblue}{1}"
+		"en"		"You are now disguised as: {lightgreen}{1}"
 	}
 	
 	"PH_PropSelect_CannotDisguise"
 	{
 		"#format"	"{1:s},{2:T}"
-		"en"		"Unable to disguise as: {red}{1} {default}(Reason: {2})"
+		"en"		"Unable to disguise as: {red}{1} {default}({2})"
 	}
 	
 	"PH_PropSelect_TooSmall"
 	{
-		"en"		"too small"
+		"en"		"prop is too small"
 	}
 	
 	"PH_PropSelect_TooBig"
 	{
-		"en"		"too big"
+		"en"		"prop is too big"
 	}
 	
 	"PH_PropSelect_Blacklisted"
 	{
-		"en"		"blacklisted"
+		"en"		"prop is blacklisted"
 	}
 	
 	"PH_PropSelect_NotAllowed"
@@ -88,17 +88,17 @@
 	
 	"PH_Bonus_Refreshed"
 	{
-		"en"		"{lightgreen}Control point bonus refreshed!"
+		"en"		"Control point bonus refreshed!"
 	}
 	
 	"PH_Bonus_Received"
 	{
-		"en"		"Control point bonus! {lightgreen}Health restored."
+		"en"		"Control point bonus received! {lightgreen}Health restored."
 	}
 	
 	"PH_Command_SetModel_Success"
 	{
 		"#format"	"{1:s},{2:t}"
-		"en"		"Forced model {1} on {2}."
+		"en"		"Forced model {lightgreen}{1} {default}on {2}."
 	}
 }
