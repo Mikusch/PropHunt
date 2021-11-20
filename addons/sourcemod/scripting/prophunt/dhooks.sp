@@ -23,8 +23,8 @@ static DynamicHook g_DHookSmack;
 void DHooks_Initialize(GameData gamedata)
 {
 	DHooks_CreateDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHookCallback_GetMaxHealthForBuffing_Post);
-	DHooks_CreateDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, _);
 	DHooks_CreateDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHookCallback_CanPlayerMove_Post);
+	DHooks_CreateDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, _);
 	DHooks_CreateDetour(gamedata, "CTFPlayerShared::Heal", DHookCallback_Heal_Pre, _);
 	
 	g_DHookSpawn = CreateDynamicHook(gamedata, "CBaseEntity::Spawn");
@@ -124,6 +124,20 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 	return MRES_Ignored;
 }
 
+public MRESReturn DHookCallback_CanPlayerMove_Post(int player, DHookReturn ret)
+{
+	if (g_InSetup && ph_hunter_setup_freeze.BoolValue)
+	{
+		if (IsPlayerHunter(player))
+		{
+			ret.Value = false;
+			return MRES_Supercede;
+		}
+	}
+	
+	return MRES_Ignored;
+}
+
 public MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params)
 {
 	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
@@ -145,20 +159,6 @@ public MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params
 			int other = params.Get(1);
 			if (IsEntityClient(other) && IsPlayerProp(other))
 				return MRES_Supercede;
-		}
-	}
-	
-	return MRES_Ignored;
-}
-
-public MRESReturn DHookCallback_CanPlayerMove_Post(int player, DHookReturn ret)
-{
-	if (g_InSetup && ph_hunter_setup_freeze.BoolValue)
-	{
-		if (IsPlayerHunter(player))
-		{
-			ret.Value = false;
-			return MRES_Supercede;
 		}
 	}
 	

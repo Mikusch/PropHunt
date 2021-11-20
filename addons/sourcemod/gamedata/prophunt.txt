@@ -26,15 +26,20 @@
 				"linux"		"@_ZN9CTFPlayer22GetMaxHealthForBuffingEv"
 				"windows"	"\x55\x8B\xEC\x83\xEC\x24\x53\x56\x57\x8B\xF9\xFF\xB7\x10\x21\x00\x00"
 			}
+			"CTFPlayer::CanPlayerMove"
+			{
+				"linux"		"@_ZNK9CTFPlayer13CanPlayerMoveEv"
+				"windows"	"\x56\x8B\xF1\x8A\x86\x4E\x01\x00\x00"
+			}
 			"CTFProjectile_GrapplingHook::HookTarget"
 			{
 				"linux"		"@_ZN27CTFProjectile_GrapplingHook10HookTargetEP11CBaseEntity"
 				"windows"	"\x55\x8B\xEC\x51\x56\x8B\xF1\x8B\x8E\xE8\x01\x00\x00\x83\xF9\xFF\x0F\x84\x2A\x2A\x2A\x2A\x8B\x15\x2A\x2A\x2A\x2A"
 			}
-			"CTFPlayer::CanPlayerMove"
+			"CTFPlayerShared::Heal"
 			{
-				"linux"		"@_ZNK9CTFPlayer13CanPlayerMoveEv"
-				"windows"	"\x56\x8B\xF1\x8A\x86\x4E\x01\x00\x00"
+				"linux"		"@_ZN15CTFPlayerShared4HealEP11CBaseEntityfffbP9CTFPlayer"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x28\x53\x56\x8B\x75\x08\x0F\x57\xC0"
 			}
 			"CTFSpellBook::CastSelfHeal"
 			{
@@ -50,11 +55,6 @@
 			{
 				"linux"		"@_ZN14AI_CriteriaSet14RemoveCriteriaEPKc"
 				"windows"	"\x55\x8B\xEC\x83\xEC\x48\x56\x57\xFF\x75\x08"
-			}
-			"CTFPlayerShared::Heal"
-			{
-				"linux"		"@_ZN15CTFPlayerShared4HealEP11CBaseEntityfffbP9CTFPlayer"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x28\x53\x56\x8B\x75\x08\x0F\x57\xC0"
 			}
 		}
 		"Offsets"
@@ -89,15 +89,15 @@
 				"linux"		"473"
 				"windows"	"466"
 			}
-			"CTFWeaponBaseMelee::Smack"
-			{
-				"linux"		"473"
-				"windows"	"466"
-			}
 			"CTFWeaponBaseGun::GetProjectileDamage"
 			{
 				"linux"		"488"
 				"windows"	"481"
+			}
+			"CTFWeaponBaseMelee::Smack"
+			{
+				"linux"		"473"
+				"windows"	"466"
 			}
 			"CTFWeaponBaseMelee::GetMeleeDamage"
 			{
@@ -134,6 +134,13 @@
 				"return"	"int"
 				"this"		"entity"
 			}
+			"CTFPlayer::CanPlayerMove"
+			{
+				"signature"	"CTFPlayer::CanPlayerMove"
+				"callconv"	"thiscall"
+				"return"	"bool"
+				"this"		"entity"
+			}
 			"CTFProjectile_GrapplingHook::HookTarget"
 			{
 				"signature"	"CTFProjectile_GrapplingHook::HookTarget"
@@ -147,13 +154,6 @@
 						"type"	"cbaseentity"
 					}
 				}
-			}
-			"CTFPlayer::CanPlayerMove"
-			{
-				"signature"	"CTFPlayer::CanPlayerMove"
-				"callconv"	"thiscall"
-				"return"	"bool"
-				"this"		"entity"
 			}
 			"CTFPlayerShared::Heal"
 			{
