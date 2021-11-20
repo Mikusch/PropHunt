@@ -674,6 +674,8 @@ public Action EntityOutput_OnSetupFinished(const char[] output, int caller, int 
 public Action EntityOutput_OnFinished(const char[] output, int caller, int activator, float delay)
 {
 	SetWinningTeam(TFTeam_Props);
+	
+	return Plugin_Continue;
 }
 
 public bool TraceEntityEnumerator_EnumerateTriggers(int entity, int client)

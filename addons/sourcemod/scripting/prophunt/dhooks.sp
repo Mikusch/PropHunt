@@ -180,6 +180,8 @@ public MRESReturn DHookCallback_Spawn_Pre(int player)
 		if (!IsValidHunterClass(TF2_GetPlayerClass(player)))
 			TF2_SetPlayerClass(player, GetRandomHunterClass(), _, false);
 	}
+	
+	return MRES_Ignored;
 }
 
 public MRESReturn DHookCallback_ModifyOrAppendCriteria_Post(int player, DHookParam params)
