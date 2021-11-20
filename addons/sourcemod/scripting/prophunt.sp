@@ -193,6 +193,11 @@ public void OnMapStart()
 	}
 }
 
+public void OnMapEnd()
+{
+	g_CurrentMapConfig.Clear();
+}
+
 public void OnEntityCreated(int entity, const char[] classname)
 {
 	SDKHooks_OnEntityCreated(entity, classname);

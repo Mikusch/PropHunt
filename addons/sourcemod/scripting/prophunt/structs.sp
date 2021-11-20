@@ -78,6 +78,12 @@ enum struct MapConfig
 	{
 		return this.HasWhitelist() || (this.prop_blacklist && this.prop_blacklist.Length > 0 && this.prop_blacklist.FindString(model) != -1);
 	}
+	
+	void Clear()
+	{
+		delete this.prop_whitelist;
+		delete this.prop_blacklist;
+	}
 }
 
 MapConfig g_CurrentMapConfig;
