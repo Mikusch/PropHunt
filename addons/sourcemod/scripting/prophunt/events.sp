@@ -95,7 +95,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 				{
 					if (IsPlayerProp(client) && client != victim)
 					{
-						if (ph_prop_regenerate_last.BoolValue)
+						if (ph_regenerate_last_prop.BoolValue)
 						{
 							PHPlayer(client).IsLastProp = true;
 							TF2_RegeneratePlayer(client);

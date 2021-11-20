@@ -31,21 +31,21 @@ static StringMap g_GameConVars;
 void ConVars_Initialize()
 {
 	CreateConVar("ph_version", PLUGIN_VERSION, "PropHunt Neu version", FCVAR_SPONLY | FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_DONTRECORD);
-	ph_prop_min_size = CreateConVar("ph_prop_min_size", "40.0", "Minimum size of props to be selectable by players.");
-	ph_prop_max_size = CreateConVar("ph_prop_max_size", "400.0", "Maximum size of props to be selectable by players.");
-	ph_prop_select_distance = CreateConVar("ph_prop_select_distance", "128.0", "Minimum required distance to a prop to be able to select it, in HU.");
+	ph_prop_min_size = CreateConVar("ph_prop_min_size", "40.0", "Minimum allowed size of props for them to be selectable.");
+	ph_prop_max_size = CreateConVar("ph_prop_max_size", "400.0", "Maximum allowed size of props for them to be selectable.");
+	ph_prop_select_distance = CreateConVar("ph_prop_select_distance", "128.0", "Minimum required distance to a prop for it to be selectable, in HU.");
 	ph_prop_max_health = CreateConVar("ph_prop_max_health", "300", "Maximum health of props, regardless of prop size. Set to 0 to unrestrict health.");
-	ph_prop_regenerate_last = CreateConVar("ph_prop_regenerate_last", "1", "If set to 1, the last prop standing will be regenerated and receive their regular loadout.");
-	ph_hunter_damagemod_guns = CreateConVar("ph_hunter_damagemod_guns", "0.4", "Modifier of self-damage taken from guns.");
-	ph_hunter_damagemod_melee = CreateConVar("ph_hunter_damagemod_melee", "0.2", "Modifier of self-damage taken from melees.");
-	ph_hunter_damagemod_grapplinghook = CreateConVar("ph_hunter_damagemod_grapplinghook", "1.0", "Modifier of self-damage taken from the Grappling Hook.");
+	ph_hunter_damage_modifier_gun = CreateConVar("ph_hunter_damage_modifier_gun", "0.4", "Modifier of self-damage taken from guns.");
+	ph_hunter_damage_modifier_melee = CreateConVar("ph_hunter_damage_modifier_melee", "0.2", "Modifier of self-damage taken from melees.");
+	ph_hunter_damage_modifier_grapplinghook = CreateConVar("ph_hunter_damage_modifier_grapplinghook", "1.0", "Modifier of self-damage taken from the Grappling Hook.");
 	ph_hunter_damage_flamethrower = CreateConVar("ph_hunter_damage_flamethrower", "1.0", "Amount of self-damage taken from Flame Throwers.");
-	ph_hunter_setup_freeze = CreateConVar("ph_hunter_setup_freeze", "1", "When set to 1, Hunters may not move during setup time.");
-	ph_bonus_refresh_time = CreateConVar("ph_bonus_refresh_time", "55.0", "Refresh interval of the control point bonus, in seconds.");
+	ph_hunter_setup_freeze = CreateConVar("ph_hunter_setup_freeze", "1", "When set, prevent Hunter movement during setup.");
+	ph_regenerate_last_prop = CreateConVar("ph_regenerate_last_prop", "1", "When set, regenerate the last prop so that they receive their weapons.");
+	ph_bonus_refresh_time = CreateConVar("ph_bonus_refresh_time", "60.0", "Refresh interval of the control point bonus, in seconds.");
 	ph_healing_modifier = CreateConVar("ph_healing_modifier", "0.2", "Modifier of the amount of healing received from continuous healing sources.");
-	ph_open_doors_after_setup = CreateConVar("ph_open_doors_after_setup", "1", "When set to 1, all doors in the map automatically open after setup time.");
+	ph_open_doors_after_setup = CreateConVar("ph_open_doors_after_setup", "1", "When set, open all doors after setup time ends.");
 	ph_setup_time = CreateConVar("ph_setup_time", "30", "Length of the setup time, in seconds.");
-	ph_round_time = CreateConVar("ph_round_time", "175", "Length of the round time, in seconds.");
+	ph_round_time = CreateConVar("ph_round_time", "180", "Length of the round time, in seconds.");
 	ph_relay_name = CreateConVar("ph_relay_name", "hidingover", "Name of the relay to trigger when setup time ends.");
 	
 	g_GameConVars = new StringMap();
