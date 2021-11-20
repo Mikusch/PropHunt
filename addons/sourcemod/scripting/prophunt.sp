@@ -65,6 +65,7 @@ Handle g_ControlPointBonusTimer;
 // Offsets
 int g_OffsetWeaponMode;
 int g_OffsetWeaponInfo;
+int g_OffsetPlayerSharedOuter;
 int g_OffsetBulletsPerShot;
 
 // ConVars
@@ -72,13 +73,14 @@ ConVar ph_prop_min_size;
 ConVar ph_prop_max_size;
 ConVar ph_prop_select_distance;
 ConVar ph_prop_max_health;
-ConVar ph_prop_last_man_weapons;
+ConVar ph_prop_regenerate_last;
 ConVar ph_hunter_damagemod_guns;
 ConVar ph_hunter_damagemod_melee;
 ConVar ph_hunter_damagemod_grapplinghook;
 ConVar ph_hunter_damage_flamethrower;
 ConVar ph_hunter_setup_freeze;
 ConVar ph_bonus_refresh_time;
+ConVar ph_healing_modifier;
 ConVar ph_open_doors_after_setup;
 ConVar ph_setup_time;
 ConVar ph_round_time;
@@ -148,6 +150,7 @@ public void OnPluginStart()
 		
 		g_OffsetWeaponMode = gamedata.GetOffset("CTFWeaponBase::m_iWeaponMode");
 		g_OffsetWeaponInfo = gamedata.GetOffset("CTFWeaponBase::m_pWeaponInfo");
+		g_OffsetPlayerSharedOuter = gamedata.GetOffset("CTFPlayerShared::m_pOuter");
 		g_OffsetBulletsPerShot = gamedata.GetOffset("WeaponData_t::m_nBulletsPerShot");
 		
 		delete gamedata;
@@ -377,10 +380,6 @@ public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int item
 				TF2Attrib_SetByDefIndex(entity, ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH, 0.0);
 		}
 		delete attributes;
-		
-		// Significantly reduce Medic's healing
-		if (strcmp(classname, "tf_weapon_medigun") == 0)
-			TF2Attrib_SetByName(entity, "heal rate penalty", 0.1);
 	}
 }
 

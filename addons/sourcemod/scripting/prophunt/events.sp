@@ -95,7 +95,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 				{
 					if (IsPlayerProp(client) && client != victim)
 					{
-						if (ph_prop_last_man_weapons.BoolValue)
+						if (ph_prop_regenerate_last.BoolValue)
 						{
 							PHPlayer(client).IsLastProp = true;
 							TF2_RegeneratePlayer(client);

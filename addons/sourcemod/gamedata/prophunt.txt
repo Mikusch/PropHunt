@@ -51,6 +51,11 @@
 				"linux"		"@_ZN14AI_CriteriaSet14RemoveCriteriaEPKc"
 				"windows"	"\x55\x8B\xEC\x83\xEC\x48\x56\x57\xFF\x75\x08"
 			}
+			"CTFPlayerShared::Heal"
+			{
+				"linux"		"@_ZN15CTFPlayerShared4HealEP11CBaseEntityfffbP9CTFPlayer"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x28\x53\x56\x8B\x75\x08\x0F\x57\xC0"
+			}
 		}
 		"Offsets"
 		{
@@ -58,6 +63,11 @@
 			{
 				"linux"		"163"
 				"windows"	"162"
+			}
+			"CBaseEntity::GetBaseEntity"
+			{
+				"linux" 	"6"
+				"windows" 	"5"
 			}
 			"CBaseEntity::Spawn"
 			{
@@ -104,6 +114,11 @@
 				"linux"		"1716"
 				"windows"	"1712"
 			}
+			"CTFPlayerShared::m_pOuter"
+			{
+				"linux"		"400"
+				"windows"	"400"
+			}
 			"WeaponData_t::m_nBulletsPerShot"
 			{
 				"linux"		"1788"
@@ -139,6 +154,40 @@
 				"callconv"	"thiscall"
 				"return"	"bool"
 				"this"		"entity"
+			}
+			"CTFPlayerShared::Heal"
+			{
+				"signature"	"CTFPlayerShared::Heal"
+				"callconv"	"thiscall"
+				"return"	"void"
+				"this"		"address"
+				"arguments"
+				{
+					"pHealer"
+					{
+						"type"	"cbaseentity"
+					}
+					"flAmount"
+					{
+						"type"	"float"
+					}
+					"flOverhealBonus"
+					{
+						"type"	"float"
+					}
+					"flOverhealDecayMult"
+					{
+						"type"	"float"
+					}
+					"bDispenserHeal"
+					{
+						"type"	"bool"
+					}
+					"pHealScorer"
+					{
+						"type"	"cbaseentity"
+					}
+				}
 			}
 			"CBaseEntity::Spawn"
 			{

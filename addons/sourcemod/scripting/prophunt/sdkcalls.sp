@@ -16,6 +16,7 @@
  */
 
 static Handle g_SDKCallSetSwitchTeams;
+static Handle g_SDKCallGetBaseEntity;
 static Handle g_SDKCallGetProjectileDamage;
 static Handle g_SDKCallGetMeleeDamage;
 static Handle g_SDKCallGetDamageType;
@@ -26,6 +27,7 @@ static Handle g_SDKCallRemoveCriteria;
 void SDKCalls_Initialize(GameData gamedata)
 {
 	g_SDKCallSetSwitchTeams = PrepSDKCall_SetSwitchTeams(gamedata);
+	g_SDKCallGetBaseEntity = PrepSDKCall_GetBaseEntity(gamedata);
 	g_SDKCallGetProjectileDamage = PrepSDKCall_GetProjectileDamage(gamedata);
 	g_SDKCallGetMeleeDamage = PrepSDKCall_GetMeleeDamage(gamedata);
 	g_SDKCallGetDamageType = PrepSDKCall_GetDamageType(gamedata);
@@ -43,6 +45,19 @@ static Handle PrepSDKCall_SetSwitchTeams(GameData gamedata)
 	Handle call = EndPrepSDKCall();
 	if (!call)
 		LogMessage("Failed to create SDK call: CTeamplayRules::SetSwitchTeams");
+	
+	return call;
+}
+
+static Handle PrepSDKCall_GetBaseEntity(GameData gamedata)
+{
+	StartPrepSDKCall(SDKCall_Raw);
+	PrepSDKCall_SetFromConf(gamedata, SDKConf_Virtual, "CBaseEntity::GetBaseEntity");
+	PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
+	
+	Handle call = EndPrepSDKCall();
+	if (!call)
+		LogMessage("Failed to create SDK call: CBaseEntity::GetBaseEntity");
 	
 	return call;
 }
@@ -134,6 +149,14 @@ void SDKCall_SetSwitchTeams(bool shouldSwitch)
 {
 	if (g_SDKCallSetSwitchTeams)
 		SDKCall(g_SDKCallSetSwitchTeams, shouldSwitch);
+}
+
+int SDKCall_GetBaseEntity(Address address)
+{
+	if (g_SDKCallGetBaseEntity)
+		return SDKCall(g_SDKCallGetBaseEntity, address);
+	else
+		return -1;
 }
 
 float SDKCall_GetProjectileDamage(int weapon)

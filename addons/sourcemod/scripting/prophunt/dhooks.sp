@@ -25,6 +25,7 @@ void DHooks_Initialize(GameData gamedata)
 	DHooks_CreateDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHookCallback_GetMaxHealthForBuffing_Post);
 	DHooks_CreateDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, _);
 	DHooks_CreateDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHookCallback_CanPlayerMove_Post);
+	DHooks_CreateDetour(gamedata, "CTFPlayerShared::Heal", DHookCallback_Heal_Pre, _);
 	
 	g_DHookSpawn = CreateDynamicHook(gamedata, "CBaseEntity::Spawn");
 	g_DHookModifyOrAppendCriteria = CreateDynamicHook(gamedata, "CBaseEntity::ModifyOrAppendCriteria");
@@ -229,6 +230,22 @@ public MRESReturn DHookCallback_Smack_Pre(int weapon)
 		float damage = SDKCall_GetMeleeDamage(weapon, owner, damageType, 0) * ph_hunter_damagemod_melee.FloatValue;
 		
 		SDKHooks_TakeDamage(owner, weapon, owner, damage, damageType, weapon);
+	}
+	
+	return MRES_Ignored;
+}
+
+public MRESReturn DHookCallback_Heal_Pre(Address playerShared, DHookParam params)
+{
+	int player = GetPlayerSharedOuter(playerShared);
+	
+	// Reduce healing from all sources (except control point bonus)
+	if (!TF2_IsPlayerInCondition(player, TFCond_HalloweenQuickHeal))
+	{
+		float amount = params.Get(2);
+		
+		params.Set(2, amount * ph_healing_modifier.FloatValue);
+		return MRES_ChangedHandled;
 	}
 	
 	return MRES_Ignored;

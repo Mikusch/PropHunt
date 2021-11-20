@@ -20,13 +20,13 @@
 #define WEAPONDATA_SIZE	58	// sizeof(WeaponData_t)
 
 // Valid prop classes
-static TFClassType g_ValidPropClasses[] = 
+static const TFClassType g_ValidPropClasses[] = 
 {
 	TFClass_Scout,
 };
 
 // Valid hunter classes
-static TFClassType g_ValidHunterClasses[] = 
+static const TFClassType g_ValidHunterClasses[] = 
 {
 	TFClass_Scout,
 	TFClass_Sniper,
@@ -146,6 +146,12 @@ int GetBulletsPerShot(int weapon)
 	return LoadFromAddress(view_as<Address>(weaponData + g_OffsetBulletsPerShot), NumberType_Int8);
 }
 
+int GetPlayerSharedOuter(Address playerShared)
+{
+	Address outer = view_as<Address>(LoadFromAddress(playerShared + view_as<Address>(g_OffsetPlayerSharedOuter), NumberType_Int32));
+	return SDKCall_GetBaseEntity(outer);
+}
+
 bool GetConfigByModel(const char[] model, PropConfig config)
 {
 	for (int i = 0; i < g_PropConfigs.Length; i++)
@@ -241,16 +247,16 @@ bool GetMapConfigFilepath(char[] filePath, int length)
 	
 	int partsCount = CountCharInString(mapName, '_') + 1;
 	
-	//Split map prefix and first part of its name (e.g. pl_hightower)
+	// Split map prefix and first part of its name (e.g. pl_hightower)
 	char[][] nameParts = new char[partsCount][PLATFORM_MAX_PATH];
 	ExplodeString(mapName, "_", nameParts, partsCount, PLATFORM_MAX_PATH);
 	
-	//Start to stitch name parts together
+	// Start to stitch name parts together
 	char tidyMapName[PLATFORM_MAX_PATH];
 	char filePathBuffer[PLATFORM_MAX_PATH];
 	strcopy(tidyMapName, sizeof(tidyMapName), nameParts[0]);
 	
-	//Build file path
+	// Build file path
 	BuildPath(Path_SM, tidyMapName, sizeof(tidyMapName), MAP_CONFIG_FILEPATH, tidyMapName);
 	
 	for (int i = 1; i < partsCount; i++)
@@ -258,7 +264,7 @@ bool GetMapConfigFilepath(char[] filePath, int length)
 		Format(tidyMapName, sizeof(tidyMapName), "%s_%s", tidyMapName, nameParts[i]);
 		Format(filePathBuffer, sizeof(filePathBuffer), "%s.cfg", tidyMapName);
 		
-		//We are trying to find the most specific config
+		// Find the most specific config
 		if (FileExists(filePathBuffer))
 			strcopy(filePath, length, filePathBuffer);
 	}
