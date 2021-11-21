@@ -590,8 +590,6 @@ void SetCustomModel(int client, const char[] model)
 	GetModelTidyName(model, modelTidyName, sizeof(modelTidyName));
 	
 	CPrintToChat(client, "%s %t", PLUGIN_TAG, "PH_PropSelect_Success", modelTidyName);
-	
-	LogMessage("[PROP HUNT] %N chose prop \"%s\"", client, model);
 }
 
 void ClearCustomModel(int client)

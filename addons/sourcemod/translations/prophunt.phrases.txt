@@ -96,6 +96,17 @@
 		"en"		"Control point bonus received! {lightgreen}Health restored."
 	}
 	
+	"PH_Command_GetModel_Success"
+	{
+		"#format"	"{1:N},{2:s}"
+		"en"		"{1}'s current model: {lightgreen}{2}"
+	}
+	
+	"PH_Command_GetModel_NoModelSet"
+	{
+		"en"		"No matching client has a custom model."
+	}
+	
 	"PH_Command_SetModel_Success"
 	{
 		"#format"	"{1:s},{2:t}"

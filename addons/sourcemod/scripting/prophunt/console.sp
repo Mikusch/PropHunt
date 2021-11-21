@@ -22,6 +22,7 @@ void Console_Initialize()
 	AddMultiTargetFilter("@hunters", MultiTargetFilter_FilterHunters, "PH_Target_Hunters", true);
 	AddMultiTargetFilter("@hunter", MultiTargetFilter_FilterHunters, "PH_Target_Hunters", true);
 	
+	RegAdminCmd("sm_getmodel", ConCmd_GetModel, ADMFLAG_CHEATS);
 	RegAdminCmd("sm_setmodel", ConCmd_SetModel, ADMFLAG_CHEATS);
 	
 	AddCommandListener(CommandListener_Build, "build");
@@ -47,6 +48,47 @@ public bool MultiTargetFilter_FilterHunters(const char[] pattern, ArrayList clie
 	}
 	
 	return clients.Length > 0;
+}
+
+public Action ConCmd_GetModel(int client, int args)
+{
+	if (args < 1)
+	{
+		ReplyToCommand(client, "[SM] Usage: sm_getmodel <#userid|name>");
+		return Plugin_Handled;
+	}
+	
+	char target[MAX_TARGET_LENGTH];
+	GetCmdArg(1, target, sizeof(target));
+	
+	char target_name[MAX_TARGET_LENGTH];
+	int target_list[MAXPLAYERS], target_count;
+	bool tn_is_ml;
+	
+	if ((target_count = ProcessTargetString(target, client, target_list, MaxClients + 1, COMMAND_TARGET_NONE, target_name, sizeof(target_name), tn_is_ml)) <= 0)
+	{
+		ReplyToTargetError(client, target_count);
+		return Plugin_Handled;
+	}
+	
+	bool replied;
+	
+	for (int i = 0; i < target_count; i++)
+	{
+		char model[PLATFORM_MAX_PATH];
+		if (GetEntPropString(target_list[i], Prop_Send, "m_iszCustomModel", model, sizeof(model)) > 0)
+		{
+			CReplyToCommand(client, "%s %t", PLUGIN_TAG, "PH_Command_GetModel_Success", target_list[i], model);
+			replied = true;
+		}
+	}
+	
+	if (!replied)
+	{
+		CReplyToCommand(client, "%s %t", PLUGIN_TAG, "PH_Command_GetModel_NoModelSet");
+	}
+	
+	return Plugin_Handled;
 }
 
 public Action ConCmd_SetModel(int client, int args)
