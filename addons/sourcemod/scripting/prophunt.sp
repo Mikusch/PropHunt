@@ -610,6 +610,9 @@ void ClearCustomModel(int client)
 	
 	SetEntProp(client, Prop_Send, "m_bForcedSkin", false);
 	SetEntProp(client, Prop_Send, "m_nForcedSkin", 0);
+	
+	SetVariantString("ParticleEffectStop");
+	AcceptEntityInput(client, "DispatchEffect");
 }
 
 public void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue)
