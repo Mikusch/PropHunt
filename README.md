@@ -1,18 +1,20 @@
+<img alt="PropHunt Neu Logo" src="https://user-images.githubusercontent.com/25514044/142745733-071c7ba2-15c3-4731-b0d8-8100a73ca0c9.png" width="350"/>
+
 # PropHunt Neu
 
-PropHunt Neu is my own take on the classic hide-and-seek gamemode for Team Fortress 2.
-
-This is **not** a rewrite of Powerlord's [Prop Hunt Redux](https://github.com/powerlord/sourcemod-prophunt), but his plugin served as an inspiration.
+PropHunt Neu is my own take on the classic hide 'n seek gamemode for Team Fortress 2.
 
 ## Features
 
-* Ability to choose any prop in the map (similar to Garry's Mod Prop Hunt)
-    * Including `prop_static` and `prop_dynamic`
-    * Player health scales with prop size
-    * Global prop config to blacklist and configure allowed props
-* Minimal weapon and class restrictions
-* Works on any arena map without any additional configs
-* Highly configurable
+* Ability to disguise as any prop on the map
+    * Including static props, dynamic props and other model-based entities
+    * Player health scales with size of selected prop
+* Centralized prop configuration to blacklist and configure props
+* Greatly improved Hunter (BLU) gameplay
+    * Dynamically calculated self-damage values depending on used weapon
+    * Minimal weapon and class restrictions
+* Works out-of-the-box on any arena map without any additional configs
+* Highly configurable using ConVars and configuration files
 
 ## Requirements
 
@@ -25,6 +27,7 @@ This is **not** a rewrite of Powerlord's [Prop Hunt Redux](https://github.com/po
 
 ## Special Thanks
 
-* [Powerlord](https://github.com/powerlord) - Creating [Prop Hunt Redux](https://github.com/powerlord/sourcemod-prophunt) which inspired this plugin
-* [ficool2](https://github.com/ficool2) - Helping me with vector math
+* [Powerlord](https://github.com/powerlord) - Creating [Prop Hunt Redux](https://github.com/powerlord/sourcemod-prophunt), the inspiration for this plugin
+* [ficool2](https://github.com/ficool2) - Helping out with vector math
+* [RatX](https://steamcommunity.com/profiles/76561198058574997) - Designing the PropHunt Neu logo
 * [Red Sun Over Paradise](https://redsun.tf) - Playtesting and giving feedback
