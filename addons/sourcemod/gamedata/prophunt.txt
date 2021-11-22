@@ -104,6 +104,11 @@
 				"linux"		"477"
 				"windows"	"470"
 			}
+			"CTFScatterGun::HasKnockback"
+			{
+				"linux"		"494"
+				"windows"	"487"
+			}
 			"CTFWeaponBase::m_iWeaponMode"
 			{
 				"linux"		"1704"
@@ -229,6 +234,13 @@
 				"offset"	"CTFWeaponBaseMelee::Smack"
 				"hooktype"	"entity"
 				"return"	"void"
+				"this"		"entity"
+			}
+			"CTFScatterGun::HasKnockback"
+			{
+				"offset"	"CTFScatterGun::HasKnockback"
+				"hooktype"	"entity"
+				"return"	"bool"
 				"this"		"entity"
 			}
 		}

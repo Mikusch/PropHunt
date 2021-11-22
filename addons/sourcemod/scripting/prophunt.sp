@@ -372,6 +372,10 @@ public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int item
 	if (IsWeaponBaseMelee(entity))
 		DHooks_HookBaseMelee(entity);
 	
+	// Is Scattergun?
+	if (strcmp(classname, "tf_weapon_scattergun") == 0)
+		DHooks_HookScatterGun(entity);
+	
 	// Hide the last prop's items
 	if (PHPlayer(client).IsLastProp)
 		SetItemAlpha(entity, 0);

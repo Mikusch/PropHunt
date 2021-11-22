@@ -19,6 +19,7 @@ static DynamicHook g_DHookSpawn;
 static DynamicHook g_DHookModifyOrAppendCriteria;
 static DynamicHook g_DHookFireProjectile;
 static DynamicHook g_DHookSmack;
+static DynamicHook g_DHookHasKnockback;
 
 void DHooks_Initialize(GameData gamedata)
 {
@@ -31,6 +32,7 @@ void DHooks_Initialize(GameData gamedata)
 	g_DHookModifyOrAppendCriteria = CreateDynamicHook(gamedata, "CBaseEntity::ModifyOrAppendCriteria");
 	g_DHookFireProjectile = CreateDynamicHook(gamedata, "CTFWeaponBaseGun::FireProjectile");
 	g_DHookSmack = CreateDynamicHook(gamedata, "CTFWeaponBaseMelee::Smack");
+	g_DHookHasKnockback = CreateDynamicHook(gamedata, "CTFScatterGun::HasKnockback");
 }
 
 void DHooks_HookClient(int client)
@@ -52,6 +54,12 @@ void DHooks_HookBaseMelee(int weapon)
 {
 	if (g_DHookSmack)
 		g_DHookSmack.HookEntity(Hook_Pre, weapon, DHookCallback_Smack_Pre);
+}
+
+void DHooks_HookScatterGun(int scattergun)
+{
+	if (g_DHookHasKnockback)
+		g_DHookHasKnockback.HookEntity(Hook_Post, scattergun, DHookCallback_HasKnockback_Post);
 }
 
 static void DHooks_CreateDetour(GameData gamedata, const char[] name, DHookCallback callbackPre = INVALID_FUNCTION, DHookCallback callbackPost = INVALID_FUNCTION)
@@ -165,6 +173,23 @@ public MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params
 	return MRES_Ignored;
 }
 
+public MRESReturn DHookCallback_Heal_Pre(Address playerShared, DHookParam params)
+{
+	int player = GetPlayerSharedOuter(playerShared);
+	
+	// Reduce healing from all sources (except control point bonus)
+	if (!TF2_IsPlayerInCondition(player, TFCond_HalloweenQuickHeal))
+	{
+		float amount = params.Get(2);
+		
+		params.Set(2, amount * ph_healing_modifier.FloatValue);
+		return MRES_ChangedHandled;
+	}
+	
+	return MRES_Ignored;
+}
+
+
 public MRESReturn DHookCallback_Spawn_Pre(int player)
 {
 	// player_spawn event gets fired too early to manipulate player class properly
@@ -237,17 +262,13 @@ public MRESReturn DHookCallback_Smack_Pre(int weapon)
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_Heal_Pre(Address playerShared, DHookParam params)
+public MRESReturn DHookCallback_HasKnockback_Post(int scattergun, DHookReturn ret)
 {
-	int player = GetPlayerSharedOuter(playerShared);
-	
-	// Reduce healing from all sources (except control point bonus)
-	if (!TF2_IsPlayerInCondition(player, TFCond_HalloweenQuickHeal))
+	// Disables the Force-A-Nature knockback during setup
+	if (g_InSetup)
 	{
-		float amount = params.Get(2);
-		
-		params.Set(2, amount * ph_healing_modifier.FloatValue);
-		return MRES_ChangedHandled;
+		ret.Value = false;
+		return MRES_Supercede;
 	}
 	
 	return MRES_Ignored;
