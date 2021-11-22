@@ -128,6 +128,19 @@ public void Event_PostInventoryApplication(Event event, const char[] name, bool 
 			if (weapon != -1)
 				SetItemAlpha(weapon, 255);
 		}
+		
+		// Generate a Grappling Hook for the Hunters
+		Handle item = TF2Items_CreateItem(PRESERVE_ATTRIBUTES);
+		
+		char classname[64];
+		TF2Econ_GetItemClassName(ITEM_DEFINDEX_GRAPPLINGHOOK, classname, sizeof(classname));
+		
+		TF2Items_SetClassname(item, classname);
+		TF2Items_SetItemIndex(item, ITEM_DEFINDEX_GRAPPLINGHOOK);
+		TF2Items_SetLevel(item, 1);
+		
+		int grapplingHook = TF2Items_GiveNamedItem(client, item);
+		EquipPlayerWeapon(client, grapplingHook);
 	}
 }
 

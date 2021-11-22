@@ -36,6 +36,7 @@
 
 #define DONT_BLEED	0
 
+#define ITEM_DEFINDEX_GRAPPLINGHOOK			1152
 #define ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH	269
 
 #define ZERO_VECTOR	view_as<float>( { 0.0, 0.0, 0.0 } )
