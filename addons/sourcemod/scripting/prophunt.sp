@@ -84,6 +84,7 @@ ConVar ph_regenerate_last_prop;
 ConVar ph_bonus_refresh_time;
 ConVar ph_healing_modifier;
 ConVar ph_open_doors_after_setup;
+ConVar ph_setup_truce;
 ConVar ph_setup_time;
 ConVar ph_round_time;
 ConVar ph_relay_name;

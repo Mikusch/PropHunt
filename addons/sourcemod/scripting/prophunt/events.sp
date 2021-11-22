@@ -151,7 +151,7 @@ public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBr
 	delete g_ControlPointBonusTimer;
 	
 	// Start a truce to avoid murder before the round even started
-	GameRules_SetProp("m_bTruceActive", true);
+	GameRules_SetProp("m_bTruceActive", ph_setup_truce.BoolValue);
 	
 	for (int client = 1; client <= MaxClients; client++)
 	{

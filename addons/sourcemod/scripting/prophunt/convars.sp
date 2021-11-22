@@ -44,6 +44,7 @@ void ConVars_Initialize()
 	ph_bonus_refresh_time = CreateConVar("ph_bonus_refresh_time", "60.0", "Refresh interval of the control point bonus, in seconds.");
 	ph_healing_modifier = CreateConVar("ph_healing_modifier", "0.2", "Modifier of the amount of healing received from continuous healing sources.");
 	ph_open_doors_after_setup = CreateConVar("ph_open_doors_after_setup", "1", "When set, open all doors after setup time ends.");
+	ph_setup_truce = CreateConVar("ph_setup_truce", "0", "When set, props can not be damaged during setup.");
 	ph_setup_time = CreateConVar("ph_setup_time", "45", "Length of the setup time, in seconds.");
 	ph_round_time = CreateConVar("ph_round_time", "225", "Length of the round time, in seconds.");
 	ph_relay_name = CreateConVar("ph_relay_name", "hidingover", "Name of the relay to trigger when setup time ends.");
