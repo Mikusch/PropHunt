@@ -19,7 +19,6 @@ static DynamicHook g_DHookSpawn;
 static DynamicHook g_DHookModifyOrAppendCriteria;
 static DynamicHook g_DHookFireProjectile;
 static DynamicHook g_DHookSmack;
-static DynamicHook g_DHookHasKnockback;
 
 void DHooks_Initialize(GameData gamedata)
 {
@@ -32,7 +31,6 @@ void DHooks_Initialize(GameData gamedata)
 	g_DHookModifyOrAppendCriteria = CreateDynamicHook(gamedata, "CBaseEntity::ModifyOrAppendCriteria");
 	g_DHookFireProjectile = CreateDynamicHook(gamedata, "CTFWeaponBaseGun::FireProjectile");
 	g_DHookSmack = CreateDynamicHook(gamedata, "CTFWeaponBaseMelee::Smack");
-	g_DHookHasKnockback = CreateDynamicHook(gamedata, "CTFScatterGun::HasKnockback");
 }
 
 void DHooks_HookClient(int client)
@@ -54,12 +52,6 @@ void DHooks_HookBaseMelee(int weapon)
 {
 	if (g_DHookSmack)
 		g_DHookSmack.HookEntity(Hook_Pre, weapon, DHookCallback_Smack_Pre);
-}
-
-void DHooks_HookScatterGun(int scattergun)
-{
-	if (g_DHookHasKnockback)
-		g_DHookHasKnockback.HookEntity(Hook_Post, scattergun, DHookCallback_HasKnockback_Post);
 }
 
 static void DHooks_CreateDetour(GameData gamedata, const char[] name, DHookCallback callbackPre = INVALID_FUNCTION, DHookCallback callbackPost = INVALID_FUNCTION)
@@ -134,11 +126,12 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 
 public MRESReturn DHookCallback_CanPlayerMove_Post(int player, DHookReturn ret)
 {
-	if (g_InSetup && ph_hunter_setup_freeze.BoolValue)
+	// Allow movement during arena pre-round time
+	if (GameRules_GetRoundState() == RoundState_Preround)
 	{
-		if (IsPlayerHunter(player))
+		if (IsPlayerProp(player) || IsPlayerHunter(player) && !ph_hunter_setup_freeze.BoolValue)
 		{
-			ret.Value = false;
+			ret.Value = true;
 			return MRES_Supercede;
 		}
 	}
@@ -148,7 +141,7 @@ public MRESReturn DHookCallback_CanPlayerMove_Post(int player, DHookReturn ret)
 
 public MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+	if (GameRules_GetRoundState() != RoundState_Stalemate)
 		return MRES_Ignored;
 	
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
@@ -228,7 +221,7 @@ public MRESReturn DHookCallback_ModifyOrAppendCriteria_Post(int player, DHookPar
 
 public MRESReturn DHookCallback_FireProjectile_Pre(int weapon, DHookReturn ret, DHookParam params)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+	if (GameRules_GetRoundState() != RoundState_Stalemate)
 		return MRES_Ignored;
 	
 	int player = params.Get(1);
@@ -246,7 +239,7 @@ public MRESReturn DHookCallback_FireProjectile_Pre(int weapon, DHookReturn ret, 
 
 public MRESReturn DHookCallback_Smack_Pre(int weapon)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+	if (GameRules_GetRoundState() != RoundState_Stalemate)
 		return MRES_Ignored;
 	
 	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
@@ -257,18 +250,6 @@ public MRESReturn DHookCallback_Smack_Pre(int weapon)
 		float damage = SDKCall_GetMeleeDamage(weapon, owner, damageType, 0) * ph_hunter_damage_modifier_melee.FloatValue;
 		
 		SDKHooks_TakeDamage(owner, weapon, owner, damage, damageType, weapon);
-	}
-	
-	return MRES_Ignored;
-}
-
-public MRESReturn DHookCallback_HasKnockback_Post(int scattergun, DHookReturn ret)
-{
-	// Disables the Force-A-Nature knockback during setup
-	if (g_InSetup)
-	{
-		ret.Value = false;
-		return MRES_Supercede;
 	}
 	
 	return MRES_Ignored;

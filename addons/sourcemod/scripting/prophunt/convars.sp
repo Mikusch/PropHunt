@@ -46,12 +46,13 @@ void ConVars_Initialize()
 	ph_open_doors_after_setup = CreateConVar("ph_open_doors_after_setup", "1", "When set, open all doors after setup time ends.");
 	ph_setup_truce = CreateConVar("ph_setup_truce", "0", "When set, props can not be damaged during setup.");
 	ph_setup_time = CreateConVar("ph_setup_time", "45", "Length of the setup time, in seconds.");
+	ph_setup_time.AddChangeHook(ConVarChanged_SetupTime);
 	ph_round_time = CreateConVar("ph_round_time", "225", "Length of the round time, in seconds.");
 	ph_relay_name = CreateConVar("ph_relay_name", "hidingover", "Name of the relay to trigger when setup time ends.");
 	
 	g_GameConVars = new StringMap();
 	
-	//Track all ConVars not controlled by this plugin
+	// Track all ConVars not controlled by this plugin
 	ConVars_Track("tf_arena_round_time", "0");
 	ConVars_Track("tf_arena_override_cap_enable_time", "0");
 	ConVars_Track("tf_arena_use_queue", "0");
@@ -60,6 +61,9 @@ void ConVars_Initialize()
 	ConVars_Track("mp_show_voice_icons", "0");
 	ConVars_Track("mp_forcecamera", "1");
 	ConVars_Track("sv_gravity", "500");
+	
+	// Allow us to modify the pre-round time
+	FindConVar("tf_arena_preround_time").SetBounds(ConVarBound_Upper, false);
 }
 
 void ConVars_Track(const char[] name, const char[] value, bool enforce = true)
@@ -67,7 +71,7 @@ void ConVars_Track(const char[] name, const char[] value, bool enforce = true)
 	ConVar convar = FindConVar(name);
 	if (convar)
 	{
-		//Store ConVar information
+		// Store ConVar information
 		ConVarInfo info;
 		strcopy(info.name, sizeof(info.name), name);
 		strcopy(info.value, sizeof(info.value), value);
@@ -105,14 +109,14 @@ void ConVars_Enable(const char[] name)
 	{
 		ConVar convar = FindConVar(info.name);
 		
-		//Store the current value so we can later reset the ConVar to it
+		// Store the current value so we can later reset the ConVar to it
 		convar.GetString(info.initialValue, sizeof(info.initialValue));
 		info.enabled = true;
 		g_GameConVars.SetArray(name, info, sizeof(info));
 		
-		//Update the current value
+		// Update the current value
 		convar.SetString(info.value);
-		convar.AddChangeHook(OnConVarChanged);
+		convar.AddChangeHook(ConVarChanged_GameConVar);
 	}
 }
 
@@ -126,13 +130,13 @@ void ConVars_Disable(const char[] name)
 		info.enabled = false;
 		g_GameConVars.SetArray(name, info, sizeof(info));
 		
-		//Restore the convar value
-		convar.RemoveChangeHook(OnConVarChanged);
+		// Restore the convar value
+		convar.RemoveChangeHook(ConVarChanged_GameConVar);
 		convar.SetString(info.initialValue);
 	}
 }
 
-public void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
+public void ConVarChanged_GameConVar(ConVar convar, const char[] oldValue, const char[] newValue)
 {
 	char name[64];
 	convar.GetName(name, sizeof(name));
@@ -150,4 +154,9 @@ public void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] n
 				convar.SetString(info.value);
 		}
 	}
+}
+
+public void ConVarChanged_SetupTime(ConVar convar, const char[] oldValue, const char[] newValue)
+{
+	FindConVar("tf_arena_preround_time").FloatValue = convar.FloatValue;
 }

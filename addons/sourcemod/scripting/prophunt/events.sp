@@ -146,8 +146,6 @@ public void Event_PostInventoryApplication(Event event, const char[] name, bool 
 
 public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
-	g_InSetup = false;
-	
 	delete g_ControlPointBonusTimer;
 	
 	// Start a truce to avoid murder before the round even started
@@ -179,14 +177,11 @@ public void Event_TeamplayRoundWin(Event event, const char[] name, bool dontBroa
 
 public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
-	g_InSetup = true;
-	
 	// Create the setup and round timer
 	int timer = CreateEntityByName("team_round_timer");
 	if (timer != -1)
 	{
 		DispatchKeyValue(timer, "show_in_hud", "1");
-		SetEntProp(timer, Prop_Data, "m_nSetupTimeLength", ph_setup_time.IntValue);
 		SetEntProp(timer, Prop_Data, "m_nTimerInitialLength", ph_round_time.IntValue);
 		SetEntProp(timer, Prop_Data, "m_nTimerMaxLength", ph_round_time.IntValue);
 		
@@ -194,10 +189,43 @@ public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroad
 		{
 			AcceptEntityInput(timer, "Enable");
 			
-			HookSingleEntityOutput(timer, "OnSetupFinished", EntityOutput_OnSetupFinished, true);
 			HookSingleEntityOutput(timer, "OnFinished", EntityOutput_OnFinished, true);
 		}
 	}
+	
+	// Setup control point bonus
+	g_ControlPointBonusTimer = CreateTimer(ph_bonus_refresh_time.FloatValue, Timer_RefreshControlPointBonus, _, TIMER_REPEAT);
+	TriggerTimer(g_ControlPointBonusTimer);
+	
+	// Trigger named relays
+	char expectedRelayName[MAX_COMMAND_LENGTH];
+	ph_relay_name.GetString(expectedRelayName, sizeof(expectedRelayName));
+	
+	if (expectedRelayName[0] != '\0')
+	{
+		int relay = MaxClients + 1;
+		while ((relay = FindEntityByClassname(relay, "logic_relay")) != -1)
+		{
+			char relayName[64];
+			GetEntPropString(relay, Prop_Data, "m_iName", relayName, sizeof(relayName));
+			
+			if (strcmp(relayName, expectedRelayName) == 0)
+				AcceptEntityInput(relay, "Trigger");
+		}
+	}
+	
+	// Open all doors in the map
+	if (ph_open_doors_after_setup.BoolValue)
+	{
+		int door = MaxClients + 1;
+		while ((door = FindEntityByClassname(door, "func_door")) != -1)
+		{
+			AcceptEntityInput(door, "Open");
+		}
+	}
+	
+	// End the truce
+	GameRules_SetProp("m_bTruceActive", false);
 	
 	for (int client = 1; client <= MaxClients; client++)
 	{

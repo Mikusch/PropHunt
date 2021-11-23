@@ -60,7 +60,6 @@ enum PHPropType
 }
 
 // Globals
-bool g_InSetup;
 bool g_DisallowPropLocking;
 Handle g_ControlPointBonusTimer;
 
@@ -196,6 +195,11 @@ public void OnMapStart()
 	}
 }
 
+public void OnConfigsExecuted()
+{
+	FindConVar("tf_arena_preround_time").FloatValue = ph_setup_time.FloatValue;
+}
+
 public void OnMapEnd()
 {
 	g_CurrentMapConfig.Clear();
@@ -218,7 +222,7 @@ public void OnEntityCreated(int entity, const char[] classname)
 
 public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname, bool &result)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+	if (GameRules_GetRoundState() != RoundState_Stalemate)
 		return Plugin_Continue;
 	
 	// Flame throwers are a special case, as always
@@ -373,10 +377,6 @@ public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int item
 	if (IsWeaponBaseMelee(entity))
 		DHooks_HookBaseMelee(entity);
 	
-	// Is Scattergun?
-	if (strcmp(classname, "tf_weapon_scattergun") == 0)
-		DHooks_HookScatterGun(entity);
-	
 	// Hide the last prop's items
 	if (PHPlayer(client).IsLastProp)
 		SetItemAlpha(entity, 0);
@@ -441,7 +441,7 @@ bool SearchForEntityProps(int client, char[] message, int maxlength)
 	SetEntProp(client, Prop_Send, "m_nForcedSkin", GetEntitySkin(entity));
 	
 	// Refill health during setup time
-	if (GameRules_GetRoundState() == RoundState_Preround || g_InSetup)
+	if (GameRules_GetRoundState() == RoundState_Preround)
 		SetEntityHealth(client, GetHealthForBbox(mins, maxs));
 	
 	return true;
@@ -495,7 +495,7 @@ bool SearchForStaticProps(int client, char[] message, int maxlength)
 		SetCustomModel(client, name);
 		
 		// Refill health during setup time
-		if (GameRules_GetRoundState() == RoundState_Preround || g_InSetup)
+		if (GameRules_GetRoundState() == RoundState_Preround)
 			SetEntityHealth(client, GetHealthForBbox(obbMins, obbMaxs));
 		
 		// Exit out after we find a valid prop
@@ -634,54 +634,6 @@ public void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQue
 	}
 	
 	KickClient(client, "%t", "PH_ConVarQuery_QueryNotOkay", cvarName);
-}
-
-public Action EntityOutput_OnSetupFinished(const char[] output, int caller, int activator, float delay)
-{
-	g_InSetup = false;
-	
-	// Setup control point bonus
-	g_ControlPointBonusTimer = CreateTimer(ph_bonus_refresh_time.FloatValue, Timer_RefreshControlPointBonus, _, TIMER_REPEAT);
-	TriggerTimer(g_ControlPointBonusTimer);
-	
-	// Refresh speed of all clients to allow hunters to move
-	for (int client = 1; client <= MaxClients; client++)
-	{
-		if (IsClientInGame(client))
-			TF2_AddCondition(client, TFCond_SpeedBuffAlly, 0.01);
-	}
-	
-	// Trigger named relays
-	char relayName[MAX_COMMAND_LENGTH];
-	ph_relay_name.GetString(relayName, sizeof(relayName));
-	
-	if (relayName[0] != '\0')
-	{
-		int relay = MaxClients + 1;
-		while ((relay = FindEntityByClassname(relay, "logic_relay")) != -1)
-		{
-			char name[64];
-			GetEntPropString(relay, Prop_Data, "m_iName", name, sizeof(name));
-			
-			if (strcmp(name, relayName) == 0)
-				AcceptEntityInput(relay, "Trigger");
-		}
-	}
-	
-	// Open all doors in the map
-	if (ph_open_doors_after_setup.BoolValue)
-	{
-		int door = MaxClients + 1;
-		while ((door = FindEntityByClassname(door, "func_door")) != -1)
-		{
-			AcceptEntityInput(door, "Open");
-		}
-	}
-	
-	// End the truce
-	GameRules_SetProp("m_bTruceActive", false);
-	
-	return Plugin_Continue;
 }
 
 public Action EntityOutput_OnFinished(const char[] output, int caller, int activator, float delay)
