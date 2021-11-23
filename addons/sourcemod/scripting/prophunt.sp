@@ -432,9 +432,7 @@ bool SearchForEntityProps(int client, char[] message, int maxlength)
 		return false;
 	
 	// Set the player's prop
-	PHPlayer(client).PropType = Prop_Entity;
-	PHPlayer(client).PropIndex = EntIndexToEntRef(entity);
-	SetCustomModel(client, model);
+	SetCustomModel(client, model, Prop_Entity, EntIndexToEntRef(entity));
 	
 	// Copy skin of selected model
 	SetEntProp(client, Prop_Send, "m_bForcedSkin", true);
@@ -490,9 +488,7 @@ bool SearchForStaticProps(int client, char[] message, int maxlength)
 			continue;
 		
 		// Set the player's prop
-		PHPlayer(client).PropType = Prop_Static;
-		PHPlayer(client).PropIndex = i;
-		SetCustomModel(client, name);
+		SetCustomModel(client, name, Prop_Static, i);
 		
 		// Refill health during setup time
 		if (GameRules_GetRoundState() == RoundState_Preround || g_InSetup)
@@ -558,10 +554,13 @@ bool DoModelSizeChecks(int client, const char[] model, const float mins[3], cons
 	return true;
 }
 
-void SetCustomModel(int client, const char[] model)
+void SetCustomModel(int client, const char[] model, PHPropType type, int index)
 {
 	// Reset everything first
 	ClearCustomModel(client);
+	
+	PHPlayer(client).PropType = type;
+	PHPlayer(client).PropIndex = index;
 	
 	SetVariantString(model);
 	AcceptEntityInput(client, "SetCustomModel");
@@ -600,6 +599,9 @@ void SetCustomModel(int client, const char[] model)
 
 void ClearCustomModel(int client)
 {
+	PHPlayer(client).PropType = Prop_None;
+	PHPlayer(client).PropIndex = -1;
+	
 	SetVariantString("");
 	AcceptEntityInput(client, "SetCustomModel");
 	

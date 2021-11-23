@@ -206,6 +206,9 @@ public MRESReturn DHookCallback_Spawn_Pre(int player)
 			TF2_SetPlayerClass(player, GetRandomHunterClass(), _, false);
 	}
 	
+	// This needs to happen before the first call to CTFPlayer::GetMaxHealthForBuffing
+	ClearCustomModel(player);
+	
 	return MRES_Ignored;
 }
 

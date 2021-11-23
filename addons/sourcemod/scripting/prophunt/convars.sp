@@ -51,7 +51,7 @@ void ConVars_Initialize()
 	
 	g_GameConVars = new StringMap();
 	
-	//Track all ConVars not controlled by this plugin
+	// Track all ConVars not controlled by this plugin
 	ConVars_Track("tf_arena_round_time", "0");
 	ConVars_Track("tf_arena_override_cap_enable_time", "0");
 	ConVars_Track("tf_arena_use_queue", "0");
@@ -67,7 +67,7 @@ void ConVars_Track(const char[] name, const char[] value, bool enforce = true)
 	ConVar convar = FindConVar(name);
 	if (convar)
 	{
-		//Store ConVar information
+		// Store ConVar information
 		ConVarInfo info;
 		strcopy(info.name, sizeof(info.name), name);
 		strcopy(info.value, sizeof(info.value), value);
@@ -105,12 +105,12 @@ void ConVars_Enable(const char[] name)
 	{
 		ConVar convar = FindConVar(info.name);
 		
-		//Store the current value so we can later reset the ConVar to it
+		// Store the current value so we can later reset the ConVar to it
 		convar.GetString(info.initialValue, sizeof(info.initialValue));
 		info.enabled = true;
 		g_GameConVars.SetArray(name, info, sizeof(info));
 		
-		//Update the current value
+		// Update the current value
 		convar.SetString(info.value);
 		convar.AddChangeHook(OnConVarChanged);
 	}
@@ -126,7 +126,7 @@ void ConVars_Disable(const char[] name)
 		info.enabled = false;
 		g_GameConVars.SetArray(name, info, sizeof(info));
 		
-		//Restore the convar value
+		// Restore the convar value
 		convar.RemoveChangeHook(OnConVarChanged);
 		convar.SetString(info.initialValue);
 	}
@@ -145,7 +145,7 @@ public void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] n
 			strcopy(info.initialValue, sizeof(info.initialValue), newValue);
 			g_GameConVars.SetArray(name, info, sizeof(info));
 			
-			//Restore our value if needed
+			// Restore our value if needed
 			if (info.enforce)
 				convar.SetString(info.value);
 		}

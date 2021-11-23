@@ -44,8 +44,6 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 		// Restore third-person setting to props
 		CreateTimer(0.1, Timer_SetForcedTauntCam, userid);
 	}
-	
-	ClearCustomModel(client);
 }
 
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
