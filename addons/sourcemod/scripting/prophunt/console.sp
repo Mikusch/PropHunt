@@ -115,7 +115,7 @@ public Action ConCmd_SetModel(int client, int args)
 	
 	for (int i = 0; i < target_count; i++)
 	{
-		SetCustomModel(target_list[i], model);
+		SetCustomModel(target_list[i], model, Prop_None, -1);
 	}
 	
 	if (tn_is_ml)
