@@ -24,6 +24,7 @@ PropHunt Neu is my own take on the classic hide 'n seek gamemode for Team Fortre
 * [TF2Items](https://github.com/asherkin/TF2Items)
 * [TF2 Econ Data](https://github.com/nosoop/SM-TFEconData)
 * [TF2Attributes](https://github.com/FlaminSarge/tf2attributes)
+* [More Colors](https://github.com/DoctorMcKay/sourcemod-plugins/blob/master/scripting/include/morecolors.inc) (compile only)
 
 ## Special Thanks
 
