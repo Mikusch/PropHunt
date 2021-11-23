@@ -41,6 +41,9 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 	{
 		AcceptEntityInput(client, "DisableShadow");
 		
+		// Show prop controls
+		ShowKeyHintText(client, "%t", "PH_PropControls");
+		
 		// Restore third-person setting to props
 		CreateTimer(0.1, Timer_SetForcedTauntCam, userid);
 	}
@@ -224,19 +227,15 @@ public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroad
 		}
 	}
 	
-	// End the truce
+	// End the truce if it was active
 	GameRules_SetProp("m_bTruceActive", false);
 	
+	// Kick cheaters out of the game now that they cannot respawn anymore
 	for (int client = 1; client <= MaxClients; client++)
 	{
 		if (IsClientInGame(client) && !IsFakeClient(client))
 		{
-			// Kick cheaters out of the game
 			QueryClientConVar(client, "r_staticpropinfo", ConVarQuery_StaticPropInfo);
-			
-			// Show prop controls
-			if (IsPlayerProp(client))
-				ShowKeyHintText(client, "%t", "PH_PropControls");
 		}
 	}
 }
