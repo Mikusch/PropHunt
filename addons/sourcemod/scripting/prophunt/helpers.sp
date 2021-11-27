@@ -272,7 +272,7 @@ bool GetMapConfigFilepath(char[] filePath, int length)
 	return FileExists(filePath);
 }
 
-void ShowKeyHintText(int client, const char[] format, any...)
+void PrintKeyHintText(int client, const char[] format, any...)
 {
 	char buffer[256];
 	SetGlobalTransTarget(client);

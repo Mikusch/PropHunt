@@ -340,6 +340,9 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 		}
 	}
 	
+	// Show prop controls
+	PrintKeyHintText(client, "%t", "PH_PropControls");
+	
 	return Plugin_Continue;
 }
 

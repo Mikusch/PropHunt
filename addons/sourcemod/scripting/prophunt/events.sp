@@ -197,16 +197,10 @@ public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroad
 		}
 	}
 	
+	// Kick cheaters out of the game
 	for (int client = 1; client <= MaxClients; client++)
 	{
 		if (IsClientInGame(client) && !IsFakeClient(client))
-		{
-			// Kick cheaters out of the game
 			QueryClientConVar(client, "r_staticpropinfo", ConVarQuery_StaticPropInfo);
-			
-			// Show prop controls
-			if (IsPlayerProp(client))
-				ShowKeyHintText(client, "%t", "PH_PropControls");
-		}
 	}
 }
