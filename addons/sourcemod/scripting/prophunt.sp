@@ -736,13 +736,18 @@ public bool TraceEntityFilter_IgnoreEntity(int entity, int mask, any data)
 	return entity != data;
 }
 
-public Action Timer_SetForcedTauntCam(Handle timer, int userid)
+public Action Timer_PropPostSpawn(Handle timer, int serial)
 {
-	int client = GetClientOfUserId(userid);
+	int client = GetClientFromSerial(serial);
 	if (client != 0)
 	{
+		// Enable thirdperson
 		SetVariantInt(PHPlayer(client).InForcedTauntCam);
 		AcceptEntityInput(client, "SetForcedTauntCam");
+		
+		// Apply gameplay conditions
+		TF2_AddCondition(client, TFCond_AfterburnImmune);
+		TF2_AddCondition(client, TFCond_SpawnOutline);
 	}
 	
 	return Plugin_Continue;

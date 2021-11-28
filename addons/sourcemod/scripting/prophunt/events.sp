@@ -27,8 +27,7 @@ void Events_Initialize()
 
 public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 {
-	int userid = event.GetInt("userid");
-	int client = GetClientOfUserId(userid);
+	int client = GetClientOfUserId(event.GetInt("userid"));
 	
 	// Prevent latespawning
 	if (GameRules_GetRoundState() != RoundState_Preround)
@@ -41,8 +40,8 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 	{
 		AcceptEntityInput(client, "DisableShadow");
 		
-		// Restore third-person setting to props
-		CreateTimer(0.1, Timer_SetForcedTauntCam, userid);
+		// Some things, like setting conditions, only works with a delay
+		CreateTimer(0.1, Timer_PropPostSpawn, GetClientSerial(client));
 	}
 }
 
@@ -155,10 +154,6 @@ public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBr
 	for (int client = 1; client <= MaxClients; client++)
 	{
 		PHPlayer(client).Reset();
-		
-		// Afterburn is too strong
-		if (IsClientInGame(client) && IsPlayerProp(client))
-			TF2_AddCondition(client, TFCond_AfterburnImmune);
 	}
 }
 
