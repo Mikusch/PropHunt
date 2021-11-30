@@ -17,6 +17,7 @@
 
 static PHPropType g_PlayerPropType[MAXPLAYERS + 1];
 static int g_PlayerPropIndex[MAXPLAYERS + 1];
+static int g_PlayerOldMaxHealth[MAXPLAYERS + 1];
 static bool g_PlayerPropLockEnabled[MAXPLAYERS + 1];
 static bool g_PlayerInForcedTauntCam[MAXPLAYERS + 1];
 static bool g_PlayerHasReceivedBonus[MAXPLAYERS + 1];
@@ -58,6 +59,18 @@ methodmap PHPlayer
 		public set(int index)
 		{
 			g_PlayerPropIndex[this.Client] = index;
+		}
+	}
+	
+	property int OldMaxHealth
+	{
+		public get()
+		{
+			return g_PlayerOldMaxHealth[this.Client];
+		}
+		public set(int health)
+		{
+			g_PlayerOldMaxHealth[this.Client] = health;
 		}
 	}
 	
@@ -113,6 +126,7 @@ methodmap PHPlayer
 	{
 		this.PropType = Prop_None;
 		this.PropIndex = -1;
+		this.OldMaxHealth = 0;
 		this.PropLockEnabled = false;
 		this.InForcedTauntCam = true;
 		this.HasReceivedBonus = false;

@@ -92,7 +92,7 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 {
 	if (IsPlayerProp(player))
 	{
-		int health;
+		int maxHealth;
 		float mins[3], maxs[3];
 		
 		// Determine health based on prop bounding box size
@@ -101,7 +101,7 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 			case Prop_Static:
 			{
 				if (StaticProp_GetOBBBounds(PHPlayer(player).PropIndex, mins, maxs))
-					health = GetHealthForBbox(mins, maxs);
+					maxHealth = GetHealthForBbox(mins, maxs);
 			}
 			case Prop_Entity:
 			{
@@ -110,12 +110,12 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 				{
 					GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
 					GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
-					health = GetHealthForBbox(mins, maxs);
+					maxHealth = GetHealthForBbox(mins, maxs);
 				}
 				else
 				{
 					// Prop we disguised as is now invalid, don't update max health until we redisguise
-					health = GetPlayerMaxHealth(player);
+					maxHealth = GetPlayerMaxHealth(player);
 				}
 			}
 			default:
@@ -125,7 +125,18 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 			}
 		}
 		
-		ret.Value = health;
+		// Keep the ratio of health to max health the same when the player switches props
+		// e.g. switching from a 200/250 health prop to a 20/25 health prop
+		int oldMaxHealth = PHPlayer(player).OldMaxHealth;
+		if (oldMaxHealth != maxHealth)
+		{
+			float mult = oldMaxHealth != 0 ? float(GetEntProp(player, Prop_Data, "m_iHealth")) / float(oldMaxHealth) : 1.0;
+			SetEntityHealth(player, RoundToNearest(maxHealth * mult));
+		}
+		
+		PHPlayer(player).OldMaxHealth = maxHealth;
+		
+		ret.Value = maxHealth;
 		return MRES_Supercede;
 	}
 	
@@ -208,6 +219,7 @@ public MRESReturn DHookCallback_Spawn_Pre(int player)
 	
 	// This needs to happen before the first call to CTFPlayer::GetMaxHealthForBuffing
 	ClearCustomModel(player);
+	PHPlayer(player).OldMaxHealth = 0;
 	
 	return MRES_Ignored;
 }
