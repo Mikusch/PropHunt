@@ -137,6 +137,9 @@ public void Event_PostInventoryApplication(Event event, const char[] name, bool 
 		TF2Items_SetLevel(item, 1);
 		
 		int grapplingHook = TF2Items_GiveNamedItem(client, item);
+		
+		delete item;
+		
 		SetEntProp(grapplingHook, Prop_Send, "m_bValidatedAttachedEntity", true);
 		EquipPlayerWeapon(client, grapplingHook);
 	}
