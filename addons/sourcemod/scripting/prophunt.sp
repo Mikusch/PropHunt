@@ -330,8 +330,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 		(buttons & IN_BACK && buttonsChanged & IN_BACK) ||
 		(buttons & IN_MOVELEFT && buttonsChanged & IN_MOVELEFT) ||
 		(buttons & IN_MOVERIGHT && buttonsChanged & IN_MOVERIGHT) ||
-		(buttons & IN_JUMP && buttonsChanged & IN_JUMP) ||
-		(buttons & IN_DUCK && buttonsChanged & IN_DUCK))
+		(buttons & IN_JUMP && buttonsChanged & IN_JUMP))
 	{
 		if (PHPlayer(client).PropLockEnabled)
 		{
