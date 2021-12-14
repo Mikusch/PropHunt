@@ -1,0 +1,109 @@
+/*
+ * Copyright (C) 2021  Mikusch
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+"Phrases"
+{
+	"PH_Target_Props"
+	{
+		"ru"		"Объекты"
+	}
+	
+	"PH_Target_Hunters"
+	{
+		"ru"		"Охотники"
+	}
+	
+	"PH_PropLock_Enabled"
+	{
+		"ru"		"Фиксатор объекта™ включен"
+	}
+	
+	"PH_PropLock_Unavailable"
+	{
+		"ru"		"Фиксатор объекта™ недоступен"
+	}
+	
+	"PH_PropSelect_Success"
+	{
+		"ru"		"Теперь вы замаскированы под: {lightgreen}{1}"
+	}
+	
+	"PH_PropSelect_CannotDisguise"
+	{
+		"ru"		"Невозможно замаскироваться под: {red}{1} {default}({2})"
+	}
+	
+	"PH_PropSelect_TooSmall"
+	{
+		"ru"		"объект слишком мал"
+	}
+	
+	"PH_PropSelect_TooBig"
+	{
+		"ru"		"объект слишком большой"
+	}
+	
+	"PH_PropSelect_Blacklisted"
+	{
+		"ru"		"объект занесён в чёрный список"
+	}
+	
+	"PH_PropSelect_NotAllowed"
+	{
+		"ru"		"{red}Вам не разрешается менять объект, находясь под негативными эффектами."
+	}
+	
+	"PH_ConVarQuery_DisallowedValue"
+	{
+		"ru"		"Переменная сервера \"{1}\" не может быть установлена на \"{2}\"."
+	}
+	
+	"PH_ConVarQuery_QueryNotOkay"
+	{
+		"ru"		"Не удалось запросить у клиента значение параметра \"{1}\"."
+	}
+	
+	"PH_PropControls"
+	{
+		"ru"		"%%+attack%% БЛОКИРОВКА ВРАЩЕНИЯ ОБЪЕКТА %%+attack2%% ПЕРЕКЛЮЧИТЬ ТРЕТЬЕ ЛИЦО %%+reload%% ВЫБРАТЬ ОБЪЕКТ"
+	}
+	
+	"PH_Bonus_Refreshed"
+	{
+		"ru"		"Бонус контрольной точки обновлён!"
+	}
+	
+	"PH_Bonus_Received"
+	{
+		"ru"		"Бонус контрольной точки получен! {lightgreen}Здоровье восстановлено."
+	}
+	
+	"PH_Command_GetModel_Success"
+	{
+		"ru"		"Текущая модель игрока {1}: {lightgreen}{2}"
+	}
+	
+	"PH_Command_GetModel_NoModelSet"
+	{
+		"ru"		"Ни один подходящий клиент не имеет пользовательской модели."
+	}
+	
+	"PH_Command_SetModel_Success"
+	{
+		"ru"		"Применена модель {lightgreen}{1} {default}для {2}."
+	}
+}
