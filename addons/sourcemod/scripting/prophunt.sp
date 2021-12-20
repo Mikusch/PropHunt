@@ -258,6 +258,7 @@ void TogglePropLock(int client, bool toggle)
 	{
 		EmitSoundToClient(client, LOCK_SOUND, _, SNDCHAN_STATIC);
 		SetEntityMoveType(client, MOVETYPE_NONE);
+		SetEntPropVector(client, Prop_Data, "m_vecAbsVelocity", ZERO_VECTOR);
 		PrintHintText(client, "%t", "PH_PropLock_Enabled");
 	}
 	else
@@ -278,26 +279,23 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	// IN_ATTACK locks the player's prop view
 	if (buttons & IN_ATTACK && buttonsChanged & IN_ATTACK)
 	{
-		if (GameRules_GetRoundState() != RoundState_Preround)
+		if (GetPlayerWeaponSlot(client, 0) == -1)
 		{
-			if (GetPlayerWeaponSlot(client, 0) == -1)
+			// Check if the player is currently above a trigger_hurt
+			float origin[3];
+			GetClientAbsOrigin(client, origin);
+			TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, TraceEntityEnumerator_EnumerateTriggers, client);
+			
+			// Don't allow them to lock to avoid props hovering above deadly areas
+			if (!g_DisallowPropLocking)
 			{
-				// Check if the player is currently above a trigger_hurt
-				float origin[3];
-				GetClientAbsOrigin(client, origin);
-				TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, TraceEntityEnumerator_EnumerateTriggers, client);
-				
-				// Don't allow them to lock to avoid props hovering above deadly areas
-				if (!g_DisallowPropLocking)
-				{
-					bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
-					TogglePropLock(client, locked);
-				}
-				else
-				{
-					PrintHintText(client, "%t", "PH_PropLock_Unavailable");
-					g_DisallowPropLocking = false;
-				}
+				bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
+				TogglePropLock(client, locked);
+			}
+			else
+			{
+				PrintHintText(client, "%t", "PH_PropLock_Unavailable");
+				g_DisallowPropLocking = false;
 			}
 		}
 	}

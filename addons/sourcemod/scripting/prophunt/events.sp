@@ -51,6 +51,11 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 	int attacker = GetClientOfUserId(event.GetInt("attacker"));
 	int assister = GetClientOfUserId(event.GetInt("assister"));
 	
+	if (TF2_GetClientTeam(victim) == TFTeam_Props)
+	{
+		PHPlayer(victim).PropLockEnabled = false;
+	}
+	
 	if (victim != attacker && IsEntityClient(attacker) && IsClientInGame(attacker) && IsPlayerAlive(attacker))
 	{
 		// Fully regenerate the killing player
