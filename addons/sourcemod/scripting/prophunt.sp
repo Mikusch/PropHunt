@@ -68,7 +68,9 @@ Handle g_ControlPointBonusTimer;
 int g_OffsetWeaponMode;
 int g_OffsetWeaponInfo;
 int g_OffsetPlayerSharedOuter;
-int g_OffsetBulletsPerShot;
+int g_OffsetWeaponDamage;
+int g_OffsetWeaponBulletsPerShot;
+int g_OffsetWeaponTimeFireDelay;
 
 // ConVars
 ConVar ph_prop_min_size;
@@ -78,7 +80,7 @@ ConVar ph_prop_max_health;
 ConVar ph_hunter_damage_modifier_gun;
 ConVar ph_hunter_damage_modifier_melee;
 ConVar ph_hunter_damage_modifier_grapplinghook;
-ConVar ph_hunter_damage_flamethrower;
+ConVar ph_hunter_damage_modifier_flamethrower;
 ConVar ph_hunter_setup_freeze;
 ConVar ph_regenerate_last_prop;
 ConVar ph_bonus_refresh_time;
@@ -100,12 +102,12 @@ ConVar ph_relay_name;
 #include "prophunt/sdkcalls.sp"
 #include "prophunt/sdkhooks.sp"
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
-	name = "PropHunt Neu", 
-	author = "Mikusch", 
-	description = "A modern PropHunt plugin for Team Fortress 2", 
-	version = PLUGIN_VERSION, 
+	name = "PropHunt Neu",
+	author = "Mikusch",
+	description = "A modern PropHunt plugin for Team Fortress 2",
+	version = PLUGIN_VERSION,
 	url = "https://github.com/Mikusch/PropHunt"
 }
 
@@ -154,7 +156,9 @@ public void OnPluginStart()
 		g_OffsetWeaponMode = gamedata.GetOffset("CTFWeaponBase::m_iWeaponMode");
 		g_OffsetWeaponInfo = gamedata.GetOffset("CTFWeaponBase::m_pWeaponInfo");
 		g_OffsetPlayerSharedOuter = gamedata.GetOffset("CTFPlayerShared::m_pOuter");
-		g_OffsetBulletsPerShot = gamedata.GetOffset("WeaponData_t::m_nBulletsPerShot");
+		g_OffsetWeaponDamage = gamedata.GetOffset("WeaponData_t::m_nDamage");
+		g_OffsetWeaponBulletsPerShot = gamedata.GetOffset("WeaponData_t::m_nBulletsPerShot");
+		g_OffsetWeaponTimeFireDelay = gamedata.GetOffset("WeaponData_t::m_flTimeFireDelay");
 		
 		delete gamedata;
 	}
@@ -221,10 +225,10 @@ public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname
 	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
 		return Plugin_Continue;
 	
-	// Flame throwers are a special case, as always
 	if (strcmp(weaponname, "tf_weapon_flamethrower") == 0)
 	{
-		float damage = ph_hunter_damage_flamethrower.FloatValue;
+		// The damage of flame throwers is calculated as Damage x TimeFireDelay
+		float damage = GetWeaponDamage(weapon) * GetWeaponTimeFireDelay(weapon) * ph_hunter_damage_modifier_flamethrower.FloatValue;
 		int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
 		
 		SDKHooks_TakeDamage(client, weapon, client, damage, damageType, weapon);

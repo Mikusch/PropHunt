@@ -137,13 +137,29 @@ bool IsWeaponBaseMelee(int entity)
 	return HasEntProp(entity, Prop_Data, "CTFWeaponBaseMeleeSmack");
 }
 
-int GetBulletsPerShot(int weapon)
+int GetWeaponData(int weapon)
 {
-	// m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_nBulletsPerShot
 	int weaponMode = GetEntData(weapon, g_OffsetWeaponMode);
 	int weaponInfo = GetEntData(weapon, g_OffsetWeaponInfo);
-	int weaponData = weaponInfo + (WEAPONDATA_SIZE * weaponMode);
-	return LoadFromAddress(view_as<Address>(weaponData + g_OffsetBulletsPerShot), NumberType_Int8);
+	return weaponInfo + (WEAPONDATA_SIZE * weaponMode);
+}
+
+int GetWeaponDamage(int weapon)
+{
+	// m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_nDamage
+	return LoadFromAddress(view_as<Address>(GetWeaponData(weapon) + g_OffsetWeaponDamage), NumberType_Int32);
+}
+
+int GetWeaponBulletsPerShot(int weapon)
+{
+	// m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_nBulletsPerShot
+	return LoadFromAddress(view_as<Address>(GetWeaponData(weapon) + g_OffsetWeaponBulletsPerShot), NumberType_Int32);
+}
+
+float GetWeaponTimeFireDelay(int weapon)
+{
+	// m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_flTimeFireDelay
+	return view_as<float>(LoadFromAddress(view_as<Address>(GetWeaponData(weapon) + g_OffsetWeaponTimeFireDelay), NumberType_Int32));
 }
 
 int GetPlayerSharedOuter(Address playerShared)
@@ -299,8 +315,8 @@ void SetWinningTeam(TFTeam team)
 bool CanPlayerPropChange(int client)
 {
 	return !TF2_IsPlayerInCondition(client, TFCond_OnFire)
-		&& !TF2_IsPlayerInCondition(client, TFCond_Bleeding)
 		&& !TF2_IsPlayerInCondition(client, TFCond_Jarated)
+		&& !TF2_IsPlayerInCondition(client, TFCond_Bleeding)
 		&& !TF2_IsPlayerInCondition(client, TFCond_Milked)
 		&& !TF2_IsPlayerInCondition(client, TFCond_Gas);
 }

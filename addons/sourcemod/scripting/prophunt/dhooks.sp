@@ -250,7 +250,7 @@ public MRESReturn DHookCallback_FireProjectile_Pre(int weapon, DHookReturn ret, 
 	
 	if (IsPlayerHunter(player))
 	{
-		float damage = SDKCall_GetProjectileDamage(weapon) * GetBulletsPerShot(weapon) * ph_hunter_damage_modifier_gun.FloatValue;
+		float damage = SDKCall_GetProjectileDamage(weapon) * GetWeaponBulletsPerShot(weapon) * ph_hunter_damage_modifier_gun.FloatValue;
 		int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
 		
 		SDKHooks_TakeDamage(player, weapon, player, damage, damageType, weapon);

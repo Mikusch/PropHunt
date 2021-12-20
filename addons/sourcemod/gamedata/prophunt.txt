@@ -124,10 +124,20 @@
 				"linux"		"400"
 				"windows"	"400"
 			}
+			"WeaponData_t::m_nDamage"
+			{
+				"linux"		"1784"
+				"windows"	"1784"
+			}
 			"WeaponData_t::m_nBulletsPerShot"
 			{
 				"linux"		"1788"
 				"windows"	"1788"
+			}
+			"WeaponData_t::m_flTimeFireDelay"
+			{
+				"linux"		"1804"
+				"windows"	"1804"
 			}
 		}
 		"Functions"
