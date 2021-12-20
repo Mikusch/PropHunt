@@ -64,6 +64,9 @@ bool g_InSetup;
 bool g_DisallowPropLocking;
 Handle g_ControlPointBonusTimer;
 
+// Forwards
+GlobalForward g_ForwardOnPlayerDisguised;
+
 // Offsets
 int g_OffsetWeaponMode;
 int g_OffsetWeaponInfo;
@@ -177,6 +180,13 @@ public void OnPluginStart()
 public void OnPluginEnd()
 {
 	ConVars_ToggleAll(false);
+}
+
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+{
+	RegPluginLibrary("prophunt");
+	
+	g_ForwardOnPlayerDisguised = new GlobalForward("PropHunt_OnPlayerDisguised", ET_Ignore, Param_Cell, Param_String);
 }
 
 public void OnMapStart()
@@ -586,6 +596,11 @@ void SetCustomModel(int client, const char[] model, PHPropType type, int index)
 	}
 	
 	SetEntProp(client, Prop_Data, "m_bloodColor", DONT_BLEED);
+	
+	Call_StartForward(g_ForwardOnPlayerDisguised);
+	Call_PushCell(client);
+	Call_PushString(model);
+	Call_Finish();
 	
 	char modelTidyName[PLATFORM_MAX_PATH];
 	GetModelTidyName(model, modelTidyName, sizeof(modelTidyName));
