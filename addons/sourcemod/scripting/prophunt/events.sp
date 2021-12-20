@@ -36,7 +36,7 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 		return;
 	}
 	
-	if (IsPlayerProp(client))
+	if (TF2_GetClientTeam(client) == TFTeam_Props)
 	{
 		AcceptEntityInput(client, "DisableShadow");
 		
@@ -77,12 +77,12 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 		int propCount = 0;
 		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (IsClientInGame(client) && IsPlayerAlive(client) && IsPlayerProp(client))
+			if (IsClientInGame(client) && IsPlayerAlive(client) && TF2_GetClientTeam(client) == TFTeam_Props)
 				propCount++;
 		}
 		
 		// The last prop has died, do the last man standing stuff
-		if (IsPlayerProp(victim) && propCount == 2)
+		if (TF2_GetClientTeam(victim) == TFTeam_Props && propCount == 2)
 		{
 			EmitSoundToAll("#" ... SOUND_LAST_PROP, _, SNDCHAN_STATIC, SNDLEVEL_NONE);
 			
@@ -90,7 +90,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 			{
 				if (IsClientInGame(client) && IsPlayerAlive(client))
 				{
-					if (IsPlayerProp(client) && client != victim)
+					if (TF2_GetClientTeam(client) == TFTeam_Props && client != victim)
 					{
 						if (ph_regenerate_last_prop.BoolValue)
 						{
@@ -98,7 +98,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 							TF2_RegeneratePlayer(client);
 						}
 					}
-					else if (IsPlayerHunter(client))
+					else if (TF2_GetClientTeam(client) == TFTeam_Hunters)
 					{
 						TF2_AddCondition(client, TFCond_Jarated, 15.0);
 					}
@@ -111,12 +111,12 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 public void Event_PostInventoryApplication(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
-	if (IsPlayerProp(client) && !PHPlayer(client).IsLastProp)
+	if (TF2_GetClientTeam(client) == TFTeam_Props && !PHPlayer(client).IsLastProp)
 	{
 		// Fixes an exploit where you could keep your hunter weapons as a prop
 		TF2_RemoveAllWeapons(client);
 	}
-	else if (IsPlayerHunter(client))
+	else if (TF2_GetClientTeam(client) == TFTeam_Hunters)
 	{
 		// Quick and dirty way to restore alpha values from previous round
 		for (int slot = 0; slot <= 5; slot++)

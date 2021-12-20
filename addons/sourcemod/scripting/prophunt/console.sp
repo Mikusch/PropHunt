@@ -32,7 +32,7 @@ public bool MultiTargetFilter_FilterProps(const char[] pattern, ArrayList client
 {
 	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsClientInGame(client) && IsPlayerProp(client))
+		if (IsClientInGame(client) && TF2_GetClientTeam(client) == TFTeam_Props)
 			clients.Push(client);
 	}
 	
@@ -43,7 +43,7 @@ public bool MultiTargetFilter_FilterHunters(const char[] pattern, ArrayList clie
 {
 	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsClientInGame(client) && IsPlayerHunter(client))
+		if (IsClientInGame(client) && TF2_GetClientTeam(client) == TFTeam_Hunters)
 			clients.Push(client);
 	}
 	

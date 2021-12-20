@@ -270,7 +270,7 @@ void TogglePropLock(int client, bool toggle)
 public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
 {
 	// Prop-only functionality below this point
-	if (!IsPlayerProp(client) || !IsPlayerAlive(client))
+	if (TF2_GetClientTeam(client) != TFTeam_Props || !IsPlayerAlive(client))
 		return Plugin_Continue;
 	
 	int buttonsChanged = GetEntProp(client, Prop_Data, "m_afButtonPressed") | GetEntProp(client, Prop_Data, "m_afButtonReleased");
@@ -351,7 +351,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 
 public Action TF2Items_OnGiveNamedItem(int client, char[] classname, int itemDefIndex, Handle &item)
 {
-	if (IsPlayerProp(client))
+	if (TF2_GetClientTeam(client) == TFTeam_Props)
 	{
 		// Make sure that all props except the last stay naked
 		if (!PHPlayer(client).IsLastProp)
@@ -388,7 +388,7 @@ public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int item
 		SetItemAlpha(entity, 0);
 	
 	// Nullify cheating attributes
-	if (IsPlayerHunter(client))
+	if (TF2_GetClientTeam(client) == TFTeam_Hunters)
 	{
 		ArrayList attributes = TF2Econ_GetItemStaticAttributes(itemDefIndex);
 		if (attributes)

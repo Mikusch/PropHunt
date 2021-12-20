@@ -90,7 +90,7 @@ static DynamicHook CreateDynamicHook(GameData gamedata, const char[] name)
 
 public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
 {
-	if (IsPlayerProp(player))
+	if (TF2_GetClientTeam(player) == TFTeam_Props)
 	{
 		int maxHealth;
 		float mins[3], maxs[3];
@@ -147,7 +147,7 @@ public MRESReturn DHookCallback_CanPlayerMove_Post(int player, DHookReturn ret)
 {
 	if (g_InSetup && ph_hunter_setup_freeze.BoolValue)
 	{
-		if (IsPlayerHunter(player))
+		if (TF2_GetClientTeam(player) == TFTeam_Hunters)
 		{
 			ret.Value = false;
 			return MRES_Supercede;
@@ -164,7 +164,7 @@ public MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params
 	
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	
-	if (IsPlayerHunter(owner))
+	if (TF2_GetClientTeam(owner) == TFTeam_Hunters)
 	{
 		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
 		float damage = SDKCall_GetProjectileDamage(launcher) * ph_hunter_damage_modifier_grapplinghook.FloatValue;
@@ -176,7 +176,7 @@ public MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params
 		if (!params.IsNull(1))
 		{
 			int other = params.Get(1);
-			if (IsEntityClient(other) && IsPlayerProp(other))
+			if (IsEntityClient(other) && TF2_GetClientTeam(other) == TFTeam_Props)
 				return MRES_Supercede;
 		}
 	}
@@ -204,13 +204,13 @@ public MRESReturn DHookCallback_Heal_Pre(Address playerShared, DHookParam params
 public MRESReturn DHookCallback_Spawn_Pre(int player)
 {
 	// player_spawn event gets fired too early to manipulate player class properly
-	if (IsPlayerProp(player))
+	if (TF2_GetClientTeam(player) == TFTeam_Props)
 	{
 		// Check valid prop class
 		if (!IsValidPropClass(TF2_GetPlayerClass(player)))
 			TF2_SetPlayerClass(player, GetRandomPropClass(), _, false);
 	}
-	else if (IsPlayerHunter(player))
+	else if (TF2_GetClientTeam(player) == TFTeam_Hunters)
 	{
 		// Check valid hunter class
 		if (!IsValidHunterClass(TF2_GetPlayerClass(player)))
@@ -226,7 +226,7 @@ public MRESReturn DHookCallback_Spawn_Pre(int player)
 
 public MRESReturn DHookCallback_ModifyOrAppendCriteria_Post(int player, DHookParam params)
 {
-	if (IsPlayerHunter(player))
+	if (TF2_GetClientTeam(player) == TFTeam_Hunters)
 	{
 		int criteriaSet = params.Get(1);
 		
@@ -248,7 +248,7 @@ public MRESReturn DHookCallback_FireProjectile_Pre(int weapon, DHookReturn ret, 
 	
 	int player = params.Get(1);
 	
-	if (IsPlayerHunter(player))
+	if (TF2_GetClientTeam(player) == TFTeam_Hunters)
 	{
 		float damage = SDKCall_GetProjectileDamage(weapon) * GetWeaponBulletsPerShot(weapon) * ph_hunter_damage_modifier_gun.FloatValue;
 		int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
@@ -266,7 +266,7 @@ public MRESReturn DHookCallback_Smack_Pre(int weapon)
 	
 	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
 	
-	if (IsPlayerHunter(owner))
+	if (TF2_GetClientTeam(owner) == TFTeam_Hunters)
 	{
 		int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
 		float damage = SDKCall_GetMeleeDamage(weapon, owner, damageType, 0) * ph_hunter_damage_modifier_melee.FloatValue;

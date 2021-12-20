@@ -31,7 +31,7 @@ void SDKHooks_OnEntityCreated(int entity, const char[] classname)
 public Action SDKHookCB_Client_OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3], int damagecustom)
 {
 	// Prevent props from drowning
-	if (damagetype & DMG_DROWN && IsPlayerProp(victim))
+	if (damagetype & DMG_DROWN && TF2_GetClientTeam(victim) == TFTeam_Props)
 	{
 		damage = 0.0;
 		return Plugin_Changed;

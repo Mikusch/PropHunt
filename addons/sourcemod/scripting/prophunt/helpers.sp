@@ -20,13 +20,13 @@
 #define WEAPONDATA_SIZE	58	// sizeof(WeaponData_t)
 
 // Valid prop classes
-static const TFClassType g_ValidPropClasses[] = 
+static const TFClassType g_ValidPropClasses[] =
 {
 	TFClass_Scout,
 };
 
 // Valid hunter classes
-static const TFClassType g_ValidHunterClasses[] = 
+static const TFClassType g_ValidHunterClasses[] =
 {
 	TFClass_Scout,
 	TFClass_Sniper,
@@ -65,8 +65,8 @@ bool IntersectionLineAABBFast(const float mins[3], const float maxs[3], const fl
 		float t1 = (mins[0] - start[0]) * recipDir;
 		float t2 = (maxs[0] - start[0]) * recipDir;
 		
-		// tNear tracks distance to intersect (enter) the AABB
-		// tFar tracks the distance to exit the AABB
+		// near tracks distance to intersect (enter) the AABB
+		// far tracks the distance to exit the AABB
 		if (t1 < t2)
 			near = Max(t1, near), far = Min(t2, far);
 		else // Swap t1 and t2
@@ -319,16 +319,6 @@ bool CanPlayerPropChange(int client)
 		&& !TF2_IsPlayerInCondition(client, TFCond_Bleeding)
 		&& !TF2_IsPlayerInCondition(client, TFCond_Milked)
 		&& !TF2_IsPlayerInCondition(client, TFCond_Gas);
-}
-
-bool IsPlayerProp(int client)
-{
-	return TF2_GetClientTeam(client) == TFTeam_Props;
-}
-
-bool IsPlayerHunter(int client)
-{
-	return TF2_GetClientTeam(client) == TFTeam_Hunters;
 }
 
 bool IsValidPropClass(TFClassType class)
