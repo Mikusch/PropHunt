@@ -218,14 +218,9 @@ int GetPlayerMaxHealth(int client)
 	return GetEntProp(GetPlayerResourceEntity(), Prop_Send, "m_iMaxHealth", _, client);
 }
 
-int GetEntityHealth(int entity)
-{
-	return GetEntProp(entity, Prop_Data, "m_iMaxHealth");
-}
-
 void AddEntityHealth(int entity, int amount)
 {
-	SetEntityHealth(entity, GetEntityHealth(entity) + amount);
+	SetEntityHealth(entity, GetEntProp(entity, Prop_Data, "m_iHealth") + amount);
 }
 
 int GetEntitySkin(int entity)
