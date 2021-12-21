@@ -36,7 +36,16 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 		return;
 	}
 	
-	if (TF2_GetClientTeam(client) == TFTeam_Props)
+	TFTeam team = TF2_GetClientTeam(client);
+	
+	// Ensure the player is playing as a valid class for their team
+	if (!IsValidClass(team, TF2_GetPlayerClass(client)))
+	{
+		TF2_SetPlayerClass(client, GetRandomValidClass(team), _, false);
+		TF2_RegeneratePlayer(client);
+	}
+	
+	if (team == TFTeam_Props)
 	{
 		AcceptEntityInput(client, "DisableShadow");
 		
@@ -64,7 +73,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 		
 		if (IsEntityClient(assister) && IsClientInGame(assister) && IsPlayerAlive(assister))
 		{
-			// The assister gets a bit of health, too
+			// The assister gets a bit of health as well
 			AddEntityHealth(assister, GetPlayerMaxHealth(victim) / 2);
 			TF2_AddCondition(assister, TFCond_SpeedBuffAlly, 4.0);
 		}

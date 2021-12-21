@@ -19,13 +19,11 @@
 
 #define WEAPONDATA_SIZE	58	// sizeof(WeaponData_t)
 
-// Valid prop classes
 static const TFClassType g_ValidPropClasses[] =
 {
 	TFClass_Scout,
 };
 
-// Valid hunter classes
 static const TFClassType g_ValidHunterClasses[] =
 {
 	TFClass_Scout,
@@ -307,7 +305,7 @@ void SetWinningTeam(TFTeam team)
 	}
 }
 
-bool CanPlayerPropChange(int client)
+bool CanPlayerChangeProp(int client)
 {
 	return !TF2_IsPlayerInCondition(client, TFCond_OnFire)
 		&& !TF2_IsPlayerInCondition(client, TFCond_Jarated)
@@ -316,34 +314,36 @@ bool CanPlayerPropChange(int client)
 		&& !TF2_IsPlayerInCondition(client, TFCond_Gas);
 }
 
-bool IsValidPropClass(TFClassType class)
+bool IsValidClass(TFTeam team, TFClassType class)
 {
-	for (int i = 0; i < sizeof(g_ValidPropClasses); i++)
+	if (team == TFTeam_Props)
 	{
-		if (g_ValidPropClasses[i] == class)
-			return true;
+		for (int i = 0; i < sizeof(g_ValidPropClasses); i++)
+		{
+			if (g_ValidPropClasses[i] == class)
+				return true;
+		}
 	}
+	else if (team == TFTeam_Hunters)
+	{
+		for (int i = 0; i < sizeof(g_ValidHunterClasses); i++)
+		{
+			if (g_ValidHunterClasses[i] == class)
+				return true;
+		}
+	}
+	
 	return false;
 }
 
-TFClassType GetRandomPropClass()
+TFClassType GetRandomValidClass(TFTeam team)
 {
-	return g_ValidPropClasses[GetRandomInt(0, sizeof(g_ValidPropClasses) - 1)];
-}
-
-bool IsValidHunterClass(TFClassType class)
-{
-	for (int i = 0; i < sizeof(g_ValidHunterClasses); i++)
-	{
-		if (g_ValidHunterClasses[i] == class)
-			return true;
-	}
-	return false;
-}
-
-TFClassType GetRandomHunterClass()
-{
-	return g_ValidHunterClasses[GetRandomInt(0, sizeof(g_ValidHunterClasses) - 1)];
+	if (team == TFTeam_Props)
+		return g_ValidPropClasses[GetRandomInt(0, sizeof(g_ValidPropClasses) - 1)];
+	else if (team == TFTeam_Hunters)
+		return g_ValidHunterClasses[GetRandomInt(0, sizeof(g_ValidHunterClasses) - 1)];
+	else
+		return TFClass_Unknown;
 }
 
 // FIXME: This does not hide weapons with strange stat clock attachments

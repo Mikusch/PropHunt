@@ -203,20 +203,6 @@ public MRESReturn DHookCallback_Heal_Pre(Address playerShared, DHookParam params
 
 public MRESReturn DHookCallback_Spawn_Pre(int player)
 {
-	// player_spawn event gets fired too early to manipulate player class properly
-	if (TF2_GetClientTeam(player) == TFTeam_Props)
-	{
-		// Check valid prop class
-		if (!IsValidPropClass(TF2_GetPlayerClass(player)))
-			TF2_SetPlayerClass(player, GetRandomPropClass(), _, false);
-	}
-	else if (TF2_GetClientTeam(player) == TFTeam_Hunters)
-	{
-		// Check valid hunter class
-		if (!IsValidHunterClass(TF2_GetPlayerClass(player)))
-			TF2_SetPlayerClass(player, GetRandomHunterClass(), _, false);
-	}
-	
 	// This needs to happen before the first call to CTFPlayer::GetMaxHealthForBuffing
 	ClearCustomModel(player);
 	PHPlayer(player).OldMaxHealth = 0;

@@ -325,7 +325,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	// IN_RELOAD allows the player to pick a prop
 	if (buttons & IN_RELOAD && buttonsChanged & IN_RELOAD)
 	{
-		if (CanPlayerPropChange(client))
+		if (CanPlayerChangeProp(client))
 		{
 			char message[256];
 			if (!SearchForProps(client, message, sizeof(message)))
