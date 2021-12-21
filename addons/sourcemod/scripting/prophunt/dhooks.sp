@@ -159,18 +159,18 @@ public MRESReturn DHookCallback_CanPlayerMove_Post(int player, DHookReturn ret)
 
 public MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
-		return MRES_Ignored;
-	
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	
 	if (TF2_GetClientTeam(owner) == TFTeam_Hunters)
 	{
-		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
-		float damage = SDKCall_GetProjectileDamage(launcher) * ph_hunter_damage_modifier_grapplinghook.FloatValue;
-		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
-		
-		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
+		if (GameRules_GetRoundState() == RoundState_Stalemate && !g_InSetup)
+		{
+			int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
+			float damage = SDKCall_GetProjectileDamage(launcher) * ph_hunter_damage_modifier_grapplinghook.FloatValue;
+			int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
+			
+			SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
+		}
 		
 		// Don't allow hunters to hook onto props
 		if (!params.IsNull(1))
@@ -199,7 +199,6 @@ public MRESReturn DHookCallback_Heal_Pre(Address playerShared, DHookParam params
 	
 	return MRES_Ignored;
 }
-
 
 public MRESReturn DHookCallback_Spawn_Pre(int player)
 {
