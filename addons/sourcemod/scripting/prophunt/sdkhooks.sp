@@ -47,11 +47,45 @@ public void SDKHookCB_PropDynamic_SpawnPost(int prop)
 	
 	// Hook the control point prop
 	if (strcmp(model, "models/props_gameplay/cap_point_base.mdl") == 0)
+	{
 		SDKHook(prop, SDKHook_StartTouch, SDKHookCB_ControlPoint_StartTouch);
+		
+		// Create a taunt prop to outline the control point when the bonus is ready
+		int glow = CreateEntityByName("tf_taunt_prop");
+		if (glow != -1)
+		{
+			SetEntityModel(glow, model);
+			
+			float origin[3], angles[3];
+			GetEntPropVector(prop, Prop_Data, "m_vecAbsOrigin", origin);
+			GetEntPropVector(prop, Prop_Data, "m_angAbsRotation", angles);
+			
+			// Required for grappling hooks, otherwise players will grapple towards 0, 0, 0
+			DispatchKeyValueVector(glow, "origin", origin);
+			DispatchKeyValueVector(glow, "angles", angles);
+			
+			if (DispatchSpawn(glow))
+			{
+				SetEntPropEnt(glow, Prop_Data, "m_hEffectEntity", prop);
+				SetEntProp(glow, Prop_Send, "m_bGlowEnabled", true);
+				
+				int effects = GetEntProp(glow, Prop_Send, "m_fEffects");
+				SetEntProp(glow, Prop_Send, "m_fEffects", effects | EF_BONEMERGE | EF_NOSHADOW | EF_NORECEIVESHADOW);
+				
+				SetVariantString("!activator");
+				AcceptEntityInput(glow, "SetParent", prop);
+				
+				SDKHook(glow, SDKHook_SetTransmit, SDKHookCB_TauntProp_SetTransmit);
+			}
+		}
+	}
 }
 
 public Action SDKHookCB_ControlPoint_StartTouch(int prop, int other)
 {
+	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+		return Plugin_Continue;
+	
 	// Players touching the capture area receive a health bonus
 	if (IsEntityClient(other) && !PHPlayer(other).HasReceivedBonus)
 	{
@@ -63,6 +97,18 @@ public Action SDKHookCB_ControlPoint_StartTouch(int prop, int other)
 			PHPlayer(other).HasReceivedBonus = true;
 		}
 	}
+	
+	return Plugin_Continue;
+}
+
+public Action SDKHookCB_TauntProp_SetTransmit(int entity, int client)
+{
+	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+		return Plugin_Handled;
+	
+	// Give the control point an outline if the bonus is available
+	if (PHPlayer(client).HasReceivedBonus)
+		return Plugin_Handled;
 	
 	return Plugin_Continue;
 }
