@@ -307,32 +307,47 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	
 	int buttonsChanged = GetEntProp(client, Prop_Data, "m_afButtonPressed") | GetEntProp(client, Prop_Data, "m_afButtonReleased");
 	
-	// IN_ATTACK locks the player's prop view
+	// IN_ATTACK allows the player to pick a prop
 	if (buttons & IN_ATTACK && buttonsChanged & IN_ATTACK)
 	{
 		if (GetPlayerWeaponSlot(client, 0) == -1)
 		{
-			// Check if the player is currently above a trigger_hurt
-			float origin[3];
-			GetClientAbsOrigin(client, origin);
-			TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, TraceEntityEnumerator_EnumerateTriggers, client);
-			
-			// Don't allow them to lock to avoid props hovering above deadly areas
-			if (!g_DisallowPropLocking)
+			if (CanPlayerChangeProp(client))
 			{
-				bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
-				TogglePropLock(client, locked);
+				char message[256];
+				if (!SearchForProps(client, message, sizeof(message)))
+					CPrintToChat(client, message);
 			}
 			else
 			{
-				PrintHintText(client, "%t", "PH_PropLock_Unavailable");
-				g_DisallowPropLocking = false;
+				CPrintToChat(client, "%s %t", PLUGIN_TAG, "PH_PropSelect_NotAllowed");
 			}
 		}
 	}
 	
-	// IN_ATTACK2 switches betweeen first-person and third-person view
+	// IN_ATTACK2 locks the player's prop view
 	if (buttons & IN_ATTACK2 && buttonsChanged & IN_ATTACK2)
+	{
+		// Check if the player is currently above a trigger_hurt
+		float origin[3];
+		GetClientAbsOrigin(client, origin);
+		TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, TraceEntityEnumerator_EnumerateTriggers, client);
+		
+		// Don't allow them to lock to avoid props hovering above deadly areas
+		if (!g_DisallowPropLocking)
+		{
+			bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
+			TogglePropLock(client, locked);
+		}
+		else
+		{
+			PrintHintText(client, "%t", "PH_PropLock_Unavailable");
+			g_DisallowPropLocking = false;
+		}
+	}
+	
+	// IN_RELOAD switches betweeen first-person and third-person view
+	if (buttons & IN_RELOAD && buttonsChanged & IN_RELOAD)
 	{
 		bool value = PHPlayer(client).InForcedTauntCam = !PHPlayer(client).InForcedTauntCam;
 		
@@ -341,21 +356,6 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 		
 		SetVariantInt(value);
 		AcceptEntityInput(client, "SetCustomModelVisibletoSelf");
-	}
-	
-	// IN_RELOAD allows the player to pick a prop
-	if (buttons & IN_RELOAD && buttonsChanged & IN_RELOAD)
-	{
-		if (CanPlayerChangeProp(client))
-		{
-			char message[256];
-			if (!SearchForProps(client, message, sizeof(message)))
-				CPrintToChat(client, message);
-		}
-		else
-		{
-			CPrintToChat(client, "%s %t", PLUGIN_TAG, "PH_PropSelect_NotAllowed");
-		}
 	}
 	
 	// Pressing movement keys will undo a prop lock
