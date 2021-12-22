@@ -67,15 +67,21 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 	
 	if (victim != attacker && IsEntityClient(attacker) && IsClientInGame(attacker) && IsPlayerAlive(attacker))
 	{
-		// Give them some health back
-		AddEntityHealth(attacker, GetPlayerMaxHealth(victim));
-		TF2_AddCondition(attacker, TFCond_SpeedBuffAlly, 8.0);
+		// Nerf health reward for props
+		int healthToAdd;
+		if (TF2_GetClientTeam(attacker) == TFTeam_Props)
+			healthToAdd = Min(GetPlayerMaxHealth(victim) / 2, ph_prop_max_health.IntValue - GetEntityHealth(attacker));
+		else
+			healthToAdd = GetPlayerMaxHealth(victim);
 		
-		if (IsEntityClient(assister) && IsClientInGame(assister) && IsPlayerAlive(assister))
+		if (healthToAdd > 0)
 		{
+			// Give the attacker some health back
+			AddEntityHealth(attacker, healthToAdd);
+			
 			// The assister gets a bit of health as well
-			AddEntityHealth(assister, GetPlayerMaxHealth(victim) / 2);
-			TF2_AddCondition(assister, TFCond_SpeedBuffAlly, 4.0);
+			if (IsEntityClient(assister) && IsClientInGame(assister) && IsPlayerAlive(assister))
+				AddEntityHealth(assister, healthToAdd / 2);
 		}
 	}
 	
