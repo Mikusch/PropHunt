@@ -208,6 +208,8 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	RegPluginLibrary("prophunt");
 	
 	g_ForwardOnPlayerDisguised = new GlobalForward("PropHunt_OnPlayerDisguised", ET_Ignore, Param_Cell, Param_String);
+	
+	return APLRes_Success;
 }
 
 public void OnMapStart()
