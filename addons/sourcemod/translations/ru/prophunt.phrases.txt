@@ -37,7 +37,7 @@
 		"ru"		"Фиксатор объекта™ недоступен"
 	}
 	
-	"PH_PropSelect_Success"
+	"PH_Disguise_Changed"
 	{
 		"ru"		"Теперь вы замаскированы под: {lightgreen}{1}"
 	}

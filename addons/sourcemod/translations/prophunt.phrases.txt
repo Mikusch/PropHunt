@@ -37,10 +37,15 @@
 		"en"		"PropLock™ Unavailable"
 	}
 	
-	"PH_PropSelect_Success"
+	"PH_Disguise_Changed"
 	{
 		"#format"	"{1:s}"
 		"en"		"You are now disguised as: {lightgreen}{1}"
+	}
+	
+	"PH_Disguise_Reset"
+	{
+		"en"		"Your disguise has been reset."
 	}
 	
 	"PH_PropSelect_CannotDisguise"
@@ -104,7 +109,7 @@
 	
 	"PH_Command_GetModel_NoModelSet"
 	{
-		"en"		"No matching client has a custom model."
+		"en"		"No matching client has a custom model set."
 	}
 	
 	"PH_Command_SetModel_Success"

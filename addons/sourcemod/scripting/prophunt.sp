@@ -485,7 +485,7 @@ bool SearchForStaticProps(int client, char[] message, int maxlength)
 	GetClientEyeAngles(client, eyeAngles);
 	GetAngleVectors(eyeAngles, eyeAngleFwd, NULL_VECTOR, NULL_VECTOR);
 	
-	// Get the position of the cloest wall to us
+	// Get the position of the closest wall to us
 	float endPosition[3];
 	TR_TraceRayFilter(eyePosition, eyeAngles, MASK_SOLID, RayType_Infinite, TraceEntityFilter_IgnoreEntity, client);
 	TR_GetEndPosition(endPosition);
@@ -628,10 +628,10 @@ void SetCustomModel(int client, const char[] model, PHPropType type, int index)
 	char modelTidyName[PLATFORM_MAX_PATH];
 	GetModelTidyName(model, modelTidyName, sizeof(modelTidyName));
 	
-	CPrintToChat(client, "%s %t", PLUGIN_TAG, "PH_PropSelect_Success", modelTidyName);
+	CPrintToChat(client, "%s %t", PLUGIN_TAG, "PH_Disguise_Changed", modelTidyName);
 }
 
-void ClearCustomModel(int client)
+void ClearCustomModel(int client, bool notify = false)
 {
 	PHPlayer(client).PropType = Prop_None;
 	PHPlayer(client).PropIndex = -1;
@@ -655,6 +655,9 @@ void ClearCustomModel(int client)
 	
 	SetVariantString("ParticleEffectStop");
 	AcceptEntityInput(client, "DispatchEffect");
+	
+	if (notify)
+		CPrintToChat(client, "%s %t", PLUGIN_TAG, "PH_Disguise_Reset");
 }
 
 public void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue)
