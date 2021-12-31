@@ -85,41 +85,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 		}
 	}
 	
-	if (GameRules_GetRoundState() == RoundState_Stalemate)
-	{
-		// Count all living props
-		int propCount = 0;
-		for (int client = 1; client <= MaxClients; client++)
-		{
-			if (IsClientInGame(client) && IsPlayerAlive(client) && TF2_GetClientTeam(client) == TFTeam_Props)
-				propCount++;
-		}
-		
-		// The last prop has died, do the last man standing stuff
-		if (TF2_GetClientTeam(victim) == TFTeam_Props && propCount == 2)
-		{
-			EmitSoundToAll("#" ... SOUND_LAST_PROP, _, SNDCHAN_STATIC, SNDLEVEL_NONE);
-			
-			for (int client = 1; client <= MaxClients; client++)
-			{
-				if (IsClientInGame(client) && IsPlayerAlive(client))
-				{
-					if (TF2_GetClientTeam(client) == TFTeam_Props && client != victim)
-					{
-						if (ph_regenerate_last_prop.BoolValue)
-						{
-							PHPlayer(client).IsLastProp = true;
-							TF2_RegeneratePlayer(client);
-						}
-					}
-					else if (TF2_GetClientTeam(client) == TFTeam_Hunters)
-					{
-						TF2_AddCondition(client, TFCond_Jarated, 15.0);
-					}
-				}
-			}
-		}
-	}
+	CheckLastPropStanding(victim);
 }
 
 public void Event_PostInventoryApplication(Event event, const char[] name, bool dontBroadcast)

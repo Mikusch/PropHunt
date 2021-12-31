@@ -282,6 +282,11 @@ public void OnClientPutInServer(int client)
 		FindConVar("tf_arena_round_time").ReplicateToClient(client, "1");
 }
 
+public void OnClientDisconnect(int client)
+{
+	CheckLastPropStanding(client);
+}
+
 void TogglePropLock(int client, bool toggle)
 {
 	SetVariantInt(!toggle);
@@ -658,6 +663,48 @@ void ClearCustomModel(int client, bool notify = false)
 	
 	if (notify)
 		CPrintToChat(client, "%s %t", PLUGIN_TAG, "PH_Disguise_Reset");
+}
+
+void CheckLastPropStanding(int client)
+{
+	if (GameRules_GetRoundState() != RoundState_Stalemate)
+		return;
+	
+	if (TF2_GetClientTeam(client) != TFTeam_Props)
+		return;
+	
+	// Count all living props
+	int totalProps = 0;
+	for (int other = 1; other <= MaxClients; other++)
+	{
+		if (IsClientInGame(other) && IsPlayerAlive(other) && TF2_GetClientTeam(other) == TFTeam_Props)
+			totalProps++;
+	}
+	
+	// The second-to-last prop has died or left, do the last man standing stuff
+	if (totalProps == 2)
+	{
+		EmitSoundToAll("#" ... SOUND_LAST_PROP, _, SNDCHAN_STATIC, SNDLEVEL_NONE);
+		
+		for (int other = 1; other <= MaxClients; other++)
+		{
+			if (IsClientInGame(other) && IsPlayerAlive(other))
+			{
+				if (TF2_GetClientTeam(other) == TFTeam_Props && other != client)
+				{
+					if (ph_regenerate_last_prop.BoolValue)
+					{
+						PHPlayer(other).IsLastProp = true;
+						TF2_RegeneratePlayer(other);
+					}
+				}
+				else if (TF2_GetClientTeam(other) == TFTeam_Hunters)
+				{
+					TF2_AddCondition(other, TFCond_Jarated, 15.0);
+				}
+			}
+		}
+	}
 }
 
 public void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue)
