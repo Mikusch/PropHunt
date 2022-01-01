@@ -42,7 +42,7 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 	if (!IsValidClass(team, TF2_GetPlayerClass(client)))
 	{
 		TF2_SetPlayerClass(client, GetRandomValidClass(team), _, false);
-		TF2_RegeneratePlayer(client);
+		SDKCall_InitClass(client);
 	}
 	
 	if (team == TFTeam_Props)

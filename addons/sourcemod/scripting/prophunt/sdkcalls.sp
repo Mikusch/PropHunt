@@ -21,6 +21,7 @@ static Handle g_SDKCallRemoveCriteria;
 static Handle g_SDKCallSetSwitchTeams;
 static Handle g_SDKCallGetBaseEntity;
 static Handle g_SDKCallGetDamageType;
+static Handle g_SDKCallInitClass;
 static Handle g_SDKCallGetProjectileDamage;
 static Handle g_SDKCallGetMeleeDamage;
 
@@ -32,6 +33,7 @@ void SDKCalls_Initialize(GameData gamedata)
 	g_SDKCallSetSwitchTeams = PrepSDKCall_SetSwitchTeams(gamedata);
 	g_SDKCallGetBaseEntity = PrepSDKCall_GetBaseEntity(gamedata);
 	g_SDKCallGetDamageType = PrepSDKCall_GetDamageType(gamedata);
+	g_SDKCallInitClass = PrepSDKCall_InitClass(gamedata);
 	g_SDKCallGetProjectileDamage = PrepSDKCall_GetProjectileDamage(gamedata);
 	g_SDKCallGetMeleeDamage = PrepSDKCall_GetMeleeDamage(gamedata);
 }
@@ -116,6 +118,18 @@ static Handle PrepSDKCall_GetDamageType(GameData gamedata)
 	return call;
 }
 
+static Handle PrepSDKCall_InitClass(GameData gamedata)
+{
+	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetFromConf(gamedata, SDKConf_Virtual, "CTFPlayer::InitClass");
+	
+	Handle call = EndPrepSDKCall();
+	if (!call)
+		LogMessage("Failed to create SDK call: CTFPlayer::InitClass");
+	
+	return call;
+}
+
 static Handle PrepSDKCall_GetProjectileDamage(GameData gamedata)
 {
 	StartPrepSDKCall(SDKCall_Entity);
@@ -187,6 +201,12 @@ int SDKCall_GetDamageType(int entity)
 		return SDKCall(g_SDKCallGetDamageType, entity);
 	else
 		return DMG_GENERIC;
+}
+
+void SDKCall_InitClass(int player)
+{
+	if (g_SDKCallInitClass)
+		SDKCall(g_SDKCallInitClass, player);
 }
 
 float SDKCall_GetProjectileDamage(int weapon)

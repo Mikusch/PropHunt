@@ -84,6 +84,11 @@
 				"linux"		"131"
 				"windows"	"130"
 			}
+			"CTFPlayer::InitClass"
+			{
+				"linux"		"490"
+				"windows"	"483"
+			}
 			"CTFWeaponBaseGun::FireProjectile"
 			{
 				"linux"		"473"
