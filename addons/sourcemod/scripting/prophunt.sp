@@ -83,6 +83,7 @@ enum PHPropType
 // Globals
 bool g_InSetup;
 bool g_DisallowPropLocking;
+bool g_InHealthKitTouch;
 Handle g_ControlPointBonusTimer;
 
 // Forwards

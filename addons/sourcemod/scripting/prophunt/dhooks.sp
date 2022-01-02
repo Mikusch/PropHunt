@@ -16,6 +16,7 @@
  */
 
 static DynamicHook g_DHookSpawn;
+static DynamicHook g_DHookTakeHealth;
 static DynamicHook g_DHookModifyOrAppendCriteria;
 static DynamicHook g_DHookFireProjectile;
 static DynamicHook g_DHookSmack;
@@ -29,6 +30,7 @@ void DHooks_Initialize(GameData gamedata)
 	DHooks_CreateDetour(gamedata, "CTFPlayerShared::Heal", DHookCallback_Heal_Pre, _);
 	
 	g_DHookSpawn = CreateDynamicHook(gamedata, "CBaseEntity::Spawn");
+	g_DHookTakeHealth = CreateDynamicHook(gamedata, "CBaseEntity::TakeHealth");
 	g_DHookModifyOrAppendCriteria = CreateDynamicHook(gamedata, "CBaseEntity::ModifyOrAppendCriteria");
 	g_DHookFireProjectile = CreateDynamicHook(gamedata, "CTFWeaponBaseGun::FireProjectile");
 	g_DHookSmack = CreateDynamicHook(gamedata, "CTFWeaponBaseMelee::Smack");
@@ -39,6 +41,9 @@ void DHooks_HookClient(int client)
 {
 	if (g_DHookSpawn)
 		g_DHookSpawn.HookEntity(Hook_Pre, client, DHookCallback_Spawn_Pre);
+	
+	if (g_DHookTakeHealth)
+		g_DHookTakeHealth.HookEntity(Hook_Pre, client, DHookCallback_TakeHealth_Pre);
 	
 	if (g_DHookModifyOrAppendCriteria)
 		g_DHookModifyOrAppendCriteria.HookEntity(Hook_Post, client, DHookCallback_ModifyOrAppendCriteria_Post);
@@ -188,7 +193,7 @@ public MRESReturn DHookCallback_Heal_Pre(Address playerShared, DHookParam params
 {
 	int player = GetPlayerSharedOuter(playerShared);
 	
-	// Reduce healing from all sources (except control point bonus)
+	// Reduce healing from continuous sources (except control point bonus)
 	if (!TF2_IsPlayerInCondition(player, TFCond_HalloweenQuickHeal))
 	{
 		float amount = params.Get(2);
@@ -205,6 +210,20 @@ public MRESReturn DHookCallback_Spawn_Pre(int player)
 	// This needs to happen before the first call to CTFPlayer::GetMaxHealthForBuffing
 	ClearCustomModel(player);
 	PHPlayer(player).OldMaxHealth = 0;
+	
+	return MRES_Ignored;
+}
+
+public MRESReturn DHookCallback_TakeHealth_Pre(int entity, DHookReturn ret, DHookParam params)
+{
+	// Reduce healing from other sources (except health kits)
+	if (!g_InHealthKitTouch)
+	{
+		float health = params.Get(1);
+		
+		params.Set(1, health * ph_healing_modifier.FloatValue);
+		return MRES_ChangedHandled;
+	}
 	
 	return MRES_Ignored;
 }

@@ -26,6 +26,11 @@ void SDKHooks_OnEntityCreated(int entity, const char[] classname)
 	{
 		SDKHook(entity, SDKHook_SpawnPost, SDKHookCB_PropDynamic_SpawnPost);
 	}
+	else if (strncmp(classname, "item_healthkit_", 15) == 0)
+	{
+		SDKHook(entity, SDKHook_Touch, SDKHookCB_HealthKit_Touch);
+		SDKHook(entity, SDKHook_TouchPost, SDKHookCB_HealthKit_TouchPost);
+	}
 }
 
 public Action SDKHookCB_Client_OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3], int damagecustom)
@@ -79,6 +84,18 @@ public void SDKHookCB_PropDynamic_SpawnPost(int prop)
 			}
 		}
 	}
+}
+
+public Action SDKHookCB_HealthKit_Touch(int healthkit, int other)
+{
+	g_InHealthKitTouch = true;
+	
+	return Plugin_Continue;
+}
+
+public void SDKHookCB_HealthKit_TouchPost(int healthkit, int other)
+{
+	g_InHealthKitTouch = false;
 }
 
 public Action SDKHookCB_ControlPoint_StartTouch(int prop, int other)
