@@ -80,6 +80,24 @@ enum PHPropType
 	Prop_Entity,	/**< Entity-based prop, index corresponds to entity reference */
 }
 
+char g_TauntSounds[][] =
+{
+	"Halloween.BlackCat",
+	"Halloween.Gremlin",
+	"Halloween.Werewolf",
+	"Halloween.Witch",
+	"Halloween.Banshee",
+	"Halloween.CrazyLaugh",
+	"Halloween.Stabby",
+	"Fundraiser.Bell",
+	"Fundraiser.Tingsha",
+	"Samurai.Koto",
+	"Summer.Fireworks",
+	"Game.HappyBirthdayNoiseMaker",
+	"soccer.vuvezela",
+	"xmas.jingle_noisemaker"
+};
+
 // Globals
 bool g_InSetup;
 bool g_DisallowPropLocking;
@@ -288,25 +306,6 @@ public void OnClientDisconnect(int client)
 	CheckLastPropStanding(client);
 }
 
-void TogglePropLock(int client, bool toggle)
-{
-	SetVariantInt(!toggle);
-	AcceptEntityInput(client, "SetCustomModelRotates");
-	
-	if (toggle)
-	{
-		EmitSoundToClient(client, LOCK_SOUND, _, SNDCHAN_STATIC);
-		SetEntityMoveType(client, MOVETYPE_NONE);
-		SetEntPropVector(client, Prop_Data, "m_vecAbsVelocity", ZERO_VECTOR);
-		PrintHintText(client, "%t", "PH_PropLock_Enabled");
-	}
-	else
-	{
-		EmitSoundToClient(client, UNLOCK_SOUND, _, SNDCHAN_STATIC);
-		SetEntityMoveType(client, MOVETYPE_WALK);
-	}
-}
-
 public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
 {
 	// Prop-only functionality below this point
@@ -352,6 +351,11 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 			PrintHintText(client, "%t", "PH_PropLock_Unavailable");
 			g_DisallowPropLocking = false;
 		}
+	}
+	
+	if (buttons & IN_ATTACK3 && buttonsChanged & IN_ATTACK3)
+	{
+		DoTaunt(client);
 	}
 	
 	// IN_RELOAD switches betweeen first-person and third-person view
@@ -664,6 +668,36 @@ void ClearCustomModel(int client, bool notify = false)
 	
 	if (notify)
 		CPrintToChat(client, "%s %t", PLUGIN_TAG, "PH_Disguise_Reset");
+}
+
+void TogglePropLock(int client, bool toggle)
+{
+	SetVariantInt(!toggle);
+	AcceptEntityInput(client, "SetCustomModelRotates");
+	
+	if (toggle)
+	{
+		EmitSoundToClient(client, LOCK_SOUND, _, SNDCHAN_STATIC);
+		SetEntityMoveType(client, MOVETYPE_NONE);
+		SetEntPropVector(client, Prop_Data, "m_vecAbsVelocity", ZERO_VECTOR);
+		PrintHintText(client, "%t", "PH_PropLock_Enabled");
+	}
+	else
+	{
+		EmitSoundToClient(client, UNLOCK_SOUND, _, SNDCHAN_STATIC);
+		SetEntityMoveType(client, MOVETYPE_WALK);
+	}
+}
+
+void DoTaunt(int client)
+{
+	if (GetGameTime() < PHPlayer(client).NextTauntTime)
+		return;
+	
+	// Play a funny sound
+	EmitGameSoundToAll(g_TauntSounds[GetRandomInt(0, sizeof(g_TauntSounds) - 1)], client);
+	
+	PHPlayer(client).NextTauntTime = GetGameTime() + 1.0;
 }
 
 void CheckLastPropStanding(int client)

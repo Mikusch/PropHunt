@@ -88,7 +88,7 @@
 	
 	"PH_PropControls"
 	{
-		"en"		"%%+attack%% SELECT PROP %%+attack2%% LOCK PROP ROTATION %%+reload%% TOGGLE THIRDPERSON"
+		"en"		"%%+attack%% SELECT PROP %%+attack2%% LOCK PROP %%+attack3%% TAUNT %%+reload%% TOGGLE THIRDPERSON"
 	}
 	
 	"PH_Bonus_Refreshed"

@@ -22,6 +22,7 @@ static bool g_PlayerPropLockEnabled[MAXPLAYERS + 1];
 static bool g_PlayerInForcedTauntCam[MAXPLAYERS + 1];
 static bool g_PlayerHasReceivedBonus[MAXPLAYERS + 1];
 static bool g_PlayerIsLastProp[MAXPLAYERS + 1];
+static float g_PlayerNextTauntTime[MAXPLAYERS + 1];
 
 methodmap PHPlayer
 {
@@ -119,6 +120,18 @@ methodmap PHPlayer
 		public set(bool isLastProp)
 		{
 			g_PlayerIsLastProp[this._client] = isLastProp;
+		}
+	}
+	
+	property float NextTauntTime
+	{
+		public get()
+		{
+			return g_PlayerNextTauntTime[this._client];
+		}
+		public set(float time)
+		{
+			g_PlayerNextTauntTime[this._client] = time;
 		}
 	}
 	
