@@ -216,8 +216,8 @@ public MRESReturn DHookCallback_Spawn_Pre(int player)
 
 public MRESReturn DHookCallback_TakeHealth_Pre(int entity, DHookReturn ret, DHookParam params)
 {
-	// Reduce healing from other sources (except health kits)
-	if (!g_InHealthKitTouch)
+	// Make sure we don't reduce healing induced by CTFPlayerShared::Heal since we already handle that above
+	if (!g_InHealthKitTouch && !TF2_IsPlayerInCondition(entity, TFCond_Healing))
 	{
 		float health = params.Get(1);
 		
