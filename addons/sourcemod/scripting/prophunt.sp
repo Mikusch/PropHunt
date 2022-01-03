@@ -705,6 +705,9 @@ void CheckLastPropStanding(int client)
 	if (GameRules_GetRoundState() != RoundState_Stalemate)
 		return;
 	
+	if (!IsPlayerAlive(client))
+		return;
+	
 	if (TF2_GetClientTeam(client) != TFTeam_Props)
 		return;
 	
