@@ -22,12 +22,15 @@ static DynamicHook g_DHookFireProjectile;
 static DynamicHook g_DHookSmack;
 static DynamicHook g_DHookHasKnockback;
 
+static int g_OldGameType;
+
 void DHooks_Initialize(GameData gamedata)
 {
 	DHooks_CreateDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHookCallback_GetMaxHealthForBuffing_Post);
 	DHooks_CreateDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHookCallback_CanPlayerMove_Post);
 	DHooks_CreateDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, _);
 	DHooks_CreateDetour(gamedata, "CTFPlayerShared::Heal", DHookCallback_Heal_Pre, _);
+	DHooks_CreateDetour(gamedata, "CTeamplayRoundBasedRules::SetInWaitingForPlayers", DHookCallback_SetInWaitingForPlayers_Pre, DHookCallback_SetInWaitingForPlayers_Post);
 	
 	g_DHookSpawn = CreateDynamicHook(gamedata, "CBaseEntity::Spawn");
 	g_DHookTakeHealth = CreateDynamicHook(gamedata, "CBaseEntity::TakeHealth");
@@ -201,6 +204,22 @@ public MRESReturn DHookCallback_Heal_Pre(Address playerShared, DHookParam params
 		params.Set(2, amount * ph_healing_modifier.FloatValue);
 		return MRES_ChangedHandled;
 	}
+	
+	return MRES_Ignored;
+}
+
+public MRESReturn DHookCallback_SetInWaitingForPlayers_Pre(DHookParam params)
+{
+	// Re-enables waiting for player period
+	g_OldGameType = GameRules_GetProp("m_nGameType");
+	GameRules_SetProp("m_nGameType", 0);
+	
+	return MRES_Ignored;
+}
+
+public MRESReturn DHookCallback_SetInWaitingForPlayers_Post(DHookParam params)
+{
+	GameRules_SetProp("m_nGameType", g_OldGameType);
 	
 	return MRES_Ignored;
 }

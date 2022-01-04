@@ -56,6 +56,11 @@
 				"linux"		"@_ZN14AI_CriteriaSet14RemoveCriteriaEPKc"
 				"windows"	"\x55\x8B\xEC\x83\xEC\x48\x56\x57\xFF\x75\x08"
 			}
+			"CTeamplayRoundBasedRules::SetInWaitingForPlayers"
+			{
+				"linux"		"@_ZN24CTeamplayRoundBasedRules22SetInWaitingForPlayersEb"
+				"windows"	"\x55\x8B\xEC\x56\x8B\xF1\xE8\x2A\x2A\x2A\x2A\x84\xC0\x0F\x85\x2A\x2A\x2A\x2A"
+			}
 		}
 		"Offsets"
 		{
@@ -211,6 +216,20 @@
 					"pHealScorer"
 					{
 						"type"	"cbaseentity"
+					}
+				}
+			}
+			"CTeamplayRoundBasedRules::SetInWaitingForPlayers"
+			{
+				"signature"	"CTeamplayRoundBasedRules::SetInWaitingForPlayers"
+				"callconv"	"thiscall"
+				"return"	"void"
+				"this"		"ignore"
+				"arguments"
+				{
+					"bWaitingForPlayers"
+					{
+						"type"	"bool"
 					}
 				}
 			}
