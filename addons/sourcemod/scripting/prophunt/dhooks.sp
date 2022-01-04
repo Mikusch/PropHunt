@@ -116,9 +116,17 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 				int entity = EntRefToEntIndex(PHPlayer(player).PropIndex);
 				if (entity != -1)
 				{
-					GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
-					GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
-					maxHealth = GetHealthForBbox(mins, maxs);
+					if (IsEntityClient(entity) && IsClientInGame(entity))
+					{
+						maxHealth = GetPlayerMaxHealth(entity);
+					}
+					else
+					{
+						maxHealth = GetPlayerMaxHealth(entity);
+						GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
+						GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
+						maxHealth = GetHealthForBbox(mins, maxs);
+					}
 				}
 				else
 				{
