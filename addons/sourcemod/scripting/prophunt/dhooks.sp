@@ -109,7 +109,7 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 			case Prop_Static:
 			{
 				if (StaticProp_GetOBBBounds(PHPlayer(player).PropIndex, mins, maxs))
-					maxHealth = GetHealthForBbox(mins, maxs);
+					maxHealth = RoundToCeil(GetVectorDistance(mins, maxs));
 			}
 			case Prop_Entity:
 			{
@@ -120,12 +120,15 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 					{
 						maxHealth = GetPlayerMaxHealth(entity);
 					}
+					else if (HasEntProp(entity, Prop_Data, "m_iMaxHealth") && GetEntProp(entity, Prop_Data, "m_iMaxHealth") > 1)
+					{
+						maxHealth = GetEntProp(entity, Prop_Data, "m_iMaxHealth");
+					}
 					else
 					{
-						maxHealth = GetPlayerMaxHealth(entity);
 						GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
 						GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
-						maxHealth = GetHealthForBbox(mins, maxs);
+						maxHealth = RoundToCeil(GetVectorDistance(mins, maxs));
 					}
 				}
 				else
@@ -140,6 +143,10 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 				return MRES_Ignored;
 			}
 		}
+		
+		// Clamp the health to avoid unkillable props
+		if (ph_prop_max_health.IntValue > 0)
+			maxHealth = Min(maxHealth, ph_prop_max_health.IntValue);
 		
 		// Keep the ratio of health to max health the same when the player switches props
 		// e.g. switching from a 200/250 health prop to a 20/25 health prop
