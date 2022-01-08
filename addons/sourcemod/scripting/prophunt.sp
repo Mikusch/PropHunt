@@ -99,6 +99,7 @@ char g_TauntSounds[][] =
 };
 
 // Globals
+bool g_IsMapRunning;
 bool g_InSetup;
 bool g_DisallowPropLocking;
 bool g_InHealthKitTouch;
@@ -233,6 +234,8 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnMapStart()
 {
+	g_IsMapRunning = true;
+	
 	PrecacheSound("#" ... SOUND_LAST_PROP);
 	PrecacheSound(LOCK_SOUND);
 	PrecacheSound(UNLOCK_SOUND);
@@ -254,6 +257,8 @@ public void OnMapStart()
 
 public void OnMapEnd()
 {
+	g_IsMapRunning = false;
+	
 	g_CurrentMapConfig.Clear();
 }
 

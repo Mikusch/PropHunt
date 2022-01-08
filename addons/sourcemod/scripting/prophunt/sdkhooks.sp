@@ -47,6 +47,9 @@ public Action SDKHookCB_Client_OnTakeDamage(int victim, int &attacker, int &infl
 
 public void SDKHookCB_PropDynamic_SpawnPost(int prop)
 {
+	if (!g_IsMapRunning)
+		return;
+	
 	char model[PLATFORM_MAX_PATH];
 	GetEntPropString(prop, Prop_Data, "m_ModelName", model, sizeof(model));
 	
