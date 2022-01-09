@@ -1,0 +1,115 @@
+/*
+ * Copyright (C) 2021  Mikusch
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+"Phrases"
+{
+	"PH_Target_Props"
+	{
+		"es"		"Props"
+	}
+	
+	"PH_Target_Hunters"
+	{
+		"es"		"Cazadores"
+	}
+	
+	"PH_PropLock_Enabled"
+	{
+		"es"		"BloqueoProp™ Establecido"
+	}
+	
+	"PH_PropLock_Unavailable"
+	{
+		"es"		"BloqueoProp™ No Disponible"
+	}
+	
+	"PH_PropSelect_Success"
+	{
+		"#format"	"{1:s}"
+		"es"		"Ahora estas disfrazado como: {lightgreen}{1}"
+	}
+	
+	"PH_PropSelect_CannotDisguise"
+	{
+		"#format"	"{1:s},{2:T}"
+		"es"		"Incapaz de disfrazarse de: {red}{1} {default}({2})"
+	}
+	
+	"PH_PropSelect_TooSmall"
+	{
+		"es"		"el prop es muy chico"
+	}
+	
+	"PH_PropSelect_TooBig"
+	{
+		"es"		"el prop es muy grande"
+	}
+	
+	"PH_PropSelect_Blacklisted"
+	{
+		"es"		"el prop esta en la lista negra"
+	}
+	
+	"PH_PropSelect_NotAllowed"
+	{
+		"es"		"{red}No tienes permitido cambiar de props bajo el estado de efectos negativos."
+	}
+	
+	"PH_ConVarQuery_DisallowedValue"
+	{
+		"#format"	"{1:s},{2:s}"
+		"es"		"\"{1}\" puede no ser cambiado a \"{2}\"."
+	}
+	
+	"PH_ConVarQuery_QueryNotOkay"
+	{
+		"#format"	"{1:s}"
+		"es"		"Fallo al consultar en el cliente por el valor de \"{1}\"."
+	}
+	
+	"PH_PropControls"
+	{
+		"es"		"%%+attack%% BLOQUEAR ROTACION DE PROP %%+attack2%% AJUSTAR TERCERAPERSONA %%+reload%% SELECCIONAR PROP"
+	}
+	
+	"PH_Bonus_Refreshed"
+	{
+		"es"		"Bonus del Punto de control refrescado!"
+	}
+	
+	"PH_Bonus_Received"
+	{
+		"es"		"Bonus del Punto de control recibido! {lightgreen}Vida restaurada."
+	}
+	
+	"PH_Command_GetModel_Success"
+	{
+		"#format"	"{1:N},{2:s}"
+		"es"		"{1}'s modelo actual: {lightgreen}{2}"
+	}
+	
+	"PH_Command_GetModel_NoModelSet"
+	{
+		"es"		"Ningun cliente seleccionado tiene un modelo personalizado."
+	}
+	
+	"PH_Command_SetModel_Success"
+	{
+		"#format"	"{1:s},{2:t}"
+		"es"		"Modelo forzado {lightgreen}{1} {default}en {2}."
+	}
+}
