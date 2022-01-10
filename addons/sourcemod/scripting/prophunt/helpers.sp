@@ -208,7 +208,7 @@ void GetModelTidyName(const char[] model, char[] buffer, int maxlength)
 
 bool IsEntityClient(int entity)
 {
-	return 0 < entity < MaxClients;
+	return 0 < entity <= MaxClients;
 }
 
 int GetPlayerMaxHealth(int client)
