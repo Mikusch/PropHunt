@@ -10,20 +10,23 @@ PropHunt Neu is my own take on the classic hide 'n seek gamemode for Team Fortre
     * Including static props, dynamic props and other model-based entities
     * Player health scales with size of selected prop
 * Centralized prop configuration to blacklist and configure props
+    * Allows matching multiple props at once using regular expressions
+    * No map-specific configuration files required
 * Greatly improved Hunter (BLU) gameplay
     * Dynamically calculated self-damage values depending on used weapon
     * Minimal weapon and class restrictions
 * Works out-of-the-box on any arena map without any additional configs
+* Functional waiting for players period in arena mode
 * Highly configurable using ConVars and configuration files
 
 ## Requirements
 
 * SourceMod 1.10+
 * [StaticProps](https://github.com/sigsegv-mvm/StaticProps)
-* [DHooks 2 with Detour Support](https://github.com/peace-maker/DHooks2/tree/dynhooks)
 * [TF2Items](https://github.com/asherkin/TF2Items)
 * [TF2 Econ Data](https://github.com/nosoop/SM-TFEconData)
-* [TF2Attributes](https://github.com/FlaminSarge/tf2attributes)
+* [TF2Attributes](https://github.com/nosoop/tf2attributes)
+* [DHooks 2 with Detour Support](https://github.com/peace-maker/DHooks2/tree/dynhooks) (included in SM 1.11)
 * [More Colors](https://github.com/DoctorMcKay/sourcemod-plugins/blob/master/scripting/include/morecolors.inc) (compile only)
 
 ## Special Thanks
