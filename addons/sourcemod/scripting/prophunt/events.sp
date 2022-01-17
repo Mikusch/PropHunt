@@ -36,7 +36,16 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 		return;
 	}
 	
-	if (IsPlayerProp(client))
+	TFTeam team = TF2_GetClientTeam(client);
+	
+	// Ensure the player is playing as a valid class for their team
+	if (!IsValidClass(team, TF2_GetPlayerClass(client)))
+	{
+		TF2_SetPlayerClass(client, GetRandomValidClass(team), _, false);
+		SDKCall_InitClass(client);
+	}
+	
+	if (team == TFTeam_Props)
 	{
 		AcceptEntityInput(client, "DisableShadow");
 		
@@ -51,72 +60,43 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 	int attacker = GetClientOfUserId(event.GetInt("attacker"));
 	int assister = GetClientOfUserId(event.GetInt("assister"));
 	
+	if (TF2_GetClientTeam(victim) == TFTeam_Props)
+	{
+		PHPlayer(victim).PropLockEnabled = false;
+	}
+	
 	if (victim != attacker && IsEntityClient(attacker) && IsClientInGame(attacker) && IsPlayerAlive(attacker))
 	{
-		// Fully regenerate the killing player
-		if (GetEntityHealth(attacker) < GetPlayerMaxHealth(attacker))
-			SetEntityHealth(attacker, GetPlayerMaxHealth(attacker));
+		// Nerf health reward for props
+		int healthToAdd;
+		if (TF2_GetClientTeam(attacker) == TFTeam_Props)
+			healthToAdd = Min(GetPlayerMaxHealth(victim) / 2, ph_prop_max_health.IntValue - GetEntityHealth(attacker));
+		else
+			healthToAdd = GetPlayerMaxHealth(victim);
 		
-		// Give them some health back
-		AddEntityHealth(attacker, 50);
-		TF2_AddCondition(attacker, TFCond_SpeedBuffAlly, 8.0);
-		
-		if (IsEntityClient(assister) && IsClientInGame(assister) && IsPlayerAlive(assister))
+		if (healthToAdd > 0)
 		{
-			// Fully regenerate the assisting player as well
-			if (GetEntityHealth(assister) < GetPlayerMaxHealth(assister))
-				SetEntityHealth(assister, GetPlayerMaxHealth(assister));
+			// Give the attacker some health back
+			AddEntityHealth(attacker, healthToAdd);
 			
-			TF2_AddCondition(assister, TFCond_SpeedBuffAlly, 4.0);
+			// The assister gets a bit of health as well
+			if (IsEntityClient(assister) && IsClientInGame(assister) && IsPlayerAlive(assister))
+				AddEntityHealth(assister, healthToAdd / 2);
 		}
 	}
 	
-	if (GameRules_GetRoundState() == RoundState_Stalemate)
-	{
-		// Count all living props
-		int propCount = 0;
-		for (int client = 1; client <= MaxClients; client++)
-		{
-			if (IsClientInGame(client) && IsPlayerAlive(client) && IsPlayerProp(client))
-				propCount++;
-		}
-		
-		// The last prop has died, do the last man standing stuff
-		if (IsPlayerProp(victim) && propCount == 2)
-		{
-			EmitSoundToAll("#" ... SOUND_LAST_PROP, _, SNDCHAN_STATIC, SNDLEVEL_NONE);
-			
-			for (int client = 1; client <= MaxClients; client++)
-			{
-				if (IsClientInGame(client) && IsPlayerAlive(client))
-				{
-					if (IsPlayerProp(client) && client != victim)
-					{
-						if (ph_regenerate_last_prop.BoolValue)
-						{
-							PHPlayer(client).IsLastProp = true;
-							TF2_RegeneratePlayer(client);
-						}
-					}
-					else if (IsPlayerHunter(client))
-					{
-						TF2_AddCondition(client, TFCond_Jarated, 15.0);
-					}
-				}
-			}
-		}
-	}
+	CheckLastPropStanding(victim);
 }
 
 public void Event_PostInventoryApplication(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
-	if (IsPlayerProp(client) && !PHPlayer(client).IsLastProp)
+	if (TF2_GetClientTeam(client) == TFTeam_Props && !PHPlayer(client).IsLastProp)
 	{
 		// Fixes an exploit where you could keep your hunter weapons as a prop
 		TF2_RemoveAllWeapons(client);
 	}
-	else if (IsPlayerHunter(client))
+	else if (TF2_GetClientTeam(client) == TFTeam_Hunters)
 	{
 		// Quick and dirty way to restore alpha values from previous round
 		for (int slot = 0; slot <= 5; slot++)

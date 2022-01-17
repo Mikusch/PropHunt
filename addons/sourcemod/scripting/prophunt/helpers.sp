@@ -19,14 +19,12 @@
 
 #define WEAPONDATA_SIZE	58	// sizeof(WeaponData_t)
 
-// Valid prop classes
-static const TFClassType g_ValidPropClasses[] = 
+static const TFClassType g_ValidPropClasses[] =
 {
 	TFClass_Scout,
 };
 
-// Valid hunter classes
-static const TFClassType g_ValidHunterClasses[] = 
+static const TFClassType g_ValidHunterClasses[] =
 {
 	TFClass_Scout,
 	TFClass_Sniper,
@@ -65,8 +63,8 @@ bool IntersectionLineAABBFast(const float mins[3], const float maxs[3], const fl
 		float t1 = (mins[0] - start[0]) * recipDir;
 		float t2 = (maxs[0] - start[0]) * recipDir;
 		
-		// tNear tracks distance to intersect (enter) the AABB
-		// tFar tracks the distance to exit the AABB
+		// near tracks distance to intersect (enter) the AABB
+		// far tracks the distance to exit the AABB
 		if (t1 < t2)
 			near = Max(t1, near), far = Min(t2, far);
 		else // Swap t1 and t2
@@ -137,13 +135,29 @@ bool IsWeaponBaseMelee(int entity)
 	return HasEntProp(entity, Prop_Data, "CTFWeaponBaseMeleeSmack");
 }
 
-int GetBulletsPerShot(int weapon)
+int GetWeaponData(int weapon)
 {
-	// m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_nBulletsPerShot
 	int weaponMode = GetEntData(weapon, g_OffsetWeaponMode);
 	int weaponInfo = GetEntData(weapon, g_OffsetWeaponInfo);
-	int weaponData = weaponInfo + (WEAPONDATA_SIZE * weaponMode);
-	return LoadFromAddress(view_as<Address>(weaponData + g_OffsetBulletsPerShot), NumberType_Int8);
+	return weaponInfo + (WEAPONDATA_SIZE * weaponMode);
+}
+
+int GetWeaponDamage(int weapon)
+{
+	// m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_nDamage
+	return LoadFromAddress(view_as<Address>(GetWeaponData(weapon) + g_OffsetWeaponDamage), NumberType_Int32);
+}
+
+int GetWeaponBulletsPerShot(int weapon)
+{
+	// m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_nBulletsPerShot
+	return LoadFromAddress(view_as<Address>(GetWeaponData(weapon) + g_OffsetWeaponBulletsPerShot), NumberType_Int32);
+}
+
+float GetWeaponTimeFireDelay(int weapon)
+{
+	// m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_flTimeFireDelay
+	return view_as<float>(LoadFromAddress(view_as<Address>(GetWeaponData(weapon) + g_OffsetWeaponTimeFireDelay), NumberType_Int32));
 }
 
 int GetPlayerSharedOuter(Address playerShared)
@@ -194,7 +208,7 @@ void GetModelTidyName(const char[] model, char[] buffer, int maxlength)
 
 bool IsEntityClient(int entity)
 {
-	return 0 < entity < MaxClients;
+	return 0 < entity <= MaxClients;
 }
 
 int GetPlayerMaxHealth(int client)
@@ -204,7 +218,7 @@ int GetPlayerMaxHealth(int client)
 
 int GetEntityHealth(int entity)
 {
-	return GetEntProp(entity, Prop_Data, "m_iMaxHealth");
+	return GetEntProp(entity, Prop_Data, "m_iHealth");
 }
 
 void AddEntityHealth(int entity, int amount)
@@ -296,53 +310,45 @@ void SetWinningTeam(TFTeam team)
 	}
 }
 
-bool CanPlayerPropChange(int client)
+bool CanPlayerChangeProp(int client)
 {
 	return !TF2_IsPlayerInCondition(client, TFCond_OnFire)
-		&& !TF2_IsPlayerInCondition(client, TFCond_Bleeding)
 		&& !TF2_IsPlayerInCondition(client, TFCond_Jarated)
+		&& !TF2_IsPlayerInCondition(client, TFCond_Bleeding)
 		&& !TF2_IsPlayerInCondition(client, TFCond_Milked)
 		&& !TF2_IsPlayerInCondition(client, TFCond_Gas);
 }
 
-bool IsPlayerProp(int client)
+bool IsValidClass(TFTeam team, TFClassType class)
 {
-	return TF2_GetClientTeam(client) == TFTeam_Props;
-}
-
-bool IsPlayerHunter(int client)
-{
-	return TF2_GetClientTeam(client) == TFTeam_Hunters;
-}
-
-bool IsValidPropClass(TFClassType class)
-{
-	for (int i = 0; i < sizeof(g_ValidPropClasses); i++)
+	if (team == TFTeam_Props)
 	{
-		if (g_ValidPropClasses[i] == class)
-			return true;
+		for (int i = 0; i < sizeof(g_ValidPropClasses); i++)
+		{
+			if (g_ValidPropClasses[i] == class)
+				return true;
+		}
 	}
+	else if (team == TFTeam_Hunters)
+	{
+		for (int i = 0; i < sizeof(g_ValidHunterClasses); i++)
+		{
+			if (g_ValidHunterClasses[i] == class)
+				return true;
+		}
+	}
+	
 	return false;
 }
 
-TFClassType GetRandomPropClass()
+TFClassType GetRandomValidClass(TFTeam team)
 {
-	return g_ValidPropClasses[GetRandomInt(0, sizeof(g_ValidPropClasses) - 1)];
-}
-
-bool IsValidHunterClass(TFClassType class)
-{
-	for (int i = 0; i < sizeof(g_ValidHunterClasses); i++)
-	{
-		if (g_ValidHunterClasses[i] == class)
-			return true;
-	}
-	return false;
-}
-
-TFClassType GetRandomHunterClass()
-{
-	return g_ValidHunterClasses[GetRandomInt(0, sizeof(g_ValidHunterClasses) - 1)];
+	if (team == TFTeam_Props)
+		return g_ValidPropClasses[GetRandomInt(0, sizeof(g_ValidPropClasses) - 1)];
+	else if (team == TFTeam_Hunters)
+		return g_ValidHunterClasses[GetRandomInt(0, sizeof(g_ValidHunterClasses) - 1)];
+	else
+		return TFClass_Unknown;
 }
 
 // FIXME: This does not hide weapons with strange stat clock attachments
@@ -373,14 +379,4 @@ void SetItemAlpha(int item, int alpha)
 			SetEntityRenderColor(extraWearable, 255, 255, 255, alpha);
 		}
 	}
-}
-
-int GetHealthForBbox(const float mins[3], const float maxs[3])
-{
-	int health = RoundToCeil(GetVectorDistance(mins, maxs));
-	
-	if (ph_prop_max_health.IntValue > 0)
-		health = Min(health, ph_prop_max_health.IntValue);
-	
-	return health;
 }

@@ -32,7 +32,7 @@ public bool MultiTargetFilter_FilterProps(const char[] pattern, ArrayList client
 {
 	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsClientInGame(client) && IsPlayerProp(client))
+		if (IsClientInGame(client) && TF2_GetClientTeam(client) == TFTeam_Props)
 			clients.Push(client);
 	}
 	
@@ -43,7 +43,7 @@ public bool MultiTargetFilter_FilterHunters(const char[] pattern, ArrayList clie
 {
 	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsClientInGame(client) && IsPlayerHunter(client))
+		if (IsClientInGame(client) && TF2_GetClientTeam(client) == TFTeam_Hunters)
 			clients.Push(client);
 	}
 	
@@ -115,16 +115,22 @@ public Action ConCmd_SetModel(int client, int args)
 	
 	for (int i = 0; i < target_count; i++)
 	{
-		SetCustomModel(target_list[i], model, Prop_None, -1);
+		if (model[0] != '\0')
+			SetCustomModel(target_list[i], model, Prop_None, -1);
+		else
+			ClearCustomModel(target_list[i], true);
 	}
+	
+	char modelTidyName[PLATFORM_MAX_PATH];
+	GetModelTidyName(model, modelTidyName, sizeof(modelTidyName));
 	
 	if (tn_is_ml)
 	{
-		CShowActivity2(client, "{default}" ... PLUGIN_TAG ... " ", "%t", "PH_Command_SetModel_Success", model, target_name);
+		CShowActivity2(client, "{default}" ... PLUGIN_TAG ... " ", "%t", "PH_Command_SetModel_Success", modelTidyName, target_name);
 	}
 	else
 	{
-		CShowActivity2(client, "{default}" ... PLUGIN_TAG ... " ", "%t", "PH_Command_SetModel_Success", model, "_s", target_name);
+		CShowActivity2(client, "{default}" ... PLUGIN_TAG ... " ", "%t", "PH_Command_SetModel_Success", modelTidyName, "_s", target_name);
 	}
 	
 	return Plugin_Handled;

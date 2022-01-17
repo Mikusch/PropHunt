@@ -56,6 +56,11 @@
 				"linux"		"@_ZN14AI_CriteriaSet14RemoveCriteriaEPKc"
 				"windows"	"\x55\x8B\xEC\x83\xEC\x48\x56\x57\xFF\x75\x08"
 			}
+			"CTeamplayRoundBasedRules::SetInWaitingForPlayers"
+			{
+				"linux"		"@_ZN24CTeamplayRoundBasedRules22SetInWaitingForPlayersEb"
+				"windows"	"\x55\x8B\xEC\x56\x8B\xF1\xE8\x2A\x2A\x2A\x2A\x84\xC0\x0F\x85\x2A\x2A\x2A\x2A"
+			}
 		}
 		"Offsets"
 		{
@@ -74,6 +79,11 @@
 				"linux"		"23"
 				"windows"	"22"
 			}
+			"CBaseEntity::TakeHealth"
+			{
+				"linux"		"65"
+				"windows"	"64"
+			}
 			"CBaseEntity::ModifyOrAppendCriteria"
 			{
 				"linux"		"122"
@@ -83,6 +93,11 @@
 			{
 				"linux"		"131"
 				"windows"	"130"
+			}
+			"CTFPlayer::InitClass"
+			{
+				"linux"		"490"
+				"windows"	"483"
 			}
 			"CTFWeaponBaseGun::FireProjectile"
 			{
@@ -124,10 +139,20 @@
 				"linux"		"400"
 				"windows"	"400"
 			}
+			"WeaponData_t::m_nDamage"
+			{
+				"linux"		"1784"
+				"windows"	"1784"
+			}
 			"WeaponData_t::m_nBulletsPerShot"
 			{
 				"linux"		"1788"
 				"windows"	"1788"
+			}
+			"WeaponData_t::m_flTimeFireDelay"
+			{
+				"linux"		"1804"
+				"windows"	"1804"
 			}
 		}
 		"Functions"
@@ -194,12 +219,44 @@
 					}
 				}
 			}
+			"CTeamplayRoundBasedRules::SetInWaitingForPlayers"
+			{
+				"signature"	"CTeamplayRoundBasedRules::SetInWaitingForPlayers"
+				"callconv"	"thiscall"
+				"return"	"void"
+				"this"		"ignore"
+				"arguments"
+				{
+					"bWaitingForPlayers"
+					{
+						"type"	"bool"
+					}
+				}
+			}
 			"CBaseEntity::Spawn"
 			{
 				"offset"	"CBaseEntity::Spawn"
 				"hooktype"	"entity"
 				"return"	"void"
 				"this"		"entity"
+			}
+			"CBaseEntity::TakeHealth"
+			{
+				"offset"	"CBaseEntity::TakeHealth"
+				"hooktype"	"entity"
+				"return"	"int"
+				"this"		"entity"
+				"arguments"
+				{
+					"flHealth"
+					{
+						"type"	"float"
+					}
+					"bitsDamageType"
+					{
+						"type"	"int"
+					}
+				}
 			}
 			"CBaseEntity::ModifyOrAppendCriteria"
 			{

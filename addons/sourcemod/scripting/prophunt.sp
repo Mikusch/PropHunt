@@ -52,6 +52,27 @@
 const TFTeam TFTeam_Props = TFTeam_Red;
 const TFTeam TFTeam_Hunters = TFTeam_Blue;
 
+// Entity effects (from const.h)
+enum
+{
+	EF_BONEMERGE			= 0x001,	// Performs bone merge on client side
+	EF_BRIGHTLIGHT 			= 0x002,	// DLIGHT centered at entity origin
+	EF_DIMLIGHT 			= 0x004,	// player flashlight
+	EF_NOINTERP				= 0x008,	// don't interpolate the next frame
+	EF_NOSHADOW				= 0x010,	// Don't cast no shadow
+	EF_NODRAW				= 0x020,	// don't draw entity
+	EF_NORECEIVESHADOW		= 0x040,	// Don't receive no shadow
+	EF_BONEMERGE_FASTCULL	= 0x080,	// For use with EF_BONEMERGE. If this is set, then it places this ent's origin at its
+										// parent and uses the parent's bbox + the max extents of the aiment.
+										// Otherwise, it sets up the parent's bones every frame to figure out where to place
+										// the aiment, which is inefficient because it'll setup the parent's bones even if
+										// the parent is not in the PVS.
+	EF_ITEM_BLINK			= 0x100,	// blink an item so that the user notices it.
+	EF_PARENT_ANIMATES		= 0x200,	// always assume that the parent entity is animating
+	EF_MAX_BITS = 10
+};
+
+// Prop types
 enum PHPropType
 {
 	Prop_None,		/**< Invalid or no prop */
@@ -59,16 +80,41 @@ enum PHPropType
 	Prop_Entity,	/**< Entity-based prop, index corresponds to entity reference */
 }
 
+char g_TauntSounds[][] =
+{
+	"Halloween.BlackCat",
+	"Halloween.Gremlin",
+	"Halloween.Werewolf",
+	"Halloween.Witch",
+	"Halloween.Banshee",
+	"Halloween.CrazyLaugh",
+	"Halloween.Stabby",
+	"Fundraiser.Bell",
+	"Fundraiser.Tingsha",
+	"Samurai.Koto",
+	"Summer.Fireworks",
+	"Game.HappyBirthdayNoiseMaker",
+	"soccer.vuvezela",
+	"xmas.jingle_noisemaker"
+};
+
 // Globals
+bool g_IsMapRunning;
 bool g_InSetup;
 bool g_DisallowPropLocking;
+bool g_InHealthKitTouch;
 Handle g_ControlPointBonusTimer;
+
+// Forwards
+GlobalForward g_ForwardOnPlayerDisguised;
 
 // Offsets
 int g_OffsetWeaponMode;
 int g_OffsetWeaponInfo;
 int g_OffsetPlayerSharedOuter;
-int g_OffsetBulletsPerShot;
+int g_OffsetWeaponDamage;
+int g_OffsetWeaponBulletsPerShot;
+int g_OffsetWeaponTimeFireDelay;
 
 // ConVars
 ConVar ph_prop_min_size;
@@ -78,7 +124,7 @@ ConVar ph_prop_max_health;
 ConVar ph_hunter_damage_modifier_gun;
 ConVar ph_hunter_damage_modifier_melee;
 ConVar ph_hunter_damage_modifier_grapplinghook;
-ConVar ph_hunter_damage_flamethrower;
+ConVar ph_hunter_damage_modifier_flamethrower;
 ConVar ph_hunter_setup_freeze;
 ConVar ph_regenerate_last_prop;
 ConVar ph_bonus_refresh_time;
@@ -100,12 +146,12 @@ ConVar ph_relay_name;
 #include "prophunt/sdkcalls.sp"
 #include "prophunt/sdkhooks.sp"
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
-	name = "PropHunt Neu", 
-	author = "Mikusch", 
-	description = "A modern PropHunt plugin for Team Fortress 2", 
-	version = PLUGIN_VERSION, 
+	name = "PropHunt Neu",
+	author = "Mikusch",
+	description = "A modern PropHunt plugin for Team Fortress 2",
+	version = PLUGIN_VERSION,
 	url = "https://github.com/Mikusch/PropHunt"
 }
 
@@ -154,7 +200,9 @@ public void OnPluginStart()
 		g_OffsetWeaponMode = gamedata.GetOffset("CTFWeaponBase::m_iWeaponMode");
 		g_OffsetWeaponInfo = gamedata.GetOffset("CTFWeaponBase::m_pWeaponInfo");
 		g_OffsetPlayerSharedOuter = gamedata.GetOffset("CTFPlayerShared::m_pOuter");
-		g_OffsetBulletsPerShot = gamedata.GetOffset("WeaponData_t::m_nBulletsPerShot");
+		g_OffsetWeaponDamage = gamedata.GetOffset("WeaponData_t::m_nDamage");
+		g_OffsetWeaponBulletsPerShot = gamedata.GetOffset("WeaponData_t::m_nBulletsPerShot");
+		g_OffsetWeaponTimeFireDelay = gamedata.GetOffset("WeaponData_t::m_flTimeFireDelay");
 		
 		delete gamedata;
 	}
@@ -175,8 +223,19 @@ public void OnPluginEnd()
 	ConVars_ToggleAll(false);
 }
 
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+{
+	RegPluginLibrary("prophunt");
+	
+	g_ForwardOnPlayerDisguised = new GlobalForward("PropHunt_OnPlayerDisguised", ET_Ignore, Param_Cell, Param_String);
+	
+	return APLRes_Success;
+}
+
 public void OnMapStart()
 {
+	g_IsMapRunning = true;
+	
 	PrecacheSound("#" ... SOUND_LAST_PROP);
 	PrecacheSound(LOCK_SOUND);
 	PrecacheSound(UNLOCK_SOUND);
@@ -198,6 +257,8 @@ public void OnMapStart()
 
 public void OnMapEnd()
 {
+	g_IsMapRunning = false;
+	
 	g_CurrentMapConfig.Clear();
 }
 
@@ -221,10 +282,10 @@ public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname
 	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
 		return Plugin_Continue;
 	
-	// Flame throwers are a special case, as always
 	if (strcmp(weaponname, "tf_weapon_flamethrower") == 0)
 	{
-		float damage = ph_hunter_damage_flamethrower.FloatValue;
+		// The damage of flame throwers is calculated as Damage x TimeFireDelay
+		float damage = GetWeaponDamage(weapon) * GetWeaponTimeFireDelay(weapon) * ph_hunter_damage_modifier_flamethrower.FloatValue;
 		int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
 		
 		SDKHooks_TakeDamage(client, weapon, client, damage, damageType, weapon);
@@ -245,61 +306,65 @@ public void OnClientPutInServer(int client)
 		FindConVar("tf_arena_round_time").ReplicateToClient(client, "1");
 }
 
-void TogglePropLock(int client, bool toggle)
+public void OnClientDisconnect(int client)
 {
-	SetVariantInt(!toggle);
-	AcceptEntityInput(client, "SetCustomModelRotates");
-	
-	if (toggle)
-	{
-		EmitSoundToClient(client, LOCK_SOUND, _, SNDCHAN_STATIC);
-		SetEntityMoveType(client, MOVETYPE_NONE);
-		PrintHintText(client, "%t", "PH_PropLock_Enabled");
-	}
-	else
-	{
-		EmitSoundToClient(client, UNLOCK_SOUND, _, SNDCHAN_STATIC);
-		SetEntityMoveType(client, MOVETYPE_WALK);
-	}
+	CheckLastPropStanding(client);
 }
 
 public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
 {
 	// Prop-only functionality below this point
-	if (!IsPlayerProp(client) || !IsPlayerAlive(client))
+	if (TF2_GetClientTeam(client) != TFTeam_Props || !IsPlayerAlive(client))
 		return Plugin_Continue;
 	
 	int buttonsChanged = GetEntProp(client, Prop_Data, "m_afButtonPressed") | GetEntProp(client, Prop_Data, "m_afButtonReleased");
 	
-	// IN_ATTACK locks the player's prop view
+	// IN_ATTACK allows the player to pick a prop
 	if (buttons & IN_ATTACK && buttonsChanged & IN_ATTACK)
 	{
-		if (GameRules_GetRoundState() != RoundState_Preround)
+		if (GetPlayerWeaponSlot(client, 0) == -1)
 		{
-			if (GetPlayerWeaponSlot(client, 0) == -1)
+			if (CanPlayerChangeProp(client))
 			{
-				// Check if the player is currently above a trigger_hurt
-				float origin[3];
-				GetClientAbsOrigin(client, origin);
-				TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, TraceEntityEnumerator_EnumerateTriggers, client);
-				
-				// Don't allow them to lock to avoid props hovering above deadly areas
-				if (!g_DisallowPropLocking)
-				{
-					bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
-					TogglePropLock(client, locked);
-				}
-				else
-				{
-					PrintHintText(client, "%t", "PH_PropLock_Unavailable");
-					g_DisallowPropLocking = false;
-				}
+				char message[256];
+				if (!SearchForProps(client, message, sizeof(message)))
+					CPrintToChat(client, message);
+			}
+			else
+			{
+				CPrintToChat(client, "%s %t", PLUGIN_TAG, "PH_PropSelect_NotAllowed");
 			}
 		}
 	}
 	
-	// IN_ATTACK2 switches betweeen first-person and third-person view
+	// IN_ATTACK2 locks the player's prop view
 	if (buttons & IN_ATTACK2 && buttonsChanged & IN_ATTACK2)
+	{
+		// Check if the player is currently above a trigger_hurt
+		float origin[3];
+		GetClientAbsOrigin(client, origin);
+		TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, TraceEntityEnumerator_EnumerateTriggers, client);
+		
+		// Don't allow them to lock to avoid props hovering above deadly areas
+		if (!g_DisallowPropLocking)
+		{
+			bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
+			TogglePropLock(client, locked);
+		}
+		else
+		{
+			PrintHintText(client, "%t", "PH_PropLock_Unavailable");
+			g_DisallowPropLocking = false;
+		}
+	}
+	
+	if (buttons & IN_ATTACK3 && buttonsChanged & IN_ATTACK3)
+	{
+		DoTaunt(client);
+	}
+	
+	// IN_RELOAD switches betweeen first-person and third-person view
+	if (buttons & IN_RELOAD && buttonsChanged & IN_RELOAD)
 	{
 		bool value = PHPlayer(client).InForcedTauntCam = !PHPlayer(client).InForcedTauntCam;
 		
@@ -308,21 +373,6 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 		
 		SetVariantInt(value);
 		AcceptEntityInput(client, "SetCustomModelVisibletoSelf");
-	}
-	
-	// IN_RELOAD allows the player to pick a prop
-	if (buttons & IN_RELOAD && buttonsChanged & IN_RELOAD)
-	{
-		if (CanPlayerPropChange(client))
-		{
-			char message[256];
-			if (!SearchForProps(client, message, sizeof(message)))
-				CPrintToChat(client, message);
-		}
-		else
-		{
-			CPrintToChat(client, "%s %t", PLUGIN_TAG, "PH_PropSelect_NotAllowed");
-		}
 	}
 	
 	// Pressing movement keys will undo a prop lock
@@ -347,7 +397,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 
 public Action TF2Items_OnGiveNamedItem(int client, char[] classname, int itemDefIndex, Handle &item)
 {
-	if (IsPlayerProp(client))
+	if (TF2_GetClientTeam(client) == TFTeam_Props)
 	{
 		// Make sure that all props except the last stay naked
 		if (!PHPlayer(client).IsLastProp)
@@ -384,7 +434,7 @@ public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int item
 		SetItemAlpha(entity, 0);
 	
 	// Nullify cheating attributes
-	if (IsPlayerHunter(client))
+	if (TF2_GetClientTeam(client) == TFTeam_Hunters)
 	{
 		ArrayList attributes = TF2Econ_GetItemStaticAttributes(itemDefIndex);
 		if (attributes)
@@ -450,7 +500,7 @@ bool SearchForStaticProps(int client, char[] message, int maxlength)
 	GetClientEyeAngles(client, eyeAngles);
 	GetAngleVectors(eyeAngles, eyeAngleFwd, NULL_VECTOR, NULL_VECTOR);
 	
-	// Get the position of the cloest wall to us
+	// Get the position of the closest wall to us
 	float endPosition[3];
 	TR_TraceRayFilter(eyePosition, eyeAngles, MASK_SOLID, RayType_Infinite, TraceEntityFilter_IgnoreEntity, client);
 	TR_GetEndPosition(endPosition);
@@ -585,13 +635,18 @@ void SetCustomModel(int client, const char[] model, PHPropType type, int index)
 	
 	SetEntProp(client, Prop_Data, "m_bloodColor", DONT_BLEED);
 	
+	Call_StartForward(g_ForwardOnPlayerDisguised);
+	Call_PushCell(client);
+	Call_PushString(model);
+	Call_Finish();
+	
 	char modelTidyName[PLATFORM_MAX_PATH];
 	GetModelTidyName(model, modelTidyName, sizeof(modelTidyName));
 	
-	CPrintToChat(client, "%s %t", PLUGIN_TAG, "PH_PropSelect_Success", modelTidyName);
+	CPrintToChat(client, "%s %t", PLUGIN_TAG, "PH_Disguise_Changed", modelTidyName);
 }
 
-void ClearCustomModel(int client)
+void ClearCustomModel(int client, bool notify = false)
 {
 	PHPlayer(client).PropType = Prop_None;
 	PHPlayer(client).PropIndex = -1;
@@ -615,6 +670,81 @@ void ClearCustomModel(int client)
 	
 	SetVariantString("ParticleEffectStop");
 	AcceptEntityInput(client, "DispatchEffect");
+	
+	if (notify)
+		CPrintToChat(client, "%s %t", PLUGIN_TAG, "PH_Disguise_Reset");
+}
+
+void TogglePropLock(int client, bool toggle)
+{
+	SetVariantInt(!toggle);
+	AcceptEntityInput(client, "SetCustomModelRotates");
+	
+	if (toggle)
+	{
+		EmitSoundToClient(client, LOCK_SOUND, _, SNDCHAN_STATIC);
+		SetEntityMoveType(client, MOVETYPE_NONE);
+		SetEntPropVector(client, Prop_Data, "m_vecAbsVelocity", ZERO_VECTOR);
+		PrintHintText(client, "%t", "PH_PropLock_Enabled");
+	}
+	else
+	{
+		EmitSoundToClient(client, UNLOCK_SOUND, _, SNDCHAN_STATIC);
+		SetEntityMoveType(client, MOVETYPE_WALK);
+	}
+}
+
+void DoTaunt(int client)
+{
+	if (GetGameTime() < PHPlayer(client).NextTauntTime)
+		return;
+	
+	// Play a funny sound
+	EmitGameSoundToAll(g_TauntSounds[GetRandomInt(0, sizeof(g_TauntSounds) - 1)], client);
+	
+	PHPlayer(client).NextTauntTime = GetGameTime() + 1.0;
+}
+
+void CheckLastPropStanding(int client)
+{
+	if (GameRules_GetRoundState() != RoundState_Stalemate)
+		return;
+	
+	if (!IsClientInGame(client) || !IsPlayerAlive(client) || TF2_GetClientTeam(client) != TFTeam_Props)
+		return;
+	
+	// Count all living props
+	int totalProps = 0;
+	for (int other = 1; other <= MaxClients; other++)
+	{
+		if (IsClientInGame(other) && IsPlayerAlive(other) && TF2_GetClientTeam(other) == TFTeam_Props)
+			totalProps++;
+	}
+	
+	// The second-to-last prop has died or left, do the last man standing stuff
+	if (totalProps == 2)
+	{
+		EmitSoundToAll("#" ... SOUND_LAST_PROP, _, SNDCHAN_STATIC, SNDLEVEL_NONE);
+		
+		for (int other = 1; other <= MaxClients; other++)
+		{
+			if (IsClientInGame(other) && IsPlayerAlive(other))
+			{
+				if (TF2_GetClientTeam(other) == TFTeam_Props && other != client)
+				{
+					if (ph_regenerate_last_prop.BoolValue)
+					{
+						PHPlayer(other).IsLastProp = true;
+						TF2_RegeneratePlayer(other);
+					}
+				}
+				else if (TF2_GetClientTeam(other) == TFTeam_Hunters)
+				{
+					TF2_AddCondition(other, TFCond_Jarated, 15.0);
+				}
+			}
+		}
+	}
 }
 
 public void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue)

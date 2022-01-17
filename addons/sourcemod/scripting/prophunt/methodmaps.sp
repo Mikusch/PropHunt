@@ -22,6 +22,7 @@ static bool g_PlayerPropLockEnabled[MAXPLAYERS + 1];
 static bool g_PlayerInForcedTauntCam[MAXPLAYERS + 1];
 static bool g_PlayerHasReceivedBonus[MAXPLAYERS + 1];
 static bool g_PlayerIsLastProp[MAXPLAYERS + 1];
+static float g_PlayerNextTauntTime[MAXPLAYERS + 1];
 
 methodmap PHPlayer
 {
@@ -30,7 +31,7 @@ methodmap PHPlayer
 		return view_as<PHPlayer>(client);
 	}
 	
-	property int Client
+	property int _client
 	{
 		public get()
 		{
@@ -42,11 +43,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_PlayerPropType[this.Client];
+			return g_PlayerPropType[this._client];
 		}
 		public set(PHPropType type)
 		{
-			g_PlayerPropType[this.Client] = type;
+			g_PlayerPropType[this._client] = type;
 		}
 	}
 	
@@ -54,11 +55,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_PlayerPropIndex[this.Client];
+			return g_PlayerPropIndex[this._client];
 		}
 		public set(int index)
 		{
-			g_PlayerPropIndex[this.Client] = index;
+			g_PlayerPropIndex[this._client] = index;
 		}
 	}
 	
@@ -66,11 +67,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_PlayerOldMaxHealth[this.Client];
+			return g_PlayerOldMaxHealth[this._client];
 		}
 		public set(int health)
 		{
-			g_PlayerOldMaxHealth[this.Client] = health;
+			g_PlayerOldMaxHealth[this._client] = health;
 		}
 	}
 	
@@ -78,11 +79,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_PlayerPropLockEnabled[this.Client];
+			return g_PlayerPropLockEnabled[this._client];
 		}
 		public set(bool enabled)
 		{
-			g_PlayerPropLockEnabled[this.Client] = enabled;
+			g_PlayerPropLockEnabled[this._client] = enabled;
 		}
 	}
 	
@@ -90,11 +91,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_PlayerInForcedTauntCam[this.Client];
+			return g_PlayerInForcedTauntCam[this._client];
 		}
 		public set(bool inForcedTauntCam)
 		{
-			g_PlayerInForcedTauntCam[this.Client] = inForcedTauntCam;
+			g_PlayerInForcedTauntCam[this._client] = inForcedTauntCam;
 		}
 	}
 	
@@ -102,11 +103,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_PlayerHasReceivedBonus[this.Client];
+			return g_PlayerHasReceivedBonus[this._client];
 		}
 		public set(bool hasReceivedBonus)
 		{
-			g_PlayerHasReceivedBonus[this.Client] = hasReceivedBonus;
+			g_PlayerHasReceivedBonus[this._client] = hasReceivedBonus;
 		}
 	}
 	
@@ -114,11 +115,23 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_PlayerIsLastProp[this.Client];
+			return g_PlayerIsLastProp[this._client];
 		}
 		public set(bool isLastProp)
 		{
-			g_PlayerIsLastProp[this.Client] = isLastProp;
+			g_PlayerIsLastProp[this._client] = isLastProp;
+		}
+	}
+	
+	property float NextTauntTime
+	{
+		public get()
+		{
+			return g_PlayerNextTauntTime[this._client];
+		}
+		public set(float time)
+		{
+			g_PlayerNextTauntTime[this._client] = time;
 		}
 	}
 	

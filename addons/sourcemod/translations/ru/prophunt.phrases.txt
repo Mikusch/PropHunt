@@ -37,7 +37,7 @@
 		"ru"		"Фиксатор объекта™ недоступен"
 	}
 	
-	"PH_PropSelect_Success"
+	"PH_Disguise_Changed"
 	{
 		"ru"		"Теперь вы замаскированы под: {lightgreen}{1}"
 	}
@@ -79,7 +79,7 @@
 	
 	"PH_PropControls"
 	{
-		"ru"		"%%+attack%% БЛОКИРОВКА ВРАЩЕНИЯ ОБЪЕКТА %%+attack2%% ПЕРЕКЛЮЧИТЬ ТРЕТЬЕ ЛИЦО %%+reload%% ВЫБРАТЬ ОБЪЕКТ"
+		"ru"		"%%+attack%% ВЫБРАТЬ ОБЪЕКТ %%+attack2%% БЛОКИРОВКА ВРАЩЕНИЯ ОБЪЕКТА %%+reload%% ПЕРЕКЛЮЧИТЬ ТРЕТЬЕ ЛИЦО"
 	}
 	
 	"PH_Bonus_Refreshed"
