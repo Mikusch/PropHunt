@@ -322,7 +322,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	// IN_ATTACK allows the player to pick a prop
 	if (buttons & IN_ATTACK && buttonsChanged & IN_ATTACK)
 	{
-		if (GetPlayerWeaponSlot(client, 0) == -1)
+		if (GetPlayerWeaponSlot(client, 0) == -1 && !PHPlayer(client).PropLockEnabled)
 		{
 			if (CanPlayerChangeProp(client))
 			{
