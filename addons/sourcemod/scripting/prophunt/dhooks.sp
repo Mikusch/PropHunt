@@ -116,11 +116,11 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 				int entity = EntRefToEntIndex(PHPlayer(player).PropIndex);
 				if (entity != -1)
 				{
-					if (IsEntityClient(entity) && IsClientInGame(entity))
+					if (IsEntityClient(entity) && IsClientInGame(entity) && TF2_GetClientTeam(entity) == TFTeam_Hunters)
 					{
 						maxHealth = GetPlayerMaxHealth(entity);
 					}
-					else if (HasEntProp(entity, Prop_Data, "m_iMaxHealth") && GetEntProp(entity, Prop_Data, "m_iMaxHealth") > 1)
+					else if (!IsEntityClient(entity) && HasEntProp(entity, Prop_Data, "m_iMaxHealth") && GetEntProp(entity, Prop_Data, "m_iMaxHealth") > 1)
 					{
 						maxHealth = GetEntProp(entity, Prop_Data, "m_iMaxHealth");
 					}
