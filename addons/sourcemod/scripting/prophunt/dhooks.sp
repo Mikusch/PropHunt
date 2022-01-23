@@ -26,11 +26,11 @@ static int g_OldGameType;
 
 void DHooks_Initialize(GameData gamedata)
 {
-	DHooks_CreateDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHookCallback_GetMaxHealthForBuffing_Post);
-	DHooks_CreateDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHookCallback_CanPlayerMove_Post);
-	DHooks_CreateDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, _);
-	DHooks_CreateDetour(gamedata, "CTFPlayerShared::Heal", DHookCallback_Heal_Pre, _);
-	DHooks_CreateDetour(gamedata, "CTeamplayRoundBasedRules::SetInWaitingForPlayers", DHookCallback_SetInWaitingForPlayers_Pre, DHookCallback_SetInWaitingForPlayers_Post);
+	CreateDynamicDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHookCallback_GetMaxHealthForBuffing_Post);
+	CreateDynamicDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHookCallback_CanPlayerMove_Post);
+	CreateDynamicDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, _);
+	CreateDynamicDetour(gamedata, "CTFPlayerShared::Heal", DHookCallback_Heal_Pre, _);
+	CreateDynamicDetour(gamedata, "CTeamplayRoundBasedRules::SetInWaitingForPlayers", DHookCallback_SetInWaitingForPlayers_Pre, DHookCallback_SetInWaitingForPlayers_Post);
 	
 	g_DHookSpawn = CreateDynamicHook(gamedata, "CBaseEntity::Spawn");
 	g_DHookTakeHealth = CreateDynamicHook(gamedata, "CBaseEntity::TakeHealth");
@@ -70,7 +70,7 @@ void DHooks_HookScatterGun(int scattergun)
 		g_DHookHasKnockback.HookEntity(Hook_Post, scattergun, DHookCallback_HasKnockback_Post);
 }
 
-static void DHooks_CreateDetour(GameData gamedata, const char[] name, DHookCallback callbackPre = INVALID_FUNCTION, DHookCallback callbackPost = INVALID_FUNCTION)
+static void CreateDynamicDetour(GameData gamedata, const char[] name, DHookCallback callbackPre = INVALID_FUNCTION, DHookCallback callbackPost = INVALID_FUNCTION)
 {
 	DynamicDetour detour = DynamicDetour.FromConf(gamedata, name);
 	if (detour)
@@ -83,7 +83,7 @@ static void DHooks_CreateDetour(GameData gamedata, const char[] name, DHookCallb
 	}
 	else
 	{
-		LogError("Failed to create detour: %s", name);
+		LogError("Failed to create detour setup handle for %s", name);
 	}
 }
 
