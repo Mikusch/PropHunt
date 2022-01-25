@@ -30,6 +30,7 @@ void DHooks_Initialize(GameData gamedata)
 	CreateDynamicDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHookCallback_CanPlayerMove_Post);
 	CreateDynamicDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, DHookCallback_HookTarget_Post);
 	CreateDynamicDetour(gamedata, "CTFPlayerShared::Heal", DHookCallback_Heal_Pre, _);
+	CreateDynamicDetour(gamedata, "CTFPistol_ScoutPrimary::Push", _, DHookCallback_Push_Post);
 	CreateDynamicDetour(gamedata, "CTeamplayRoundBasedRules::SetInWaitingForPlayers", DHookCallback_SetInWaitingForPlayers_Pre, DHookCallback_SetInWaitingForPlayers_Post);
 	
 	g_DHookSpawn = CreateDynamicHook(gamedata, "CBaseEntity::Spawn");
@@ -228,6 +229,24 @@ public MRESReturn DHookCallback_Heal_Pre(Address playerShared, DHookParam params
 		
 		params.Set(2, amount * ph_healing_modifier.FloatValue);
 		return MRES_ChangedHandled;
+	}
+	
+	return MRES_Ignored;
+}
+
+public MRESReturn DHookCallback_Push_Post(int weapon)
+{
+	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+		return MRES_Ignored;
+	
+	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
+	
+	if (TF2_GetClientTeam(owner) == TFTeam_Hunters)
+	{
+		float damage = ph_hunter_damage_scoutprimary_push.FloatValue;
+		int damageType = DMG_MELEE | DMG_NEVERGIB | DMG_CLUB | DMG_PREVENT_PHYSICS_FORCE;
+		
+		SDKHooks_TakeDamage(owner, weapon, owner, damage, damageType, weapon);
 	}
 	
 	return MRES_Ignored;
