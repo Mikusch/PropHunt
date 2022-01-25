@@ -55,13 +55,13 @@ void DHooks_HookClient(int client)
 void DHooks_HookBaseGun(int weapon)
 {
 	if (g_DHookFireProjectile)
-		g_DHookFireProjectile.HookEntity(Hook_Pre, weapon, DHookCallback_FireProjectile_Pre);
+		g_DHookFireProjectile.HookEntity(Hook_Post, weapon, DHookCallback_FireProjectile_Post);
 }
 
 void DHooks_HookBaseMelee(int weapon)
 {
 	if (g_DHookSmack)
-		g_DHookSmack.HookEntity(Hook_Pre, weapon, DHookCallback_Smack_Pre);
+		g_DHookSmack.HookEntity(Hook_Post, weapon, DHookCallback_Smack_Post);
 }
 
 void DHooks_HookScatterGun(int scattergun)
@@ -279,25 +279,26 @@ public MRESReturn DHookCallback_ModifyOrAppendCriteria_Post(int player, DHookPar
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_FireProjectile_Pre(int weapon, DHookReturn ret, DHookParam params)
+public MRESReturn DHookCallback_FireProjectile_Post(int weapon, DHookReturn ret, DHookParam params)
 {
 	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
 		return MRES_Ignored;
 	
 	int player = params.Get(1);
+	int projectile = ret.Value;
 	
 	if (TF2_GetClientTeam(player) == TFTeam_Hunters)
 	{
 		float damage = SDKCall_GetProjectileDamage(weapon) * GetWeaponBulletsPerShot(weapon) * ph_hunter_damage_modifier_gun.FloatValue;
 		int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
 		
-		SDKHooks_TakeDamage(player, weapon, player, damage, damageType, weapon);
+		SDKHooks_TakeDamage(player, projectile != -1 ? projectile : weapon, player, damage, damageType, weapon);
 	}
 	
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_Smack_Pre(int weapon)
+public MRESReturn DHookCallback_Smack_Post(int weapon)
 {
 	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
 		return MRES_Ignored;
