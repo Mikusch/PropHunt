@@ -129,6 +129,11 @@
 				"linux"		"494"
 				"windows"	"487"
 			}
+			"CTFProjectile_Jar::GetDamage"
+			{
+				"linux"		"132"
+				"windows"	"131"
+			}
 			"CTFWeaponBase::m_iWeaponMode"
 			{
 				"linux"		"1704"

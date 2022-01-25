@@ -31,6 +31,27 @@ void SDKHooks_OnEntityCreated(int entity, const char[] classname)
 		SDKHook(entity, SDKHook_Touch, SDKHookCB_HealthKit_Touch);
 		SDKHook(entity, SDKHook_TouchPost, SDKHookCB_HealthKit_TouchPost);
 	}
+	else if (strncmp(classname, "tf_projectile_jar", 17) == 0 || strcmp(classname, "tf_projectile_cleaver") == 0)
+	{
+		SDKHook(entity, SDKHook_SpawnPost, SDKHookCB_ProjectileJar_SpawnPost);
+	}
+}
+
+public void SDKHookCB_ProjectileJar_SpawnPost(int projectile)
+{
+	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+		return;
+	
+	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
+	
+	if (IsEntityClient(owner) && TF2_GetClientTeam(owner) == TFTeam_Hunters)
+	{
+		int activeWeapon = GetEntPropEnt(owner, Prop_Send, "m_hActiveWeapon");
+		float damage = SDKCall_JarGetDamage(projectile) * ph_hunter_damage_modifier_gun.FloatValue;
+		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
+		
+		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, activeWeapon);
+	}
 }
 
 public Action SDKHookCB_Client_OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3], int damagecustom)
