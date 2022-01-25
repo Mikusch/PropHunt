@@ -28,7 +28,7 @@ void DHooks_Initialize(GameData gamedata)
 {
 	CreateDynamicDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHookCallback_GetMaxHealthForBuffing_Post);
 	CreateDynamicDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHookCallback_CanPlayerMove_Post);
-	CreateDynamicDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, _);
+	CreateDynamicDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, DHookCallback_HookTarget_Post);
 	CreateDynamicDetour(gamedata, "CTFPlayerShared::Heal", DHookCallback_Heal_Pre, _);
 	CreateDynamicDetour(gamedata, "CTeamplayRoundBasedRules::SetInWaitingForPlayers", DHookCallback_SetInWaitingForPlayers_Pre, DHookCallback_SetInWaitingForPlayers_Post);
 	
@@ -186,15 +186,6 @@ public MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params
 	
 	if (TF2_GetClientTeam(owner) == TFTeam_Hunters)
 	{
-		if (GameRules_GetRoundState() == RoundState_Stalemate && !g_InSetup)
-		{
-			int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
-			float damage = SDKCall_GetProjectileDamage(launcher) * ph_hunter_damage_modifier_grapplinghook.FloatValue;
-			int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
-			
-			SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
-		}
-		
 		// Don't allow hunters to hook onto props
 		if (!params.IsNull(1))
 		{
@@ -202,6 +193,25 @@ public MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params
 			if (IsEntityClient(other) && TF2_GetClientTeam(other) == TFTeam_Props)
 				return MRES_Supercede;
 		}
+	}
+	
+	return MRES_Ignored;
+}
+
+public MRESReturn DHookCallback_HookTarget_Post(int projectile, DHookParam params)
+{
+	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+		return MRES_Ignored;
+	
+	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
+	
+	if (TF2_GetClientTeam(owner) == TFTeam_Hunters)
+	{
+		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
+		float damage = SDKCall_GetProjectileDamage(launcher) * ph_hunter_damage_modifier_grapplinghook.FloatValue;
+		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
+		
+		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
 	}
 	
 	return MRES_Ignored;
