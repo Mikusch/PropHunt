@@ -35,22 +35,9 @@ void SDKHooks_OnEntityCreated(int entity, const char[] classname)
 	{
 		SDKHook(entity, SDKHook_SpawnPost, SDKHookCB_ProjectileJar_SpawnPost);
 	}
-}
-
-public void SDKHookCB_ProjectileJar_SpawnPost(int projectile)
-{
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
-		return;
-	
-	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
-	
-	if (IsEntityClient(owner) && TF2_GetClientTeam(owner) == TFTeam_Hunters)
+	else if (strcmp(classname, "tf_projectile_stun_ball") == 0 || strcmp(classname, "tf_projectile_ball_ornament") == 0)
 	{
-		int activeWeapon = GetEntPropEnt(owner, Prop_Send, "m_hActiveWeapon");
-		float damage = SDKCall_JarGetDamage(projectile) * ph_hunter_damage_modifier_gun.FloatValue;
-		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
-		
-		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, activeWeapon);
+		SDKHook(entity, SDKHook_SpawnPost, SDKHookCB_ProjectileBall_SpawnPost);
 	}
 }
 
@@ -152,4 +139,38 @@ public Action SDKHookCB_TauntProp_SetTransmit(int entity, int client)
 		return Plugin_Handled;
 	
 	return Plugin_Continue;
+}
+
+public void SDKHookCB_ProjectileJar_SpawnPost(int projectile)
+{
+	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+		return;
+	
+	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
+	
+	if (IsEntityClient(owner) && TF2_GetClientTeam(owner) == TFTeam_Hunters)
+	{
+		int activeWeapon = GetEntPropEnt(owner, Prop_Send, "m_hActiveWeapon");
+		float damage = SDKCall_JarGetDamage(projectile) * ph_hunter_damage_modifier_gun.FloatValue;
+		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
+		
+		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, activeWeapon);
+	}
+}
+
+public void SDKHookCB_ProjectileBall_SpawnPost(int projectile)
+{
+	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+		return;
+	
+	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
+	
+	if (IsEntityClient(owner) && TF2_GetClientTeam(owner) == TFTeam_Hunters)
+	{
+		int activeWeapon = GetEntPropEnt(owner, Prop_Send, "m_hActiveWeapon");
+		float damage = FindConVar("sv_proj_stunball_damage").FloatValue * ph_hunter_damage_modifier_gun.FloatValue;
+		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
+		
+		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, activeWeapon);
+	}
 }
