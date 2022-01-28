@@ -24,6 +24,7 @@ static Handle g_SDKCallGetDamageType;
 static Handle g_SDKCallInitClass;
 static Handle g_SDKCallGetProjectileDamage;
 static Handle g_SDKCallGetMeleeDamage;
+static Handle g_SDKCallJarGetDamage;
 
 void SDKCalls_Initialize(GameData gamedata)
 {
@@ -36,6 +37,7 @@ void SDKCalls_Initialize(GameData gamedata)
 	g_SDKCallInitClass = PrepSDKCall_InitClass(gamedata);
 	g_SDKCallGetProjectileDamage = PrepSDKCall_GetProjectileDamage(gamedata);
 	g_SDKCallGetMeleeDamage = PrepSDKCall_GetMeleeDamage(gamedata);
+	g_SDKCallJarGetDamage = PrepSDKCall_JarGetDamage(gamedata);
 }
 
 static Handle PrepSDKCall_CastSelfHeal(GameData gamedata)
@@ -159,6 +161,19 @@ static Handle PrepSDKCall_GetMeleeDamage(GameData gamedata)
 	return call;
 }
 
+static Handle PrepSDKCall_JarGetDamage(GameData gamedata)
+{
+	StartPrepSDKCall(SDKCall_Entity);
+	PrepSDKCall_SetFromConf(gamedata, SDKConf_Virtual, "CTFProjectile_Jar::GetDamage");
+	PrepSDKCall_SetReturnInfo(SDKType_Float, SDKPass_ByValue);
+	
+	Handle call = EndPrepSDKCall();
+	if (!call)
+		LogMessage("Failed to create SDK call: CTFProjectile_Jar::GetDamage");
+	
+	return call;
+}
+
 bool SDKCall_CastSelfHeal(int player)
 {
 	if (g_SDKCallCastSelfHeal)
@@ -225,3 +240,10 @@ float SDKCall_GetMeleeDamage(int weapon, int target, int damageType, int customD
 		return 0.0;
 }
 
+float SDKCall_JarGetDamage(int jar)
+{
+	if (g_SDKCallJarGetDamage)
+		return SDKCall(g_SDKCallJarGetDamage, jar);
+	else
+		return 0.0;
+}

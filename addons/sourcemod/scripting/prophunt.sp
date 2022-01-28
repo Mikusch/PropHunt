@@ -30,11 +30,13 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION	"1.0.1"
+#define PLUGIN_VERSION	"1.1.0"
 
 #define PLUGIN_TAG	"[{orange}PropHunt{default}]"
 
 #define DONT_BLEED	0
+
+#define DMG_MELEE	DMG_BLAST_SURFACE
 
 #define ITEM_DEFINDEX_GRAPPLINGHOOK			1152
 #define ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH	269
@@ -128,6 +130,8 @@ ConVar ph_hunter_damage_modifier_gun;
 ConVar ph_hunter_damage_modifier_melee;
 ConVar ph_hunter_damage_modifier_grapplinghook;
 ConVar ph_hunter_damage_modifier_flamethrower;
+ConVar ph_hunter_damage_modifier_projectile;
+ConVar ph_hunter_damage_modifier_scoutprimary_push;
 ConVar ph_hunter_setup_freeze;
 ConVar ph_regenerate_last_prop;
 ConVar ph_bonus_refresh_time;
@@ -282,7 +286,7 @@ public void OnEntityCreated(int entity, const char[] classname)
 
 public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname, bool &result)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+	if (!ShouldPlayerDealSelfDamage(client))
 		return Plugin_Continue;
 	
 	if (strcmp(weaponname, "tf_weapon_flamethrower") == 0)
