@@ -128,6 +128,7 @@ public void Event_PostInventoryApplication(Event event, const char[] name, bool 
 public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	g_InSetup = false;
+	g_IsLastPropStanding = false;
 	
 	delete g_ControlPointBonusTimer;
 	

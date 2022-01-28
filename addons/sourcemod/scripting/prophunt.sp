@@ -106,6 +106,7 @@ char g_TauntSounds[][] =
 // Globals
 bool g_IsMapRunning;
 bool g_InSetup;
+bool g_IsLastPropStanding;
 bool g_DisallowPropLocking;
 bool g_InHealthKitTouch;
 Handle g_ControlPointBonusTimer;
@@ -714,6 +715,10 @@ void DoTaunt(int client)
 
 void CheckLastPropStanding(int client)
 {
+	// Prevent this from triggering multiple times due to arena mode being weird
+	if (g_IsLastPropStanding)
+		return;
+	
 	if (GameRules_GetRoundState() != RoundState_Stalemate)
 		return;
 	
@@ -731,6 +736,8 @@ void CheckLastPropStanding(int client)
 	// The second-to-last prop has died or left, do the last man standing stuff
 	if (totalProps == 2)
 	{
+		g_IsLastPropStanding = true;
+		
 		EmitSoundToAll("#" ... SOUND_LAST_PROP, _, SNDCHAN_STATIC, SNDLEVEL_NONE);
 		
 		for (int other = 1; other <= MaxClients; other++)
