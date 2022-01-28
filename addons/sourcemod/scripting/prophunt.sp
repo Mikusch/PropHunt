@@ -130,6 +130,7 @@ ConVar ph_hunter_damage_modifier_gun;
 ConVar ph_hunter_damage_modifier_melee;
 ConVar ph_hunter_damage_modifier_grapplinghook;
 ConVar ph_hunter_damage_modifier_flamethrower;
+ConVar ph_hunter_damage_modifier_projectile;
 ConVar ph_hunter_damage_scoutprimary_push;
 ConVar ph_hunter_setup_freeze;
 ConVar ph_regenerate_last_prop;

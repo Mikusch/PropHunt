@@ -39,6 +39,10 @@ void SDKHooks_OnEntityCreated(int entity, const char[] classname)
 	{
 		SDKHook(entity, SDKHook_SpawnPost, SDKHookCB_ProjectileBall_SpawnPost);
 	}
+	else if (strcmp(classname, "tf_projectile_mechanicalarmorb") == 0)
+	{
+		SDKHook(entity, SDKHook_SpawnPost, SDKHookCB_ProjectileMechanicalArmOrb_SpawnPost);
+	}
 }
 
 public Action SDKHookCB_Client_OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3], int damagecustom)
@@ -150,11 +154,11 @@ public void SDKHookCB_ProjectileJar_SpawnPost(int projectile)
 	
 	if (IsEntityClient(owner) && TF2_GetClientTeam(owner) == TFTeam_Hunters)
 	{
-		int activeWeapon = GetEntPropEnt(owner, Prop_Send, "m_hActiveWeapon");
-		float damage = SDKCall_JarGetDamage(projectile) * ph_hunter_damage_modifier_gun.FloatValue;
+		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
+		float damage = SDKCall_JarGetDamage(projectile) * ph_hunter_damage_modifier_projectile.FloatValue;
 		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
 		
-		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, activeWeapon);
+		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
 	}
 }
 
@@ -167,10 +171,27 @@ public void SDKHookCB_ProjectileBall_SpawnPost(int projectile)
 	
 	if (IsEntityClient(owner) && TF2_GetClientTeam(owner) == TFTeam_Hunters)
 	{
-		int activeWeapon = GetEntPropEnt(owner, Prop_Send, "m_hActiveWeapon");
-		float damage = FindConVar("sv_proj_stunball_damage").FloatValue * ph_hunter_damage_modifier_gun.FloatValue;
+		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
+		float damage = FindConVar("sv_proj_stunball_damage").FloatValue * ph_hunter_damage_modifier_projectile.FloatValue;
 		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
 		
-		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, activeWeapon);
+		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
+	}
+}
+
+public void SDKHookCB_ProjectileMechanicalArmOrb_SpawnPost(int projectile)
+{
+	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+		return;
+	
+	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
+	if (IsEntityClient(owner) && TF2_GetClientTeam(owner) == TFTeam_Hunters)
+	{
+		// The damage value for the orb is hardcoded, so we do the same here
+		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
+		float damage = 15.0 * ph_hunter_damage_modifier_projectile.FloatValue;
+		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
+		
+		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
 	}
 }
