@@ -115,7 +115,7 @@ public void SDKHookCB_HealthKit_TouchPost(int healthkit, int other)
 
 public Action SDKHookCB_ControlPoint_StartTouch(int prop, int other)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+	if (!IsSeekingTime())
 		return Plugin_Continue;
 	
 	// Players touching the capture area receive a health bonus
@@ -135,7 +135,7 @@ public Action SDKHookCB_ControlPoint_StartTouch(int prop, int other)
 
 public Action SDKHookCB_TauntProp_SetTransmit(int entity, int client)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+	if (!IsSeekingTime())
 		return Plugin_Handled;
 	
 	// Give the control point an outline if the bonus is available
@@ -147,12 +147,9 @@ public Action SDKHookCB_TauntProp_SetTransmit(int entity, int client)
 
 public void SDKHookCB_ProjectileJar_SpawnPost(int projectile)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
-		return;
-	
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	
-	if (IsEntityClient(owner) && TF2_GetClientTeam(owner) == TFTeam_Hunters)
+	if (IsEntityClient(owner) && ShouldPlayerDealSelfDamage(owner))
 	{
 		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
 		float damage = SDKCall_JarGetDamage(projectile) * ph_hunter_damage_modifier_projectile.FloatValue;
@@ -164,12 +161,9 @@ public void SDKHookCB_ProjectileJar_SpawnPost(int projectile)
 
 public void SDKHookCB_ProjectileBall_SpawnPost(int projectile)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
-		return;
-	
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	
-	if (IsEntityClient(owner) && TF2_GetClientTeam(owner) == TFTeam_Hunters)
+	if (IsEntityClient(owner) && ShouldPlayerDealSelfDamage(owner))
 	{
 		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
 		float damage = FindConVar("sv_proj_stunball_damage").FloatValue * ph_hunter_damage_modifier_projectile.FloatValue;
@@ -181,13 +175,11 @@ public void SDKHookCB_ProjectileBall_SpawnPost(int projectile)
 
 public void SDKHookCB_ProjectileMechanicalArmOrb_SpawnPost(int projectile)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
-		return;
-	
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
-	if (IsEntityClient(owner) && TF2_GetClientTeam(owner) == TFTeam_Hunters)
+	
+	if (IsEntityClient(owner) && ShouldPlayerDealSelfDamage(owner))
 	{
-		// The damage value for the orb is hardcoded, so we do the same here
+		// The damage value for the mechanical arm orb is hardcoded
 		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
 		float damage = 15.0 * ph_hunter_damage_modifier_projectile.FloatValue;
 		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;

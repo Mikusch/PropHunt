@@ -351,6 +351,16 @@ TFClassType GetRandomValidClass(TFTeam team)
 		return TFClass_Unknown;
 }
 
+bool IsSeekingTime()
+{
+	return GameRules_GetRoundState() == RoundState_Stalemate && !g_InSetup;
+}
+
+bool ShouldPlayerDealSelfDamage(int client)
+{
+	return TF2_GetClientTeam(client) == TFTeam_Hunters && IsSeekingTime();
+}
+
 // FIXME: This does not hide weapons with strange stat clock attachments
 void SetItemAlpha(int item, int alpha)
 {

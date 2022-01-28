@@ -201,12 +201,9 @@ public MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params
 
 public MRESReturn DHookCallback_HookTarget_Post(int projectile, DHookParam params)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
-		return MRES_Ignored;
-	
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	
-	if (TF2_GetClientTeam(owner) == TFTeam_Hunters)
+	if (ShouldPlayerDealSelfDamage(owner))
 	{
 		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
 		float damage = SDKCall_GetProjectileDamage(launcher) * ph_hunter_damage_modifier_grapplinghook.FloatValue;
@@ -236,14 +233,12 @@ public MRESReturn DHookCallback_Heal_Pre(Address playerShared, DHookParam params
 
 public MRESReturn DHookCallback_Push_Post(int weapon)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
-		return MRES_Ignored;
-	
 	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
 	
-	if (TF2_GetClientTeam(owner) == TFTeam_Hunters)
+	if (ShouldPlayerDealSelfDamage(owner))
 	{
-		float damage = ph_hunter_damage_scoutprimary_push.FloatValue;
+		// The damage value for the push is hardcoded
+		float damage = 1.0 * ph_hunter_damage_modifier_scoutprimary_push.FloatValue;
 		int damageType = DMG_MELEE | DMG_NEVERGIB | DMG_CLUB | DMG_PREVENT_PHYSICS_FORCE;
 		
 		SDKHooks_TakeDamage(owner, weapon, owner, damage, damageType, weapon);
@@ -310,13 +305,10 @@ public MRESReturn DHookCallback_ModifyOrAppendCriteria_Post(int player, DHookPar
 
 public MRESReturn DHookCallback_FireProjectile_Post(int weapon, DHookReturn ret, DHookParam params)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
-		return MRES_Ignored;
-	
 	int player = params.Get(1);
 	int projectile = ret.Value;
 	
-	if (TF2_GetClientTeam(player) == TFTeam_Hunters)
+	if (ShouldPlayerDealSelfDamage(player))
 	{
 		float damage = SDKCall_GetProjectileDamage(weapon) * GetWeaponBulletsPerShot(weapon) * ph_hunter_damage_modifier_gun.FloatValue;
 		int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
@@ -329,12 +321,9 @@ public MRESReturn DHookCallback_FireProjectile_Post(int weapon, DHookReturn ret,
 
 public MRESReturn DHookCallback_Smack_Post(int weapon)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
-		return MRES_Ignored;
-	
 	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
 	
-	if (TF2_GetClientTeam(owner) == TFTeam_Hunters)
+	if (ShouldPlayerDealSelfDamage(owner))
 	{
 		int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
 		float damage = SDKCall_GetMeleeDamage(weapon, owner, damageType, 0) * ph_hunter_damage_modifier_melee.FloatValue;
