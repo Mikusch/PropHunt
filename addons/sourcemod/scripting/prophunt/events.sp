@@ -30,12 +30,12 @@ void Events_Initialize()
 {
 	g_Events = new ArrayList(sizeof(EventData));
 	
-	Events_Track("player_spawn", Event_PlayerSpawn);
-	Events_Track("player_death", Event_PlayerDeath);
-	Events_Track("post_inventory_application", Event_PostInventoryApplication);
-	Events_Track("teamplay_round_start", Event_TeamplayRoundStart);
-	Events_Track("teamplay_round_win", Event_TeamplayRoundWin);
-	Events_Track("arena_round_start", Event_ArenaRoundStart);
+	Events_TrackEvent("player_spawn", Event_PlayerSpawn);
+	Events_TrackEvent("player_death", Event_PlayerDeath);
+	Events_TrackEvent("post_inventory_application", Event_PostInventoryApplication);
+	Events_TrackEvent("teamplay_round_start", Event_TeamplayRoundStart);
+	Events_TrackEvent("teamplay_round_win", Event_TeamplayRoundWin);
+	Events_TrackEvent("arena_round_start", Event_ArenaRoundStart);
 }
 
 void Events_Toggle(bool enable)
@@ -53,14 +53,24 @@ void Events_Toggle(bool enable)
 	}
 }
 
-static void Events_Track(const char[] name, EventHook callback, EventHookMode mode = EventHookMode_Post)
+static void Events_TrackEvent(const char[] name, EventHook callback, EventHookMode mode = EventHookMode_Post)
 {
-	EventData data;
-	strcopy(data.name, sizeof(data.name), name);
-	data.callback = callback;
-	data.mode = mode;
-	
-	g_Events.PushArray(data);
+	Event event = CreateEvent(name, true);
+	if (event)
+	{
+		event.Cancel();
+		
+		EventData data;
+		strcopy(data.name, sizeof(data.name), name);
+		data.callback = callback;
+		data.mode = mode;
+		
+		g_Events.PushArray(data);
+	}
+	else
+	{
+		LogError("Failed to create event with name %s", name);
+	}
 }
 
 public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)

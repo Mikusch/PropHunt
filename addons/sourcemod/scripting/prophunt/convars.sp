@@ -54,15 +54,14 @@ void ConVars_Initialize()
 	ph_round_time = CreateConVar("ph_round_time", "225", "Length of the round time, in seconds.");
 	ph_relay_name = CreateConVar("ph_relay_name", "hidingover", "Name of the relay to trigger when setup time ends.");
 	
-	// Track all ConVars not controlled by this plugin
-	ConVars_Track("tf_arena_round_time", "0");
-	ConVars_Track("tf_arena_override_cap_enable_time", "0");
-	ConVars_Track("tf_arena_use_queue", "0");
-	ConVars_Track("tf_arena_first_blood", "0");
-	ConVars_Track("tf_weapon_criticals", "0");
-	ConVars_Track("mp_show_voice_icons", "0");
-	ConVars_Track("mp_forcecamera", "1");
-	ConVars_Track("sv_gravity", "500");
+	ConVars_TrackConVar("tf_arena_round_time", "0");
+	ConVars_TrackConVar("tf_arena_override_cap_enable_time", "0");
+	ConVars_TrackConVar("tf_arena_use_queue", "0");
+	ConVars_TrackConVar("tf_arena_first_blood", "0");
+	ConVars_TrackConVar("tf_weapon_criticals", "0");
+	ConVars_TrackConVar("mp_show_voice_icons", "0");
+	ConVars_TrackConVar("mp_forcecamera", "1");
+	ConVars_TrackConVar("sv_gravity", "500");
 }
 
 void ConVars_Toggle(bool enable)
@@ -82,7 +81,7 @@ void ConVars_Toggle(bool enable)
 	delete snapshot;
 }
 
-static void ConVars_Track(const char[] name, const char[] value, bool enforce = true)
+static void ConVars_TrackConVar(const char[] name, const char[] value, bool enforce = true)
 {
 	ConVar convar = FindConVar(name);
 	if (convar)
@@ -97,7 +96,7 @@ static void ConVars_Track(const char[] name, const char[] value, bool enforce = 
 	}
 	else
 	{
-		LogError("The ConVar %s could not be found", name);
+		LogError("Failed to find convar with name %s", name);
 	}
 }
 
