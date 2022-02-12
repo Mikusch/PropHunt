@@ -17,15 +17,28 @@
 
 void Console_Initialize()
 {
-	AddMultiTargetFilter("@prop", MultiTargetFilter_FilterProps, "PH_Target_Props", true);
-	AddMultiTargetFilter("@props", MultiTargetFilter_FilterProps, "PH_Target_Props", true);
-	AddMultiTargetFilter("@hunters", MultiTargetFilter_FilterHunters, "PH_Target_Hunters", true);
-	AddMultiTargetFilter("@hunter", MultiTargetFilter_FilterHunters, "PH_Target_Hunters", true);
-	
 	RegAdminCmd("sm_getmodel", ConCmd_GetModel, ADMFLAG_CHEATS);
 	RegAdminCmd("sm_setmodel", ConCmd_SetModel, ADMFLAG_CHEATS);
 	
 	AddCommandListener(CommandListener_Build, "build");
+}
+
+void Console_Toggle(bool enable)
+{
+	if (enable)
+	{
+		AddMultiTargetFilter("@prop", MultiTargetFilter_FilterProps, "PH_Target_Props", true);
+		AddMultiTargetFilter("@props", MultiTargetFilter_FilterProps, "PH_Target_Props", true);
+		AddMultiTargetFilter("@hunters", MultiTargetFilter_FilterHunters, "PH_Target_Hunters", true);
+		AddMultiTargetFilter("@hunter", MultiTargetFilter_FilterHunters, "PH_Target_Hunters", true);
+	}
+	else
+	{
+		RemoveMultiTargetFilter("@prop", MultiTargetFilter_FilterProps);
+		RemoveMultiTargetFilter("@props", MultiTargetFilter_FilterProps);
+		RemoveMultiTargetFilter("@hunters", MultiTargetFilter_FilterHunters);
+		RemoveMultiTargetFilter("@hunter", MultiTargetFilter_FilterHunters);
+	}
 }
 
 public bool MultiTargetFilter_FilterProps(const char[] pattern, ArrayList clients)
@@ -52,6 +65,9 @@ public bool MultiTargetFilter_FilterHunters(const char[] pattern, ArrayList clie
 
 public Action ConCmd_GetModel(int client, int args)
 {
+	if (!g_IsEnabled)
+		return Plugin_Continue;
+	
 	if (args < 1)
 	{
 		ReplyToCommand(client, "[SM] Usage: sm_getmodel <#userid|name>");
@@ -93,6 +109,9 @@ public Action ConCmd_GetModel(int client, int args)
 
 public Action ConCmd_SetModel(int client, int args)
 {
+	if (!g_IsEnabled)
+		return Plugin_Continue;
+	
 	if (args < 2)
 	{
 		ReplyToCommand(client, "[SM] Usage: sm_setmodel <#userid|name> <model>");
@@ -138,6 +157,9 @@ public Action ConCmd_SetModel(int client, int args)
 
 public Action CommandListener_Build(int client, const char[] command, int argc)
 {
+	if (!g_IsEnabled)
+		return Plugin_Continue;
+	
 	if (argc < 1)
 		return Plugin_Continue;
 	

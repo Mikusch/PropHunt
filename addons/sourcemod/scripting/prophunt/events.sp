@@ -15,14 +15,52 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#define MAX_EVENT_NAME_LENGTH	32
+
+enum struct EventData
+{
+	char name[MAX_EVENT_NAME_LENGTH];
+	EventHook callback;
+	EventHookMode mode;
+}
+
+static ArrayList g_Events;
+
 void Events_Initialize()
 {
-	HookEvent("player_spawn", Event_PlayerSpawn);
-	HookEvent("player_death", Event_PlayerDeath);
-	HookEvent("post_inventory_application", Event_PostInventoryApplication);
-	HookEvent("teamplay_round_start", Event_TeamplayRoundStart);
-	HookEvent("teamplay_round_win", Event_TeamplayRoundWin);
-	HookEvent("arena_round_start", Event_ArenaRoundStart);
+	g_Events = new ArrayList(sizeof(EventData));
+	
+	Events_Track("player_spawn", Event_PlayerSpawn);
+	Events_Track("player_death", Event_PlayerDeath);
+	Events_Track("post_inventory_application", Event_PostInventoryApplication);
+	Events_Track("teamplay_round_start", Event_TeamplayRoundStart);
+	Events_Track("teamplay_round_win", Event_TeamplayRoundWin);
+	Events_Track("arena_round_start", Event_ArenaRoundStart);
+}
+
+void Events_Toggle(bool enable)
+{
+	for (int i = 0; i < g_Events.Length; i++)
+	{
+		EventData data;
+		if (g_Events.GetArray(i, data) > 0)
+		{
+			if (enable)
+				HookEvent(data.name, data.callback, data.mode);
+			else
+				UnhookEvent(data.name, data.callback, data.mode);
+		}
+	}
+}
+
+static void Events_Track(const char[] name, EventHook callback, EventHookMode mode = EventHookMode_Post)
+{
+	EventData data;
+	strcopy(data.name, sizeof(data.name), name);
+	data.callback = callback;
+	data.mode = mode;
+	
+	g_Events.PushArray(data);
 }
 
 public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)

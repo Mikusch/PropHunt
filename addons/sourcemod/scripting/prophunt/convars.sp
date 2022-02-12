@@ -15,22 +15,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#define MAX_COMMAND_LENGTH 1024
+#define COMMAND_MAX_LENGTH	512
 
-enum struct ConVarInfo
+enum struct ConVarData
 {
-	char name[64];
-	char value[MAX_COMMAND_LENGTH];
-	char initialValue[MAX_COMMAND_LENGTH];
+	char name[COMMAND_MAX_LENGTH];
+	char value[COMMAND_MAX_LENGTH];
+	char initialValue[COMMAND_MAX_LENGTH];
 	bool enforce;
-	bool enabled;
 }
 
-static StringMap g_GameConVars;
+static StringMap g_ConVars;
 
 void ConVars_Initialize()
 {
+	g_ConVars = new StringMap();
+	
 	CreateConVar("ph_version", PLUGIN_VERSION, "PropHunt Neu version", FCVAR_SPONLY | FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_DONTRECORD);
+	ph_enable = CreateConVar("ph_enable", "1", "When set, the plugin will be enabled.");
+	ph_enable.AddChangeHook(ConVarChanged_Enable);
 	ph_prop_min_size = CreateConVar("ph_prop_min_size", "40.0", "Minimum allowed size of props for them to be selectable.");
 	ph_prop_max_size = CreateConVar("ph_prop_max_size", "400.0", "Maximum allowed size of props for them to be selectable.");
 	ph_prop_select_distance = CreateConVar("ph_prop_select_distance", "128.0", "Minimum required distance to a prop for it to be selectable, in HU.");
@@ -51,8 +54,6 @@ void ConVars_Initialize()
 	ph_round_time = CreateConVar("ph_round_time", "225", "Length of the round time, in seconds.");
 	ph_relay_name = CreateConVar("ph_relay_name", "hidingover", "Name of the relay to trigger when setup time ends.");
 	
-	g_GameConVars = new StringMap();
-	
 	// Track all ConVars not controlled by this plugin
 	ConVars_Track("tf_arena_round_time", "0");
 	ConVars_Track("tf_arena_override_cap_enable_time", "0");
@@ -64,28 +65,9 @@ void ConVars_Initialize()
 	ConVars_Track("sv_gravity", "500");
 }
 
-void ConVars_Track(const char[] name, const char[] value, bool enforce = true)
+void ConVars_Toggle(bool enable)
 {
-	ConVar convar = FindConVar(name);
-	if (convar)
-	{
-		// Store ConVar information
-		ConVarInfo info;
-		strcopy(info.name, sizeof(info.name), name);
-		strcopy(info.value, sizeof(info.value), value);
-		info.enforce = enforce;
-		
-		g_GameConVars.SetArray(name, info, sizeof(info));
-	}
-	else
-	{
-		LogError("The ConVar %s could not be found", name);
-	}
-}
-
-void ConVars_ToggleAll(bool enable)
-{
-	StringMapSnapshot snapshot = g_GameConVars.Snapshot();
+	StringMapSnapshot snapshot = g_ConVars.Snapshot();
 	for (int i = 0; i < snapshot.Length; i++)
 	{
 		int size = snapshot.KeyBufferSize(i);
@@ -100,56 +82,73 @@ void ConVars_ToggleAll(bool enable)
 	delete snapshot;
 }
 
-void ConVars_Enable(const char[] name)
+static void ConVars_Track(const char[] name, const char[] value, bool enforce = true)
 {
-	ConVarInfo info;
-	if (g_GameConVars.GetArray(name, info, sizeof(info)) && !info.enabled)
+	ConVar convar = FindConVar(name);
+	if (convar)
 	{
-		ConVar convar = FindConVar(info.name);
+		// Store ConVar information
+		ConVarData info;
+		strcopy(info.name, sizeof(info.name), name);
+		strcopy(info.value, sizeof(info.value), value);
+		info.enforce = enforce;
+		
+		g_ConVars.SetArray(name, info, sizeof(info));
+	}
+	else
+	{
+		LogError("The ConVar %s could not be found", name);
+	}
+}
+
+static void ConVars_Enable(const char[] name)
+{
+	ConVarData data;
+	if (g_ConVars.GetArray(name, data, sizeof(data)))
+	{
+		ConVar convar = FindConVar(data.name);
 		
 		// Store the current value so we can later reset the ConVar to it
-		convar.GetString(info.initialValue, sizeof(info.initialValue));
-		info.enabled = true;
-		g_GameConVars.SetArray(name, info, sizeof(info));
+		convar.GetString(data.initialValue, sizeof(data.initialValue));
+		g_ConVars.SetArray(name, data, sizeof(data));
 		
 		// Update the current value
-		convar.SetString(info.value);
+		convar.SetString(data.value);
 		convar.AddChangeHook(OnConVarChanged);
 	}
 }
 
-void ConVars_Disable(const char[] name)
+static void ConVars_Disable(const char[] name)
 {
-	ConVarInfo info;
-	if (g_GameConVars.GetArray(name, info, sizeof(info)) && info.enabled)
+	ConVarData data;
+	if (g_ConVars.GetArray(name, data, sizeof(data)))
 	{
-		ConVar convar = FindConVar(info.name);
+		ConVar convar = FindConVar(data.name);
 		
-		info.enabled = false;
-		g_GameConVars.SetArray(name, info, sizeof(info));
+		g_ConVars.SetArray(name, data, sizeof(data));
 		
 		// Restore the convar value
 		convar.RemoveChangeHook(OnConVarChanged);
-		convar.SetString(info.initialValue);
+		convar.SetString(data.initialValue);
 	}
 }
 
 public void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	char name[64];
+	char name[COMMAND_MAX_LENGTH];
 	convar.GetName(name, sizeof(name));
 	
-	ConVarInfo info;
-	if (g_GameConVars.GetArray(name, info, sizeof(info)))
+	ConVarData data;
+	if (g_ConVars.GetArray(name, data, sizeof(data)))
 	{
-		if (!StrEqual(newValue, info.value))
+		if (!StrEqual(newValue, data.value))
 		{
-			strcopy(info.initialValue, sizeof(info.initialValue), newValue);
-			g_GameConVars.SetArray(name, info, sizeof(info));
+			strcopy(data.initialValue, sizeof(data.initialValue), newValue);
+			g_ConVars.SetArray(name, data, sizeof(data));
 			
 			// Restore our value if needed
-			if (info.enforce)
-				convar.SetString(info.value);
+			if (data.enforce)
+				convar.SetString(data.value);
 		}
 	}
 }

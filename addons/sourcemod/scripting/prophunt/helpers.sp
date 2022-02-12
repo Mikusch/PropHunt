@@ -306,7 +306,8 @@ void SetWinningTeam(TFTeam team)
 		DispatchKeyValue(round_win, "force_map_reset", "1");
 		SetEntProp(round_win, Prop_Data, "m_iTeamNum", team);
 		
-		AcceptEntityInput(round_win, "RoundWin");
+		if (AcceptEntityInput(round_win, "RoundWin"))
+			RemoveEntity(round_win);
 	}
 }
 
