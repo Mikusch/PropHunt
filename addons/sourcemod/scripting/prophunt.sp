@@ -34,8 +34,6 @@
 
 #define PLUGIN_TAG	"[{orange}PropHunt{default}]"
 
-#define MAX_CHAT_TIP_COUNT	6	// Update this value if you add or remove chat tips
-
 #define DONT_BLEED	0
 
 #define DMG_MELEE	DMG_BLAST_SURFACE
@@ -959,15 +957,20 @@ public Action Timer_PrintChatTip(Handle timer)
 	char phrase[32];
 	Format(phrase, sizeof(phrase), "PH_Tip_%02d", ++count);
 	
-	// The first tip is a general info text including version number
-	if (count == 1)
-		CPrintToChatAll("%s %t%t", PLUGIN_TAG, "PH_Tip_Prefix", phrase, PLUGIN_VERSION);
+	if (TranslationPhraseExists(phrase))
+	{
+		// The first tip is a general info text including version number
+		if (count == 1)
+			CPrintToChatAll("%s %t%t", PLUGIN_TAG, "PH_Tip_Prefix", phrase, PLUGIN_VERSION);
+		else
+			CPrintToChatAll("%s %t%t", PLUGIN_TAG, "PH_Tip_Prefix", phrase);
+	}
 	else
-		CPrintToChatAll("%s %t%t", PLUGIN_TAG, "PH_Tip_Prefix", phrase);
-	
-	// Loop around to the first tip
-	if (count >= MAX_CHAT_TIP_COUNT)
+	{
+		// All tips printed, loop around to the first one
 		count = 0;
+		Timer_PrintChatTip(timer);
+	}
 	
 	return Plugin_Continue;
 }
