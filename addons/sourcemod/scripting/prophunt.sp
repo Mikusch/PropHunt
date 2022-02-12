@@ -34,6 +34,8 @@
 
 #define PLUGIN_TAG	"[{orange}PropHunt{default}]"
 
+#define MAX_CHAT_TIP_COUNT	6	// Update this value if you add or remove chat tips
+
 #define DONT_BLEED	0
 
 #define DMG_MELEE	DMG_BLAST_SURFACE
@@ -110,6 +112,7 @@ bool g_InSetup;
 bool g_IsLastPropStanding;
 bool g_DisallowPropLocking;
 bool g_InHealthKitTouch;
+Handle g_ChatTipTimer;
 Handle g_ControlPointBonusTimer;
 
 // Forwards
@@ -137,7 +140,8 @@ ConVar ph_hunter_damage_modifier_projectile;
 ConVar ph_hunter_damage_modifier_scoutprimary_push;
 ConVar ph_hunter_setup_freeze;
 ConVar ph_regenerate_last_prop;
-ConVar ph_bonus_refresh_time;
+ConVar ph_bonus_refresh_interval;
+ConVar ph_chat_tip_interval;
 ConVar ph_healing_modifier;
 ConVar ph_open_doors_after_setup;
 ConVar ph_setup_truce;
@@ -483,22 +487,32 @@ void TogglePlugin(bool enable)
 {
 	g_IsEnabled = enable;
 	
-	delete g_ControlPointBonusTimer;
-	
 	Console_Toggle(enable);
 	ConVars_Toggle(enable);
 	DHooks_Toggle(enable);
 	Events_Toggle(enable);
 	
-	for (int client = 1; client <= MaxClients; client++)
+	if (enable)
 	{
-		if (IsClientInGame(client))
+		for (int client = 1; client <= MaxClients; client++)
 		{
-			if (enable)
+			if (IsClientInGame(client))
 				OnClientPutInServer(client);
-			else
+		}
+		
+		if (ph_chat_tip_interval.FloatValue > 0)
+			g_ChatTipTimer = CreateTimer(ph_chat_tip_interval.FloatValue, Timer_PrintChatTip, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
+	}
+	else
+	{
+		for (int client = 1; client <= MaxClients; client++)
+		{
+			if (IsClientInGame(client))
 				SDKHooks_UnhookClient(client);
 		}
+		
+		delete g_ChatTipTimer;
+		delete g_ControlPointBonusTimer;
 	}
 	
 	if (GameRules_GetRoundState() >= RoundState_Preround)
@@ -811,12 +825,6 @@ void CheckLastPropStanding(int client)
 	}
 }
 
-public void ConVarChanged_Enable(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	if (g_IsEnabled != convar.BoolValue)
-		TogglePlugin(convar.BoolValue);
-}
-
 public void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue)
 {
 	if (result == ConVarQuery_Okay)
@@ -837,7 +845,7 @@ public Action EntityOutput_OnSetupFinished(const char[] output, int caller, int 
 	g_InSetup = false;
 	
 	// Setup control point bonus
-	g_ControlPointBonusTimer = CreateTimer(ph_bonus_refresh_time.FloatValue, Timer_RefreshControlPointBonus, _, TIMER_REPEAT);
+	g_ControlPointBonusTimer = CreateTimer(ph_bonus_refresh_interval.FloatValue, Timer_RefreshControlPointBonus, _, TIMER_REPEAT);
 	TriggerTimer(g_ControlPointBonusTimer);
 	
 	// Refresh speed of all clients to allow hunters to move
@@ -940,6 +948,26 @@ public Action Timer_PropPostSpawn(Handle timer, int serial)
 		TF2_AddCondition(client, TFCond_AfterburnImmune);
 		TF2_AddCondition(client, TFCond_SpawnOutline);
 	}
+	
+	return Plugin_Continue;
+}
+
+public Action Timer_PrintChatTip(Handle timer)
+{
+	static int count;
+	
+	char phrase[32];
+	Format(phrase, sizeof(phrase), "PH_Tip_%02d", ++count);
+	
+	// The first tip is a general info text including version number
+	if (count == 1)
+		CPrintToChatAll("%s %t%t", PLUGIN_TAG, "PH_Tip_Prefix", phrase, PLUGIN_VERSION);
+	else
+		CPrintToChatAll("%s %t%t", PLUGIN_TAG, "PH_Tip_Prefix", phrase);
+	
+	// Loop around to the first tip
+	if (count >= MAX_CHAT_TIP_COUNT)
+		count = 0;
 	
 	return Plugin_Continue;
 }

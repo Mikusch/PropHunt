@@ -19,8 +19,6 @@ void Console_Initialize()
 {
 	RegAdminCmd("sm_getmodel", ConCmd_GetModel, ADMFLAG_CHEATS);
 	RegAdminCmd("sm_setmodel", ConCmd_SetModel, ADMFLAG_CHEATS);
-	
-	AddCommandListener(CommandListener_Build, "build");
 }
 
 void Console_Toggle(bool enable)
@@ -31,6 +29,8 @@ void Console_Toggle(bool enable)
 		AddMultiTargetFilter("@props", MultiTargetFilter_FilterProps, "PH_Target_Props", true);
 		AddMultiTargetFilter("@hunters", MultiTargetFilter_FilterHunters, "PH_Target_Hunters", true);
 		AddMultiTargetFilter("@hunter", MultiTargetFilter_FilterHunters, "PH_Target_Hunters", true);
+		
+		AddCommandListener(CommandListener_Build, "build");
 	}
 	else
 	{
@@ -38,6 +38,8 @@ void Console_Toggle(bool enable)
 		RemoveMultiTargetFilter("@props", MultiTargetFilter_FilterProps);
 		RemoveMultiTargetFilter("@hunters", MultiTargetFilter_FilterHunters);
 		RemoveMultiTargetFilter("@hunter", MultiTargetFilter_FilterHunters);
+		
+		RemoveCommandListener(CommandListener_Build, "build");
 	}
 }
 
@@ -157,9 +159,6 @@ public Action ConCmd_SetModel(int client, int args)
 
 public Action CommandListener_Build(int client, const char[] command, int argc)
 {
-	if (!g_IsEnabled)
-		return Plugin_Continue;
-	
 	if (argc < 1)
 		return Plugin_Continue;
 	

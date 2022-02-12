@@ -46,7 +46,9 @@ void ConVars_Initialize()
 	ph_hunter_damage_modifier_scoutprimary_push = CreateConVar("ph_hunter_damage_modifier_scoutprimary_push", "5.0", "Modifier of self-damage taken from the Shortstop's shove ability.");
 	ph_hunter_setup_freeze = CreateConVar("ph_hunter_setup_freeze", "1", "When set, prevent Hunter movement during setup.");
 	ph_regenerate_last_prop = CreateConVar("ph_regenerate_last_prop", "1", "When set, regenerate the last prop so that they receive their weapons.");
-	ph_bonus_refresh_time = CreateConVar("ph_bonus_refresh_time", "60.0", "Refresh interval of the control point bonus, in seconds.");
+	ph_chat_tip_interval = CreateConVar("ph_chat_tip_interval", "210.0", "Interval at which tips are printed in chat, in seconds. Set to 0 to disable chat tips.");
+	ph_chat_tip_interval.AddChangeHook(ConVarChanged_ChatTipInterval);
+	ph_bonus_refresh_interval = CreateConVar("ph_bonus_refresh_interval", "60.0", "Interval at which the control point bonus refreshes, in seconds.");
 	ph_healing_modifier = CreateConVar("ph_healing_modifier", "0.25", "Modifier of the amount of healing received from continuous healing sources.");
 	ph_open_doors_after_setup = CreateConVar("ph_open_doors_after_setup", "1", "When set, open all doors after setup time ends.");
 	ph_setup_truce = CreateConVar("ph_setup_truce", "0", "When set, props can not be damaged during setup.");
@@ -150,4 +152,18 @@ public void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] n
 				convar.SetString(data.value);
 		}
 	}
+}
+
+public void ConVarChanged_Enable(ConVar convar, const char[] oldValue, const char[] newValue)
+{
+	if (g_IsEnabled != convar.BoolValue)
+		TogglePlugin(convar.BoolValue);
+}
+
+public void ConVarChanged_ChatTipInterval(ConVar convar, const char[] oldValue, const char[] newValue)
+{
+	delete g_ChatTipTimer;
+	
+	if (convar.FloatValue > 0)
+		g_ChatTipTimer = CreateTimer(convar.FloatValue, Timer_PrintChatTip, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
 }
