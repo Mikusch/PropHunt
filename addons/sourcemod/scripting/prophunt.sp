@@ -30,7 +30,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION	"1.1.0"
+#define PLUGIN_VERSION	"1.2.0"
 
 #define PLUGIN_TAG	"[{orange}PropHunt{default}]"
 
@@ -104,11 +104,13 @@ char g_TauntSounds[][] =
 };
 
 // Globals
+bool g_IsEnabled;
 bool g_IsMapRunning;
 bool g_InSetup;
 bool g_IsLastPropStanding;
 bool g_DisallowPropLocking;
 bool g_InHealthKitTouch;
+Handle g_ChatTipTimer;
 Handle g_ControlPointBonusTimer;
 
 // Forwards
@@ -123,6 +125,7 @@ int g_OffsetWeaponBulletsPerShot;
 int g_OffsetWeaponTimeFireDelay;
 
 // ConVars
+ConVar ph_enable;
 ConVar ph_prop_min_size;
 ConVar ph_prop_max_size;
 ConVar ph_prop_select_distance;
@@ -135,7 +138,8 @@ ConVar ph_hunter_damage_modifier_projectile;
 ConVar ph_hunter_damage_modifier_scoutprimary_push;
 ConVar ph_hunter_setup_freeze;
 ConVar ph_regenerate_last_prop;
-ConVar ph_bonus_refresh_time;
+ConVar ph_bonus_refresh_interval;
+ConVar ph_chat_tip_interval;
 ConVar ph_healing_modifier;
 ConVar ph_open_doors_after_setup;
 ConVar ph_setup_truce;
@@ -218,17 +222,14 @@ public void OnPluginStart()
 	{
 		SetFailState("Could not find prophunt gamedata");
 	}
-	
-	for (int client = 1; client <= MaxClients; client++)
-	{
-		if (IsClientInGame(client))
-			OnClientPutInServer(client);
-	}
 }
 
 public void OnPluginEnd()
 {
-	ConVars_ToggleAll(false);
+	if (!g_IsEnabled)
+		return;
+	
+	TogglePlugin(false);
 }
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -247,8 +248,6 @@ public void OnMapStart()
 	PrecacheSound("#" ... SOUND_LAST_PROP);
 	PrecacheSound(LOCK_SOUND);
 	PrecacheSound(UNLOCK_SOUND);
-	
-	ConVars_ToggleAll(true);
 	
 	// Read map config
 	char file[PLATFORM_MAX_PATH];
@@ -270,8 +269,17 @@ public void OnMapEnd()
 	g_CurrentMapConfig.Clear();
 }
 
+public void OnConfigsExecuted()
+{
+	if (g_IsEnabled != ph_enable.BoolValue)
+		TogglePlugin(ph_enable.BoolValue);
+}
+
 public void OnEntityCreated(int entity, const char[] classname)
 {
+	if (!g_IsEnabled)
+		return;
+	
 	SDKHooks_OnEntityCreated(entity, classname);
 	
 	if (strcmp(classname, "tf_logic_arena") == 0)
@@ -287,6 +295,9 @@ public void OnEntityCreated(int entity, const char[] classname)
 
 public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname, bool &result)
 {
+	if (!g_IsEnabled)
+		return Plugin_Continue;
+	
 	if (!ShouldPlayerDealSelfDamage(client))
 		return Plugin_Continue;
 	
@@ -304,6 +315,9 @@ public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname
 
 public void OnClientPutInServer(int client)
 {
+	if (!g_IsEnabled)
+		return;
+	
 	PHPlayer(client).Reset();
 	
 	DHooks_HookClient(client);
@@ -316,11 +330,17 @@ public void OnClientPutInServer(int client)
 
 public void OnClientDisconnect(int client)
 {
+	if (!g_IsEnabled)
+		return;
+	
 	CheckLastPropStanding(client);
 }
 
 public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
 {
+	if (!g_IsEnabled)
+		return Plugin_Continue;
+	
 	// Prop-only functionality below this point
 	if (TF2_GetClientTeam(client) != TFTeam_Props || !IsPlayerAlive(client))
 		return Plugin_Continue;
@@ -405,6 +425,9 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 
 public Action TF2Items_OnGiveNamedItem(int client, char[] classname, int itemDefIndex, Handle &item)
 {
+	if (!g_IsEnabled)
+		return Plugin_Continue;
+	
 	if (TF2_GetClientTeam(client) == TFTeam_Props)
 	{
 		// Make sure that all props except the last stay naked
@@ -425,6 +448,9 @@ public Action TF2Items_OnGiveNamedItem(int client, char[] classname, int itemDef
 
 public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int itemDefIndex, int level, int quality, int entity)
 {
+	if (!g_IsEnabled)
+		return;
+	
 	// Is CTFWeaponBaseGun?
 	if (IsWeaponBaseGun(entity))
 		DHooks_HookBaseGun(entity);
@@ -453,6 +479,42 @@ public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int item
 		}
 		delete attributes;
 	}
+}
+
+void TogglePlugin(bool enable)
+{
+	g_IsEnabled = enable;
+	
+	Console_Toggle(enable);
+	ConVars_Toggle(enable);
+	DHooks_Toggle(enable);
+	Events_Toggle(enable);
+	
+	if (enable)
+	{
+		for (int client = 1; client <= MaxClients; client++)
+		{
+			if (IsClientInGame(client))
+				OnClientPutInServer(client);
+		}
+		
+		if (ph_chat_tip_interval.FloatValue > 0)
+			g_ChatTipTimer = CreateTimer(ph_chat_tip_interval.FloatValue, Timer_PrintChatTip, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
+	}
+	else
+	{
+		for (int client = 1; client <= MaxClients; client++)
+		{
+			if (IsClientInGame(client))
+				SDKHooks_UnhookClient(client);
+		}
+		
+		delete g_ChatTipTimer;
+		delete g_ControlPointBonusTimer;
+	}
+	
+	if (GameRules_GetRoundState() >= RoundState_Preround)
+		SetWinningTeam(TFTeam_Unassigned);
 }
 
 bool SearchForProps(int client, char[] message, int maxlength)
@@ -781,7 +843,7 @@ public Action EntityOutput_OnSetupFinished(const char[] output, int caller, int 
 	g_InSetup = false;
 	
 	// Setup control point bonus
-	g_ControlPointBonusTimer = CreateTimer(ph_bonus_refresh_time.FloatValue, Timer_RefreshControlPointBonus, _, TIMER_REPEAT);
+	g_ControlPointBonusTimer = CreateTimer(ph_bonus_refresh_interval.FloatValue, Timer_RefreshControlPointBonus, _, TIMER_REPEAT);
 	TriggerTimer(g_ControlPointBonusTimer);
 	
 	// Refresh speed of all clients to allow hunters to move
@@ -792,7 +854,7 @@ public Action EntityOutput_OnSetupFinished(const char[] output, int caller, int 
 	}
 	
 	// Trigger named relays
-	char relayName[MAX_COMMAND_LENGTH];
+	char relayName[64];
 	ph_relay_name.GetString(relayName, sizeof(relayName));
 	
 	if (relayName[0] != '\0')
@@ -883,6 +945,31 @@ public Action Timer_PropPostSpawn(Handle timer, int serial)
 		// Apply gameplay conditions
 		TF2_AddCondition(client, TFCond_AfterburnImmune);
 		TF2_AddCondition(client, TFCond_SpawnOutline);
+	}
+	
+	return Plugin_Continue;
+}
+
+public Action Timer_PrintChatTip(Handle timer)
+{
+	static int count;
+	
+	char phrase[32];
+	Format(phrase, sizeof(phrase), "PH_Tip_%02d", ++count);
+	
+	if (TranslationPhraseExists(phrase))
+	{
+		// The first tip is a general info text including version number
+		if (count == 1)
+			CPrintToChatAll("%s %t%t", PLUGIN_TAG, "PH_Tip_Prefix", phrase, PLUGIN_VERSION);
+		else
+			CPrintToChatAll("%s %t%t", PLUGIN_TAG, "PH_Tip_Prefix", phrase);
+	}
+	else
+	{
+		// All tips printed, loop around to the first one
+		count = 0;
+		Timer_PrintChatTip(timer);
 	}
 	
 	return Plugin_Continue;

@@ -15,6 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+enum struct DetourData
+{
+	DynamicDetour detour;
+	DHookCallback callbackPre;
+	DHookCallback callbackPost;
+}
+
+static ArrayList g_DynamicDetours;
+static ArrayList g_DynamicHookIds;
+
 static DynamicHook g_DHookSpawn;
 static DynamicHook g_DHookTakeHealth;
 static DynamicHook g_DHookModifyOrAppendCriteria;
@@ -26,61 +36,100 @@ static int g_OldGameType;
 
 void DHooks_Initialize(GameData gamedata)
 {
-	CreateDynamicDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHookCallback_GetMaxHealthForBuffing_Post);
-	CreateDynamicDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHookCallback_CanPlayerMove_Post);
-	CreateDynamicDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, DHookCallback_HookTarget_Post);
-	CreateDynamicDetour(gamedata, "CTFPlayerShared::Heal", DHookCallback_Heal_Pre, _);
-	CreateDynamicDetour(gamedata, "CTFPistol_ScoutPrimary::Push", _, DHookCallback_Push_Post);
-	CreateDynamicDetour(gamedata, "CTeamplayRoundBasedRules::SetInWaitingForPlayers", DHookCallback_SetInWaitingForPlayers_Pre, DHookCallback_SetInWaitingForPlayers_Post);
+	g_DynamicDetours = new ArrayList(sizeof(DetourData));
+	g_DynamicHookIds = new ArrayList();
 	
-	g_DHookSpawn = CreateDynamicHook(gamedata, "CBaseEntity::Spawn");
-	g_DHookTakeHealth = CreateDynamicHook(gamedata, "CBaseEntity::TakeHealth");
-	g_DHookModifyOrAppendCriteria = CreateDynamicHook(gamedata, "CBaseEntity::ModifyOrAppendCriteria");
-	g_DHookFireProjectile = CreateDynamicHook(gamedata, "CTFWeaponBaseGun::FireProjectile");
-	g_DHookSmack = CreateDynamicHook(gamedata, "CTFWeaponBaseMelee::Smack");
-	g_DHookHasKnockback = CreateDynamicHook(gamedata, "CTFScatterGun::HasKnockback");
+	DHooks_TrackDynamicDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHookCallback_GetMaxHealthForBuffing_Post);
+	DHooks_TrackDynamicDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHookCallback_CanPlayerMove_Post);
+	DHooks_TrackDynamicDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, DHookCallback_HookTarget_Post);
+	DHooks_TrackDynamicDetour(gamedata, "CTFPlayerShared::Heal", DHookCallback_Heal_Pre, _);
+	DHooks_TrackDynamicDetour(gamedata, "CTFPistol_ScoutPrimary::Push", _, DHookCallback_Push_Post);
+	DHooks_TrackDynamicDetour(gamedata, "CTeamplayRoundBasedRules::SetInWaitingForPlayers", DHookCallback_SetInWaitingForPlayers_Pre, DHookCallback_SetInWaitingForPlayers_Post);
+	
+	g_DHookSpawn = DHooks_CreateDynamicDetour(gamedata, "CBaseEntity::Spawn");
+	g_DHookTakeHealth = DHooks_CreateDynamicDetour(gamedata, "CBaseEntity::TakeHealth");
+	g_DHookModifyOrAppendCriteria = DHooks_CreateDynamicDetour(gamedata, "CBaseEntity::ModifyOrAppendCriteria");
+	g_DHookFireProjectile = DHooks_CreateDynamicDetour(gamedata, "CTFWeaponBaseGun::FireProjectile");
+	g_DHookSmack = DHooks_CreateDynamicDetour(gamedata, "CTFWeaponBaseMelee::Smack");
+	g_DHookHasKnockback = DHooks_CreateDynamicDetour(gamedata, "CTFScatterGun::HasKnockback");
+}
+
+void DHooks_Toggle(bool enable)
+{
+	for (int i = 0; i < g_DynamicDetours.Length; i++)
+	{
+		DetourData data;
+		if (g_DynamicDetours.GetArray(i, data) > 0)
+		{
+			if (data.callbackPre != INVALID_FUNCTION)
+			{
+				if (enable)
+					data.detour.Enable(Hook_Pre, data.callbackPre);
+				else
+					data.detour.Disable(Hook_Pre, data.callbackPre);
+			}
+			
+			if (data.callbackPost != INVALID_FUNCTION)
+			{
+				if (enable)
+					data.detour.Enable(Hook_Post, data.callbackPost);
+				else
+					data.detour.Disable(Hook_Post, data.callbackPost);
+			}
+		}
+	}
+	
+	if (!enable)
+	{
+		for (int i = 0; i < g_DynamicHookIds.Length; i++)
+		{
+			int hookid = g_DynamicHookIds.Get(i);
+			DynamicHook.RemoveHook(hookid);
+		}
+	}
 }
 
 void DHooks_HookClient(int client)
 {
 	if (g_DHookSpawn)
-		g_DHookSpawn.HookEntity(Hook_Pre, client, DHookCallback_Spawn_Pre);
+		DHooks_HookEntity(g_DHookSpawn, Hook_Pre, client, DHookCallback_Spawn_Pre);
 	
 	if (g_DHookTakeHealth)
-		g_DHookTakeHealth.HookEntity(Hook_Pre, client, DHookCallback_TakeHealth_Pre);
+		DHooks_HookEntity(g_DHookTakeHealth, Hook_Pre, client, DHookCallback_TakeHealth_Pre);
 	
 	if (g_DHookModifyOrAppendCriteria)
-		g_DHookModifyOrAppendCriteria.HookEntity(Hook_Post, client, DHookCallback_ModifyOrAppendCriteria_Post);
+		DHooks_HookEntity(g_DHookModifyOrAppendCriteria, Hook_Post, client, DHookCallback_ModifyOrAppendCriteria_Post);
 }
 
 void DHooks_HookBaseGun(int weapon)
 {
 	if (g_DHookFireProjectile)
-		g_DHookFireProjectile.HookEntity(Hook_Post, weapon, DHookCallback_FireProjectile_Post);
+		DHooks_HookEntity(g_DHookFireProjectile, Hook_Post, weapon, DHookCallback_FireProjectile_Post);
 }
 
 void DHooks_HookBaseMelee(int weapon)
 {
 	if (g_DHookSmack)
-		g_DHookSmack.HookEntity(Hook_Post, weapon, DHookCallback_Smack_Post);
+		DHooks_HookEntity(g_DHookSmack, Hook_Post, weapon, DHookCallback_Smack_Post);
 }
 
 void DHooks_HookScatterGun(int scattergun)
 {
 	if (g_DHookHasKnockback)
-		g_DHookHasKnockback.HookEntity(Hook_Post, scattergun, DHookCallback_HasKnockback_Post);
+		DHooks_HookEntity(g_DHookHasKnockback, Hook_Post, scattergun, DHookCallback_HasKnockback_Post);
 }
 
-static void CreateDynamicDetour(GameData gamedata, const char[] name, DHookCallback callbackPre = INVALID_FUNCTION, DHookCallback callbackPost = INVALID_FUNCTION)
+static void DHooks_TrackDynamicDetour(GameData gamedata, const char[] name, DHookCallback callbackPre = INVALID_FUNCTION, DHookCallback callbackPost = INVALID_FUNCTION)
 {
 	DynamicDetour detour = DynamicDetour.FromConf(gamedata, name);
 	if (detour)
 	{
-		if (callbackPre != INVALID_FUNCTION)
-			detour.Enable(Hook_Pre, callbackPre);
+		DetourData data;
+		data.detour = detour;
+		data.callbackPre = callbackPre;
+		data.callbackPost = callbackPost;
 		
-		if (callbackPost != INVALID_FUNCTION)
-			detour.Enable(Hook_Post, callbackPost);
+		g_DynamicDetours.PushArray(data);
 	}
 	else
 	{
@@ -88,13 +137,30 @@ static void CreateDynamicDetour(GameData gamedata, const char[] name, DHookCallb
 	}
 }
 
-static DynamicHook CreateDynamicHook(GameData gamedata, const char[] name)
+static DynamicHook DHooks_CreateDynamicDetour(GameData gamedata, const char[] name)
 {
 	DynamicHook hook = DynamicHook.FromConf(gamedata, name);
 	if (!hook)
 		LogError("Failed to create hook setup handle for %s", name);
 	
 	return hook;
+}
+
+static void DHooks_HookEntity(DynamicHook hook, HookMode mode, int entity, DHookCallback callback)
+{
+	if (!hook)
+		return;
+	
+	int hookid = hook.HookEntity(mode, entity, callback, DHookRemovalCB_OnHookRemoved);
+	if (hookid != INVALID_HOOK_ID)
+		g_DynamicHookIds.Push(hookid);
+}
+
+public void DHookRemovalCB_OnHookRemoved(int hookid)
+{
+	int index = g_DynamicHookIds.FindValue(hookid);
+	if (index != -1)
+		g_DynamicHookIds.Erase(index);
 }
 
 public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)

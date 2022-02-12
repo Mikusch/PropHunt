@@ -20,6 +20,11 @@ void SDKHooks_HookClient(int client)
 	SDKHook(client, SDKHook_OnTakeDamage, SDKHookCB_Client_OnTakeDamage);
 }
 
+void SDKHooks_UnhookClient(int client)
+{
+	SDKUnhook(client, SDKHook_OnTakeDamage, SDKHookCB_Client_OnTakeDamage);
+}
+
 void SDKHooks_OnEntityCreated(int entity, const char[] classname)
 {
 	if (strcmp(classname, "prop_dynamic") == 0)

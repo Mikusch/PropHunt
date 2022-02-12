@@ -307,6 +307,7 @@ void SetWinningTeam(TFTeam team)
 		SetEntProp(round_win, Prop_Data, "m_iTeamNum", team);
 		
 		AcceptEntityInput(round_win, "RoundWin");
+		RemoveEntity(round_win);
 	}
 }
 

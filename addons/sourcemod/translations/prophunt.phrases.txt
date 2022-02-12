@@ -27,6 +27,42 @@
 		"en"		"Hunters"
 	}
 	
+	"PH_Tip_Prefix"
+	{
+		"en"		"{green}Tip: {default}"
+	}
+	
+	"PH_Tip_01"
+	{
+		"#format"	"{1:s}"
+		"en"		"You are currently playing {darkorange}PropHunt Neu ({1}) {default}by {gold}Mikusch{default}."
+	}
+	
+	"PH_Tip_02"
+	{
+		"en"		"As a {blue}Hunter{default}, use weapons that apply Bleeding, Jarate, or Mad Milk to prevent props from changing their disguise."
+	}
+	
+	"PH_Tip_03"
+	{
+		"en"		"As a {red}Prop{default}, use PropLock™ to freeze yourself in mid-air."
+	}
+	
+	"PH_Tip_04"
+	{
+		"en"		"The control point bonus heals you and nearby allies and knocks away nearby enemies."
+	}
+	
+	"PH_Tip_05"
+	{
+		"en"		"As a {blue}Hunter{default}, your Grappling Hook allows you to chase props and access hard-to-reach areas."
+	}
+	
+	"PH_Tip_06"
+	{
+		"en"		"As a {red}Prop{default}, you have the ability to breathe underwater."
+	}
+	
 	"PH_PropLock_Enabled"
 	{
 		"en"		"PropLock™ Engaged"
