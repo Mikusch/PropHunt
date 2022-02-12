@@ -144,5 +144,6 @@ methodmap PHPlayer
 		this.InForcedTauntCam = true;
 		this.HasReceivedBonus = false;
 		this.IsLastProp = false;
+		this.NextTauntTime = -1.0;
 	}
 }
