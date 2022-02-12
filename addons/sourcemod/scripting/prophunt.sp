@@ -501,7 +501,8 @@ void TogglePlugin(bool enable)
 		}
 	}
 	
-	SetWinningTeam(TFTeam_Unassigned);
+	if (GameRules_GetRoundState() >= RoundState_Preround)
+		SetWinningTeam(TFTeam_Unassigned);
 }
 
 bool SearchForProps(int client, char[] message, int maxlength)
