@@ -29,7 +29,7 @@
 	
 	"PH_Tip_Prefix"
 	{
-		"en"		"{green}TIP: {default}"
+		"en"		"{green}Tip: {default}"
 	}
 	
 	"PH_Tip_01"
