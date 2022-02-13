@@ -35,7 +35,7 @@
 	"PH_Tip_01"
 	{
 		"#format"	"{1:s}"
-		"en"		"You are currently playing {darkorange}PropHunt Neu ({1}) {default}by {gold}Mikusch{default}."
+		"en"		"You are currently playing {darkorange}PropHunt Neu {default}({1}) by {gold}Mikusch{default}."
 	}
 	
 	"PH_Tip_02"

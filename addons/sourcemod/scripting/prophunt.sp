@@ -961,7 +961,7 @@ public Action Timer_PrintChatTip(Handle timer)
 	{
 		// The first tip is a general info text including version number
 		if (count == 1)
-			CPrintToChatAll("%s %t%t", PLUGIN_TAG, "PH_Tip_Prefix", phrase, PLUGIN_VERSION);
+			CPrintToChatAll("%s %t", PLUGIN_TAG, phrase, PLUGIN_VERSION);
 		else
 			CPrintToChatAll("%s %t%t", PLUGIN_TAG, "PH_Tip_Prefix", phrase);
 	}

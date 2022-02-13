@@ -46,7 +46,7 @@ void ConVars_Initialize()
 	ph_hunter_damage_modifier_scoutprimary_push = CreateConVar("ph_hunter_damage_modifier_scoutprimary_push", "5.0", "Modifier of self-damage taken from the Shortstop's shove ability.");
 	ph_hunter_setup_freeze = CreateConVar("ph_hunter_setup_freeze", "1", "When set, prevent Hunter movement during setup.");
 	ph_regenerate_last_prop = CreateConVar("ph_regenerate_last_prop", "1", "When set, regenerate the last prop so that they receive their weapons.");
-	ph_chat_tip_interval = CreateConVar("ph_chat_tip_interval", "210.0", "Interval at which tips are printed in chat, in seconds. Set to 0 to disable chat tips.");
+	ph_chat_tip_interval = CreateConVar("ph_chat_tip_interval", "240.0", "Interval at which tips are printed in chat, in seconds. Set to 0 to disable chat tips.");
 	ph_chat_tip_interval.AddChangeHook(ConVarChanged_ChatTipInterval);
 	ph_bonus_refresh_interval = CreateConVar("ph_bonus_refresh_interval", "60.0", "Interval at which the control point bonus refreshes, in seconds.");
 	ph_healing_modifier = CreateConVar("ph_healing_modifier", "0.25", "Modifier of the amount of healing received from continuous healing sources.");
