@@ -172,8 +172,6 @@ public void OnPluginStart()
 	LoadTranslations("common.phrases");
 	LoadTranslations("prophunt.phrases");
 	
-	AddFileToDownloadsTable("sound/" ... SOUND_LAST_PROP);
-	
 	Console_Initialize();
 	ConVars_Initialize();
 	Events_Initialize();
@@ -244,7 +242,9 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 public void OnMapStart()
 {
 	g_IsMapRunning = true;
-	
+
+	AddFileToDownloadsTable("sound/" ... SOUND_LAST_PROP);
+
 	PrecacheSound("#" ... SOUND_LAST_PROP);
 	PrecacheSound(LOCK_SOUND);
 	PrecacheSound(UNLOCK_SOUND);
