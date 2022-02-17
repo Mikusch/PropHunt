@@ -4,6 +4,8 @@
 
 PropHunt Neu is my own take on the classic hide 'n seek gamemode for Team Fortress 2.
 
+AlliedModders forum thread: https://forums.alliedmods.net/showthread.php?p=2771274
+
 ## Features
 
 * Ability to disguise as any prop on the map
