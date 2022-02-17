@@ -242,9 +242,9 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 public void OnMapStart()
 {
 	g_IsMapRunning = true;
-
+	
 	AddFileToDownloadsTable("sound/" ... SOUND_LAST_PROP);
-
+	
 	PrecacheSound("#" ... SOUND_LAST_PROP);
 	PrecacheSound(LOCK_SOUND);
 	PrecacheSound(UNLOCK_SOUND);
