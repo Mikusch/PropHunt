@@ -162,6 +162,9 @@ public void ConVarChanged_Enable(ConVar convar, const char[] oldValue, const cha
 
 public void ConVarChanged_ChatTipInterval(ConVar convar, const char[] oldValue, const char[] newValue)
 {
+	if (!g_IsEnabled)
+		return;
+	
 	delete g_ChatTipTimer;
 	
 	if (convar.FloatValue > 0)
