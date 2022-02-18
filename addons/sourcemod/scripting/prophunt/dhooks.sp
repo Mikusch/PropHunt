@@ -39,19 +39,19 @@ void DHooks_Initialize(GameData gamedata)
 	g_DynamicDetours = new ArrayList(sizeof(DetourData));
 	g_DynamicHookIds = new ArrayList();
 	
-	DHooks_TrackDynamicDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHookCallback_GetMaxHealthForBuffing_Post);
-	DHooks_TrackDynamicDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHookCallback_CanPlayerMove_Post);
-	DHooks_TrackDynamicDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, DHookCallback_HookTarget_Post);
-	DHooks_TrackDynamicDetour(gamedata, "CTFPlayerShared::Heal", DHookCallback_Heal_Pre, _);
-	DHooks_TrackDynamicDetour(gamedata, "CTFPistol_ScoutPrimary::Push", _, DHookCallback_Push_Post);
-	DHooks_TrackDynamicDetour(gamedata, "CTeamplayRoundBasedRules::SetInWaitingForPlayers", DHookCallback_SetInWaitingForPlayers_Pre, DHookCallback_SetInWaitingForPlayers_Post);
+	DHooks_CreateDynamicDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHookCallback_GetMaxHealthForBuffing_Post);
+	DHooks_CreateDynamicDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHookCallback_CanPlayerMove_Post);
+	DHooks_CreateDynamicDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, DHookCallback_HookTarget_Post);
+	DHooks_CreateDynamicDetour(gamedata, "CTFPlayerShared::Heal", DHookCallback_Heal_Pre, _);
+	DHooks_CreateDynamicDetour(gamedata, "CTFPistol_ScoutPrimary::Push", _, DHookCallback_Push_Post);
+	DHooks_CreateDynamicDetour(gamedata, "CTeamplayRoundBasedRules::SetInWaitingForPlayers", DHookCallback_SetInWaitingForPlayers_Pre, DHookCallback_SetInWaitingForPlayers_Post);
 	
-	g_DHookSpawn = DHooks_CreateDynamicDetour(gamedata, "CBaseEntity::Spawn");
-	g_DHookTakeHealth = DHooks_CreateDynamicDetour(gamedata, "CBaseEntity::TakeHealth");
-	g_DHookModifyOrAppendCriteria = DHooks_CreateDynamicDetour(gamedata, "CBaseEntity::ModifyOrAppendCriteria");
-	g_DHookFireProjectile = DHooks_CreateDynamicDetour(gamedata, "CTFWeaponBaseGun::FireProjectile");
-	g_DHookSmack = DHooks_CreateDynamicDetour(gamedata, "CTFWeaponBaseMelee::Smack");
-	g_DHookHasKnockback = DHooks_CreateDynamicDetour(gamedata, "CTFScatterGun::HasKnockback");
+	g_DHookSpawn = DHooks_CreateDynamicHook(gamedata, "CBaseEntity::Spawn");
+	g_DHookTakeHealth = DHooks_CreateDynamicHook(gamedata, "CBaseEntity::TakeHealth");
+	g_DHookModifyOrAppendCriteria = DHooks_CreateDynamicHook(gamedata, "CBaseEntity::ModifyOrAppendCriteria");
+	g_DHookFireProjectile = DHooks_CreateDynamicHook(gamedata, "CTFWeaponBaseGun::FireProjectile");
+	g_DHookSmack = DHooks_CreateDynamicHook(gamedata, "CTFWeaponBaseMelee::Smack");
+	g_DHookHasKnockback = DHooks_CreateDynamicHook(gamedata, "CTFScatterGun::HasKnockback");
 }
 
 void DHooks_Toggle(bool enable)
@@ -119,7 +119,7 @@ void DHooks_HookScatterGun(int scattergun)
 		DHooks_HookEntity(g_DHookHasKnockback, Hook_Post, scattergun, DHookCallback_HasKnockback_Post);
 }
 
-static void DHooks_TrackDynamicDetour(GameData gamedata, const char[] name, DHookCallback callbackPre = INVALID_FUNCTION, DHookCallback callbackPost = INVALID_FUNCTION)
+static void DHooks_CreateDynamicDetour(GameData gamedata, const char[] name, DHookCallback callbackPre = INVALID_FUNCTION, DHookCallback callbackPost = INVALID_FUNCTION)
 {
 	DynamicDetour detour = DynamicDetour.FromConf(gamedata, name);
 	if (detour)
@@ -137,7 +137,7 @@ static void DHooks_TrackDynamicDetour(GameData gamedata, const char[] name, DHoo
 	}
 }
 
-static DynamicHook DHooks_CreateDynamicDetour(GameData gamedata, const char[] name)
+static DynamicHook DHooks_CreateDynamicHook(GameData gamedata, const char[] name)
 {
 	DynamicHook hook = DynamicHook.FromConf(gamedata, name);
 	if (!hook)
