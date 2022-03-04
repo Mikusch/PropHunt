@@ -492,25 +492,24 @@ void TogglePlugin(bool enable)
 	
 	if (enable)
 	{
-		for (int client = 1; client <= MaxClients; client++)
-		{
-			if (IsClientInGame(client))
-				OnClientPutInServer(client);
-		}
-		
 		if (ph_chat_tip_interval.FloatValue > 0)
 			g_ChatTipTimer = CreateTimer(ph_chat_tip_interval.FloatValue, Timer_PrintChatTip, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
 	}
 	else
 	{
-		for (int client = 1; client <= MaxClients; client++)
-		{
-			if (IsClientInGame(client))
-				SDKHooks_UnhookClient(client);
-		}
-		
 		delete g_ChatTipTimer;
 		delete g_ControlPointBonusTimer;
+	}
+	
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		if (!IsClientInGame(client))
+			continue;
+		
+		if (enable)
+			OnClientPutInServer(client);
+		else
+			SDKHooks_UnhookClient(client);
 	}
 	
 	if (GameRules_GetRoundState() >= RoundState_Preround)
