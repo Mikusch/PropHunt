@@ -86,6 +86,8 @@ void DHooks_Toggle(bool enable)
 			int hookid = g_DynamicHookIds.Get(i);
 			DynamicHook.RemoveHook(hookid);
 		}
+		
+		g_DynamicHookIds.Clear();
 	}
 }
 
