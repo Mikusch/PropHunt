@@ -153,4 +153,9 @@
 		"#format"	"{1:s},{2:t}"
 		"en"		"Forced model {lightgreen}{1} {default}on {2}."
 	}
+	
+	"PH_Command_ReloadConfig_Success"
+	{
+		"en"		"Configuration cache has been refreshed."
+	}
 }

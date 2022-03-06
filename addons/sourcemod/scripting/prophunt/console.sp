@@ -19,6 +19,7 @@ void Console_Initialize()
 {
 	RegAdminCmd("sm_getmodel", ConCmd_GetModel, ADMFLAG_CHEATS);
 	RegAdminCmd("sm_setmodel", ConCmd_SetModel, ADMFLAG_CHEATS);
+	RegAdminCmd("sm_reloadconfigs", ConCmd_ReloadConfigs, ADMFLAG_CONFIG);
 }
 
 void Console_Toggle(bool enable)
@@ -153,6 +154,19 @@ public Action ConCmd_SetModel(int client, int args)
 	{
 		CShowActivity2(client, "{default}" ... PLUGIN_TAG ... " ", "%t", "PH_Command_SetModel_Success", modelTidyName, "_s", target_name);
 	}
+	
+	return Plugin_Handled;
+}
+
+public Action ConCmd_ReloadConfigs(int client, int args)
+{
+	if (!g_IsEnabled)
+		return Plugin_Continue;
+	
+	ReadPropConfig();
+	ReadMapConfig();
+	
+	CReplyToCommand(client, "%s %t", PLUGIN_TAG, "PH_Command_ReloadConfig_Success");
 	
 	return Plugin_Handled;
 }

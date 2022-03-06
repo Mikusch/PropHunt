@@ -179,26 +179,7 @@ public void OnPluginStart()
 	g_PropConfigs = new ArrayList(sizeof(PropConfig));
 	
 	// Read global prop config
-	char file[PLATFORM_MAX_PATH];
-	BuildPath(Path_SM, file, sizeof(file), "configs/prophunt/props.cfg");
-	
-	KeyValues kv = new KeyValues("Props");
-	if (kv.ImportFromFile(file))
-	{
-		if (kv.GotoFirstSubKey(false))
-		{
-			do
-			{
-				PropConfig config;
-				config.ReadFromKv(kv);
-				g_PropConfigs.PushArray(config);
-			}
-			while (kv.GotoNextKey(false));
-			kv.GoBack();
-		}
-		kv.GoBack();
-	}
-	delete kv;
+	ReadPropConfig();
 	
 	// Set up everything that needs gamedata
 	GameData gamedata = new GameData("prophunt");
@@ -250,16 +231,7 @@ public void OnMapStart()
 	PrecacheSound(UNLOCK_SOUND);
 	
 	// Read map config
-	char file[PLATFORM_MAX_PATH];
-	if (GetMapConfigFilepath(file, sizeof(file)))
-	{
-		KeyValues kv = new KeyValues("PropHunt");
-		if (kv.ImportFromFile(file))
-		{
-			g_CurrentMapConfig.ReadFromKv(kv);
-		}
-		delete kv;
-	}
+	ReadMapConfig();
 }
 
 public void OnMapEnd()
@@ -514,6 +486,48 @@ void TogglePlugin(bool enable)
 	
 	if (GameRules_GetRoundState() >= RoundState_Preround)
 		SetWinningTeam(TFTeam_Unassigned);
+}
+
+void ReadPropConfig()
+{
+	g_PropConfigs.Clear();
+	
+	char file[PLATFORM_MAX_PATH];
+	BuildPath(Path_SM, file, sizeof(file), PROP_CONFIG_FILEPATH);
+	
+	KeyValues kv = new KeyValues("Props");
+	if (kv.ImportFromFile(file))
+	{
+		if (kv.GotoFirstSubKey(false))
+		{
+			do
+			{
+				PropConfig config;
+				config.ReadFromKv(kv);
+				g_PropConfigs.PushArray(config);
+			}
+			while (kv.GotoNextKey(false));
+			kv.GoBack();
+		}
+		kv.GoBack();
+	}
+	delete kv;
+}
+
+void ReadMapConfig()
+{
+	g_CurrentMapConfig.Clear();
+	
+	char file[PLATFORM_MAX_PATH];
+	if (GetMapConfigFilepath(file, sizeof(file)))
+	{
+		KeyValues kv = new KeyValues("PropHunt");
+		if (kv.ImportFromFile(file))
+		{
+			g_CurrentMapConfig.ReadFromKv(kv);
+		}
+		delete kv;
+	}
 }
 
 bool SearchForProps(int client, char[] message, int maxlength)
