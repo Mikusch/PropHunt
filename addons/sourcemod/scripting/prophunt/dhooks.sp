@@ -177,7 +177,12 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 		{
 			case Prop_Static:
 			{
-				if (StaticProp_GetOBBBounds(PHPlayer(player).PropIndex, mins, maxs))
+				// Check if the config wants to override the health
+				char model[PLATFORM_MAX_PATH];
+				PropConfig config;
+				if (StaticProp_GetModelName(PHPlayer(player).PropIndex, model, sizeof(model)) && GetConfigByModel(model, config) && config.health > 0)
+					maxHealth = config.health;
+				else if (StaticProp_GetOBBBounds(PHPlayer(player).PropIndex, mins, maxs))
 					maxHealth = RoundToCeil(GetVectorDistance(mins, maxs));
 			}
 			case Prop_Entity:
@@ -185,19 +190,29 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 				int entity = EntRefToEntIndex(PHPlayer(player).PropIndex);
 				if (entity != -1)
 				{
-					if (IsEntityClient(entity) && IsClientInGame(entity) && TF2_GetClientTeam(entity) == TFTeam_Hunters)
+					// Check if the config wants to override the health
+					char model[PLATFORM_MAX_PATH];
+					PropConfig config;
+					if (GetEntPropString(entity, Prop_Data, "m_ModelName", model, sizeof(model)) > 0 && GetConfigByModel(model, config) && config.health > 0)
 					{
-						maxHealth = GetPlayerMaxHealth(entity);
-					}
-					else if (!IsEntityClient(entity) && HasEntProp(entity, Prop_Data, "m_iMaxHealth") && GetEntProp(entity, Prop_Data, "m_iMaxHealth") > 1)
-					{
-						maxHealth = GetEntProp(entity, Prop_Data, "m_iMaxHealth");
+						maxHealth = config.health;
 					}
 					else
 					{
-						GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
-						GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
-						maxHealth = RoundToCeil(GetVectorDistance(mins, maxs));
+						if (IsEntityClient(entity) && IsClientInGame(entity) && TF2_GetClientTeam(entity) == TFTeam_Hunters)
+						{
+							maxHealth = GetPlayerMaxHealth(entity);
+						}
+						else if (!IsEntityClient(entity) && HasEntProp(entity, Prop_Data, "m_iMaxHealth") && GetEntProp(entity, Prop_Data, "m_iMaxHealth") > 1)
+						{
+							maxHealth = GetEntProp(entity, Prop_Data, "m_iMaxHealth");
+						}
+						else
+						{
+							GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
+							GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
+							maxHealth = RoundToCeil(GetVectorDistance(mins, maxs));
+						}
 					}
 				}
 				else

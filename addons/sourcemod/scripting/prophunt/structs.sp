@@ -96,6 +96,7 @@ enum struct PropConfig
 	bool blacklist;
 	float offset[3];
 	float rotation[3];
+	int health;
 	
 	void ReadFromKv(KeyValues kv)
 	{
@@ -120,6 +121,7 @@ enum struct PropConfig
 		this.blacklist = view_as<bool>(kv.GetNum("blacklist"));
 		kv.GetVector("offset", this.offset);
 		kv.GetVector("rotation", this.rotation);
+		this.health = kv.GetNum("health");
 	}
 }
 
