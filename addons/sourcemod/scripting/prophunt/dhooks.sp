@@ -81,13 +81,11 @@ void DHooks_Toggle(bool enable)
 	
 	if (!enable)
 	{
-		for (int i = 0; i < g_DynamicHookIds.Length; i++)
+		for (int i = g_DynamicHookIds.Length - 1; i >= 0; i--)
 		{
 			int hookid = g_DynamicHookIds.Get(i);
 			DynamicHook.RemoveHook(hookid);
 		}
-		
-		g_DynamicHookIds.Clear();
 	}
 }
 
