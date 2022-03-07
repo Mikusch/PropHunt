@@ -224,12 +224,6 @@ public void OnMapStart()
 {
 	g_IsMapRunning = true;
 	
-	AddFileToDownloadsTable("sound/" ... SOUND_LAST_PROP);
-	
-	PrecacheSound("#" ... SOUND_LAST_PROP);
-	PrecacheSound(LOCK_SOUND);
-	PrecacheSound(UNLOCK_SOUND);
-	
 	// Read map config
 	ReadMapConfig();
 }
@@ -464,6 +458,12 @@ void TogglePlugin(bool enable)
 	
 	if (enable)
 	{
+		AddFileToDownloadsTable("sound/" ... SOUND_LAST_PROP);
+		
+		PrecacheSound("#" ... SOUND_LAST_PROP);
+		PrecacheSound(LOCK_SOUND);
+		PrecacheSound(UNLOCK_SOUND);
+		
 		if (ph_chat_tip_interval.FloatValue > 0)
 			g_ChatTipTimer = CreateTimer(ph_chat_tip_interval.FloatValue, Timer_PrintChatTip, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
 	}
