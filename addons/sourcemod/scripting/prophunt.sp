@@ -30,7 +30,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION	"1.3.1"
+#define PLUGIN_VERSION	"1.3.2"
 
 #define PLUGIN_TAG	"[{orange}PropHunt{default}]"
 
@@ -239,6 +239,8 @@ public void OnConfigsExecuted()
 {
 	if (g_IsEnabled != ph_enable.BoolValue)
 		TogglePlugin(ph_enable.BoolValue);
+	else if (g_IsEnabled)
+		Precache();
 }
 
 public void OnEntityCreated(int entity, const char[] classname)
@@ -447,6 +449,15 @@ public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int item
 	}
 }
 
+void Precache()
+{
+	AddFileToDownloadsTable("sound/" ... SOUND_LAST_PROP);
+	
+	PrecacheSound("#" ... SOUND_LAST_PROP);
+	PrecacheSound(LOCK_SOUND);
+	PrecacheSound(UNLOCK_SOUND);
+}
+
 void TogglePlugin(bool enable)
 {
 	g_IsEnabled = enable;
@@ -458,14 +469,10 @@ void TogglePlugin(bool enable)
 	
 	if (enable)
 	{
-		AddFileToDownloadsTable("sound/" ... SOUND_LAST_PROP);
-		
-		PrecacheSound("#" ... SOUND_LAST_PROP);
-		PrecacheSound(LOCK_SOUND);
-		PrecacheSound(UNLOCK_SOUND);
+		Precache();
 		
 		if (ph_chat_tip_interval.FloatValue > 0)
-			g_ChatTipTimer = CreateTimer(ph_chat_tip_interval.FloatValue, Timer_PrintChatTip, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
+			g_ChatTipTimer = CreateTimer(ph_chat_tip_interval.FloatValue, Timer_PrintChatTip, _, TIMER_REPEAT);
 	}
 	else
 	{
