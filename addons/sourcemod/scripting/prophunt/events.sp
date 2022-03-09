@@ -30,12 +30,12 @@ void Events_Initialize()
 {
 	g_Events = new ArrayList(sizeof(EventData));
 	
-	Events_TrackEvent("player_spawn", Event_PlayerSpawn);
-	Events_TrackEvent("player_death", Event_PlayerDeath);
-	Events_TrackEvent("post_inventory_application", Event_PostInventoryApplication);
-	Events_TrackEvent("teamplay_round_start", Event_TeamplayRoundStart);
-	Events_TrackEvent("teamplay_round_win", Event_TeamplayRoundWin);
-	Events_TrackEvent("arena_round_start", Event_ArenaRoundStart);
+	Events_AddEvent("player_spawn", Event_PlayerSpawn);
+	Events_AddEvent("player_death", Event_PlayerDeath);
+	Events_AddEvent("post_inventory_application", Event_PostInventoryApplication);
+	Events_AddEvent("teamplay_round_start", Event_TeamplayRoundStart);
+	Events_AddEvent("teamplay_round_win", Event_TeamplayRoundWin);
+	Events_AddEvent("arena_round_start", Event_ArenaRoundStart);
 }
 
 void Events_Toggle(bool enable)
@@ -53,7 +53,7 @@ void Events_Toggle(bool enable)
 	}
 }
 
-static void Events_TrackEvent(const char[] name, EventHook callback, EventHookMode mode = EventHookMode_Post)
+static void Events_AddEvent(const char[] name, EventHook callback, EventHookMode mode = EventHookMode_Post)
 {
 	Event event = CreateEvent(name, true);
 	if (event)

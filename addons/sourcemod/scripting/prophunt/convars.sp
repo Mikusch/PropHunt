@@ -47,7 +47,6 @@ void ConVars_Initialize()
 	ph_hunter_setup_freeze = CreateConVar("ph_hunter_setup_freeze", "1", "When set, prevent Hunter movement during setup.");
 	ph_regenerate_last_prop = CreateConVar("ph_regenerate_last_prop", "1", "When set, regenerate the last prop so that they receive their weapons.");
 	ph_chat_tip_interval = CreateConVar("ph_chat_tip_interval", "240.0", "Interval at which tips are printed in chat, in seconds. Set to 0 to disable chat tips.");
-	ph_chat_tip_interval.AddChangeHook(ConVarChanged_ChatTipInterval);
 	ph_bonus_refresh_interval = CreateConVar("ph_bonus_refresh_interval", "60.0", "Interval at which the control point bonus refreshes, in seconds.");
 	ph_healing_modifier = CreateConVar("ph_healing_modifier", "0.25", "Modifier of the amount of healing received from continuous healing sources.");
 	ph_open_doors_after_setup = CreateConVar("ph_open_doors_after_setup", "1", "When set, open all doors after setup time ends.");
@@ -56,18 +55,23 @@ void ConVars_Initialize()
 	ph_round_time = CreateConVar("ph_round_time", "225", "Length of the round time, in seconds.");
 	ph_relay_name = CreateConVar("ph_relay_name", "hidingover", "Name of the relay to trigger when setup time ends.");
 	
-	ConVars_TrackConVar("tf_arena_round_time", "0");
-	ConVars_TrackConVar("tf_arena_override_cap_enable_time", "0");
-	ConVars_TrackConVar("tf_arena_use_queue", "0");
-	ConVars_TrackConVar("tf_arena_first_blood", "0");
-	ConVars_TrackConVar("tf_weapon_criticals", "0");
-	ConVars_TrackConVar("mp_show_voice_icons", "0");
-	ConVars_TrackConVar("mp_forcecamera", "1");
-	ConVars_TrackConVar("sv_gravity", "500");
+	ConVars_AddConVar("tf_arena_round_time", "0");
+	ConVars_AddConVar("tf_arena_override_cap_enable_time", "0");
+	ConVars_AddConVar("tf_arena_use_queue", "0");
+	ConVars_AddConVar("tf_arena_first_blood", "0");
+	ConVars_AddConVar("tf_weapon_criticals", "0");
+	ConVars_AddConVar("mp_show_voice_icons", "0");
+	ConVars_AddConVar("mp_forcecamera", "1");
+	ConVars_AddConVar("sv_gravity", "500");
 }
 
 void ConVars_Toggle(bool enable)
 {
+	if (enable)
+		ph_chat_tip_interval.AddChangeHook(ConVarChanged_ChatTipInterval);
+	else
+		ph_chat_tip_interval.RemoveChangeHook(ConVarChanged_ChatTipInterval);
+	
 	StringMapSnapshot snapshot = g_ConVars.Snapshot();
 	for (int i = 0; i < snapshot.Length; i++)
 	{
@@ -83,7 +87,7 @@ void ConVars_Toggle(bool enable)
 	delete snapshot;
 }
 
-static void ConVars_TrackConVar(const char[] name, const char[] value, bool enforce = true)
+static void ConVars_AddConVar(const char[] name, const char[] value, bool enforce = true)
 {
 	ConVar convar = FindConVar(name);
 	if (convar)
@@ -162,9 +166,6 @@ public void ConVarChanged_Enable(ConVar convar, const char[] oldValue, const cha
 
 public void ConVarChanged_ChatTipInterval(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	if (!g_IsEnabled)
-		return;
-	
 	delete g_ChatTipTimer;
 	
 	if (convar.FloatValue > 0)

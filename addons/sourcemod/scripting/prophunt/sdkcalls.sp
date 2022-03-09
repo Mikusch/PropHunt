@@ -49,7 +49,7 @@ static Handle PrepSDKCall_CastSelfHeal(GameData gamedata)
 	
 	Handle call = EndPrepSDKCall();
 	if (!call)
-		LogMessage("Failed to create SDK call: CTFSpellBook::CastSelfHeal");
+		LogMessage("Failed to create SDKCall: CTFSpellBook::CastSelfHeal");
 	
 	return call;
 }
@@ -63,7 +63,7 @@ static Handle PrepSDKCall_FindCriterionIndex(GameData gamedata)
 	
 	Handle call = EndPrepSDKCall();
 	if (!call)
-		LogMessage("Failed to create SDK call: AI_CriteriaSet::FindCriterionIndex");
+		LogMessage("Failed to create SDKCall: AI_CriteriaSet::FindCriterionIndex");
 	
 	return call;
 }
@@ -76,7 +76,7 @@ static Handle PrepSDKCall_RemoveCriteria(GameData gamedata)
 	
 	Handle call = EndPrepSDKCall();
 	if (!call)
-		LogMessage("Failed to create SDK call: AI_CriteriaSet::RemoveCriteria");
+		LogMessage("Failed to create SDKCall: AI_CriteriaSet::RemoveCriteria");
 	
 	return call;
 }
@@ -89,7 +89,7 @@ static Handle PrepSDKCall_SetSwitchTeams(GameData gamedata)
 	
 	Handle call = EndPrepSDKCall();
 	if (!call)
-		LogMessage("Failed to create SDK call: CTeamplayRules::SetSwitchTeams");
+		LogMessage("Failed to create SDKCall: CTeamplayRules::SetSwitchTeams");
 	
 	return call;
 }
@@ -102,7 +102,7 @@ static Handle PrepSDKCall_GetBaseEntity(GameData gamedata)
 	
 	Handle call = EndPrepSDKCall();
 	if (!call)
-		LogMessage("Failed to create SDK call: CBaseEntity::GetBaseEntity");
+		LogMessage("Failed to create SDKCall: CBaseEntity::GetBaseEntity");
 	
 	return call;
 }
@@ -115,7 +115,7 @@ static Handle PrepSDKCall_GetDamageType(GameData gamedata)
 	
 	Handle call = EndPrepSDKCall();
 	if (!call)
-		LogMessage("Failed to create SDK call: CBaseEntity::GetDamageType");
+		LogMessage("Failed to create SDKCall: CBaseEntity::GetDamageType");
 	
 	return call;
 }
@@ -127,7 +127,7 @@ static Handle PrepSDKCall_InitClass(GameData gamedata)
 	
 	Handle call = EndPrepSDKCall();
 	if (!call)
-		LogMessage("Failed to create SDK call: CTFPlayer::InitClass");
+		LogMessage("Failed to create SDKCall: CTFPlayer::InitClass");
 	
 	return call;
 }
@@ -140,7 +140,7 @@ static Handle PrepSDKCall_GetProjectileDamage(GameData gamedata)
 	
 	Handle call = EndPrepSDKCall();
 	if (!call)
-		LogMessage("Failed to create SDK call: CTFWeaponBaseGun::GetProjectileDamage");
+		LogMessage("Failed to create SDKCall: CTFWeaponBaseGun::GetProjectileDamage");
 	
 	return call;
 }
@@ -156,7 +156,7 @@ static Handle PrepSDKCall_GetMeleeDamage(GameData gamedata)
 	
 	Handle call = EndPrepSDKCall();
 	if (!call)
-		LogMessage("Failed to create SDK call: CTFWeaponBaseMelee::GetMeleeDamage");
+		LogMessage("Failed to create SDKCall: CTFWeaponBaseMelee::GetMeleeDamage");
 	
 	return call;
 }
@@ -169,7 +169,7 @@ static Handle PrepSDKCall_JarGetDamage(GameData gamedata)
 	
 	Handle call = EndPrepSDKCall();
 	if (!call)
-		LogMessage("Failed to create SDK call: CTFProjectile_Jar::GetDamage");
+		LogMessage("Failed to create SDKCall: CTFProjectile_Jar::GetDamage");
 	
 	return call;
 }
