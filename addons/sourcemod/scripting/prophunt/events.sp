@@ -30,12 +30,12 @@ void Events_Initialize()
 {
 	g_Events = new ArrayList(sizeof(EventData));
 	
-	Events_AddEvent("player_spawn", Event_PlayerSpawn);
-	Events_AddEvent("player_death", Event_PlayerDeath);
-	Events_AddEvent("post_inventory_application", Event_PostInventoryApplication);
-	Events_AddEvent("teamplay_round_start", Event_TeamplayRoundStart);
-	Events_AddEvent("teamplay_round_win", Event_TeamplayRoundWin);
-	Events_AddEvent("arena_round_start", Event_ArenaRoundStart);
+	Events_AddEvent("player_spawn", EventHook_PlayerSpawn);
+	Events_AddEvent("player_death", EventHook_PlayerDeath);
+	Events_AddEvent("post_inventory_application", EventHook_PostInventoryApplication);
+	Events_AddEvent("teamplay_round_start", EventHook_TeamplayRoundStart);
+	Events_AddEvent("teamplay_round_win", EventHook_TeamplayRoundWin);
+	Events_AddEvent("arena_round_start", EventHook_ArenaRoundStart);
 }
 
 void Events_Toggle(bool enable)
@@ -73,7 +73,7 @@ static void Events_AddEvent(const char[] name, EventHook callback, EventHookMode
 	}
 }
 
-public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
+public void EventHook_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	
@@ -102,7 +102,7 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 	}
 }
 
-public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
+public void EventHook_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
 	int victim = GetClientOfUserId(event.GetInt("userid"));
 	int attacker = GetClientOfUserId(event.GetInt("attacker"));
@@ -136,7 +136,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 	CheckLastPropStanding(victim);
 }
 
-public void Event_PostInventoryApplication(Event event, const char[] name, bool dontBroadcast)
+public void EventHook_PostInventoryApplication(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	if (TF2_GetClientTeam(client) == TFTeam_Props && !PHPlayer(client).IsLastProp)
@@ -173,7 +173,7 @@ public void Event_PostInventoryApplication(Event event, const char[] name, bool 
 	}
 }
 
-public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBroadcast)
+public void EventHook_TeamplayRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	g_InSetup = false;
 	g_IsLastPropStanding = false;
@@ -189,7 +189,7 @@ public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBr
 	}
 }
 
-public void Event_TeamplayRoundWin(Event event, const char[] name, bool dontBroadcast)
+public void EventHook_TeamplayRoundWin(Event event, const char[] name, bool dontBroadcast)
 {
 	delete g_ControlPointBonusTimer;
 	
@@ -203,7 +203,7 @@ public void Event_TeamplayRoundWin(Event event, const char[] name, bool dontBroa
 	SDKCall_SetSwitchTeams(true);
 }
 
-public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroadcast)
+public void EventHook_ArenaRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	g_InSetup = true;
 	
