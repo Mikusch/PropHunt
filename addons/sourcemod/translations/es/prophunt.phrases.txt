@@ -83,7 +83,7 @@
 	
 	"PH_PropControls"
 	{
-		"es"		"%%+attack%% BLOQUEAR ROTACION DE PROP %%+attack2%% AJUSTAR TERCERAPERSONA %%+reload%% SELECCIONAR PROP"
+		"es"		"%%+attack%% SELECCIONAR PROP %%+attack2%% BLOQUEAR ROTACION DE PROP %%+reload%% AJUSTAR TERCERA PERSONA"
 	}
 	
 	"PH_Bonus_Refreshed"
