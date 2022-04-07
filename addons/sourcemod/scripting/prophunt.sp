@@ -472,7 +472,7 @@ void TogglePlugin(bool enable)
 		Precache();
 		
 		if (ph_chat_tip_interval.FloatValue > 0)
-			g_ChatTipTimer = CreateTimer(ph_chat_tip_interval.FloatValue, Timer_PrintChatTip, _, TIMER_REPEAT);
+			g_ChatTipTimer = CreateTimer(ph_chat_tip_interval.FloatValue, Timer_PrintChatTip, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
 	}
 	else
 	{
