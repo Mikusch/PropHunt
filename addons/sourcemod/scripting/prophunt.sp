@@ -30,7 +30,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION	"1.3.3"
+#define PLUGIN_VERSION	"1.3.4"
 
 #define PLUGIN_TAG	"[{orange}PropHunt{default}]"
 
@@ -110,6 +110,7 @@ bool g_InSetup;
 bool g_IsLastPropStanding;
 bool g_DisallowPropLocking;
 bool g_InHealthKitTouch;
+Handle g_AntiCheatTimer;
 Handle g_ChatTipTimer;
 Handle g_ControlPointBonusTimer;
 
@@ -471,11 +472,14 @@ void TogglePlugin(bool enable)
 	{
 		Precache();
 		
+		g_AntiCheatTimer = CreateTimer(0.1, Timer_CheckStaticPropInfo, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
+		
 		if (ph_chat_tip_interval.FloatValue > 0)
 			g_ChatTipTimer = CreateTimer(ph_chat_tip_interval.FloatValue, Timer_PrintChatTip, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
 	}
 	else
 	{
+		delete g_AntiCheatTimer;
 		delete g_ChatTipTimer;
 		delete g_ControlPointBonusTimer;
 	}
@@ -843,12 +847,12 @@ void CheckLastPropStanding(int client)
 	}
 }
 
-public void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue)
+public void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue, any expectedValue)
 {
 	if (result == ConVarQuery_Okay)
 	{
-		int value = StringToInt(cvarValue);
-		if (value == 0)
+		int value;
+		if (StringToIntEx(cvarValue, value) > 0 && value == expectedValue)
 			return;
 		
 		KickClient(client, "%t", "PH_ConVarQuery_DisallowedValue", cvarName, cvarValue);
@@ -968,6 +972,16 @@ public Action Timer_PropPostSpawn(Handle timer, int serial)
 	}
 	
 	return Plugin_Continue;
+}
+
+public Action Timer_CheckStaticPropInfo(Handle timer)
+{
+	// Query every client for r_staticpropinfo to prevent cheating
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		if (IsClientInGame(client) && !IsFakeClient(client))
+			QueryClientConVar(client, "r_staticpropinfo", ConVarQuery_StaticPropInfo, 0);
+	}
 }
 
 public Action Timer_PrintChatTip(Handle timer)

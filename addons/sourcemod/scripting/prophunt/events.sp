@@ -224,11 +224,4 @@ public void EventHook_ArenaRoundStart(Event event, const char[] name, bool dontB
 			HookSingleEntityOutput(timer, "OnFinished", EntityOutput_OnFinished, true);
 		}
 	}
-	
-	// Kick cheaters out of the game
-	for (int client = 1; client <= MaxClients; client++)
-	{
-		if (IsClientInGame(client) && !IsFakeClient(client))
-			QueryClientConVar(client, "r_staticpropinfo", ConVarQuery_StaticPropInfo);
-	}
 }
