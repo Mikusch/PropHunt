@@ -30,7 +30,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION	"1.3.4"
+#define PLUGIN_VERSION	"1.3.5"
 
 #define PLUGIN_TAG	"[{orange}PropHunt{default}]"
 
@@ -202,14 +202,6 @@ public void OnPluginStart()
 	{
 		SetFailState("Could not find prophunt gamedata");
 	}
-}
-
-public void OnPluginEnd()
-{
-	if (!g_IsEnabled)
-		return;
-	
-	TogglePlugin(false);
 }
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -472,10 +464,10 @@ void TogglePlugin(bool enable)
 	{
 		Precache();
 		
-		g_AntiCheatTimer = CreateTimer(0.1, Timer_CheckStaticPropInfo, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
+		g_AntiCheatTimer = CreateTimer(0.1, Timer_CheckStaticPropInfo, _, TIMER_REPEAT);
 		
 		if (ph_chat_tip_interval.FloatValue > 0)
-			g_ChatTipTimer = CreateTimer(ph_chat_tip_interval.FloatValue, Timer_PrintChatTip, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
+			g_ChatTipTimer = CreateTimer(ph_chat_tip_interval.FloatValue, Timer_PrintChatTip, _, TIMER_REPEAT);
 	}
 	else
 	{
@@ -849,6 +841,10 @@ void CheckLastPropStanding(int client)
 
 public void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue, any expectedValue)
 {
+	// Client might have disconnected at this point
+	if (!IsClientInGame(client))
+		return;
+	
 	if (result == ConVarQuery_Okay)
 	{
 		int value;
@@ -976,12 +972,14 @@ public Action Timer_PropPostSpawn(Handle timer, int serial)
 
 public Action Timer_CheckStaticPropInfo(Handle timer)
 {
-	// Query every client for r_staticpropinfo to prevent cheating
+	// Query every Hunter for r_staticpropinfo to prevent cheating
 	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsClientInGame(client) && !IsFakeClient(client))
+		if (IsClientInGame(client) && !IsFakeClient(client) && TF2_GetClientTeam(client) == TFTeam_Hunters)
 			QueryClientConVar(client, "r_staticpropinfo", ConVarQuery_StaticPropInfo, 0);
 	}
+	
+	return Plugin_Continue;
 }
 
 public Action Timer_PrintChatTip(Handle timer)
