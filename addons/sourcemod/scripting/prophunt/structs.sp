@@ -108,7 +108,7 @@ enum struct PropConfig
 		
 		char pattern[256];
 		kv.GetString("model_pattern", pattern, sizeof(pattern));
-		if (pattern[0] != '\0')
+		if (pattern[0] != EOS)
 		{
 			RegexError errcode;
 			char message[256];

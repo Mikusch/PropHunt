@@ -137,7 +137,7 @@ public Action ConCmd_SetModel(int client, int args)
 	
 	for (int i = 0; i < target_count; i++)
 	{
-		if (model[0] != '\0')
+		if (model[0] != EOS)
 			SetCustomModel(target_list[i], model, Prop_None, -1);
 		else
 			ClearCustomModel(target_list[i], true);

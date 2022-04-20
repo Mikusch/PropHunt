@@ -877,7 +877,7 @@ public Action EntityOutput_OnSetupFinished(const char[] output, int caller, int 
 	char relayName[64];
 	ph_relay_name.GetString(relayName, sizeof(relayName));
 	
-	if (relayName[0] != '\0')
+	if (relayName[0] != EOS)
 	{
 		int relay = MaxClients + 1;
 		while ((relay = FindEntityByClassname(relay, "logic_relay")) != -1)

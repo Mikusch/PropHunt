@@ -173,7 +173,7 @@ bool GetConfigByModel(const char[] model, PropConfig config)
 		if (g_PropConfigs.GetArray(i, config) > 0)
 		{
 			// Try to fetch config by exact match first
-			if (config.model[0] != '\0' && strcmp(config.model, model) == 0)
+			if (config.model[0] != EOS && strcmp(config.model, model) == 0)
 				return true;
 			
 			// Then, try the regular expression
@@ -203,7 +203,7 @@ void GetModelTidyName(const char[] model, char[] buffer, int maxlength)
 	// Remove .mdl at the end
 	int start = StrContains(buffer, ".mdl");
 	if (start != -1)
-		buffer[start] = '\0';
+		buffer[start] = EOS;
 }
 
 bool IsEntityClient(int entity)
@@ -245,7 +245,7 @@ int GetEntitySkin(int entity)
 int CountCharInString(const char[] string, char letter)
 {
 	int i, count;
-	while (string[i] != '\0')
+	while (string[i] != EOS)
 	{
 		if (string[i++] == letter)
 			count++;
