@@ -38,6 +38,7 @@ void ConVars_Initialize()
 	ph_prop_max_size = CreateConVar("ph_prop_max_size", "400.0", "Maximum allowed size of props for them to be selectable.");
 	ph_prop_select_distance = CreateConVar("ph_prop_select_distance", "128.0", "Minimum required distance to a prop for it to be selectable, in HU.");
 	ph_prop_max_health = CreateConVar("ph_prop_max_health", "300", "Maximum health of props, regardless of prop size. Set to 0 to unrestrict health.");
+	ph_prop_afterburn_immune = CreateConVar("ph_prop_afterburn_immune", "1", "When set, props do not take afterburn damage.");
 	ph_hunter_damage_modifier_gun = CreateConVar("ph_hunter_damage_modifier_gun", "0.35", "Modifier of self-damage taken from guns.");
 	ph_hunter_damage_modifier_melee = CreateConVar("ph_hunter_damage_modifier_melee", "0.15", "Modifier of self-damage taken from melees.");
 	ph_hunter_damage_modifier_grapplinghook = CreateConVar("ph_hunter_damage_modifier_grapplinghook", "1.0", "Modifier of self-damage taken from the Grappling Hook.");
@@ -68,9 +69,15 @@ void ConVars_Initialize()
 void ConVars_Toggle(bool enable)
 {
 	if (enable)
+	{
+		ph_prop_afterburn_immune.AddChangeHook(ConVarChanged_PropAfterburnImmune);
 		ph_chat_tip_interval.AddChangeHook(ConVarChanged_ChatTipInterval);
+	}
 	else
+	{
+		ph_prop_afterburn_immune.RemoveChangeHook(ConVarChanged_PropAfterburnImmune);
 		ph_chat_tip_interval.RemoveChangeHook(ConVarChanged_ChatTipInterval);
+	}
 	
 	StringMapSnapshot snapshot = g_ConVars.Snapshot();
 	for (int i = 0; i < snapshot.Length; i++)
@@ -162,6 +169,23 @@ public void ConVarChanged_Enable(ConVar convar, const char[] oldValue, const cha
 {
 	if (g_IsEnabled != convar.BoolValue)
 		TogglePlugin(convar.BoolValue);
+}
+
+public void ConVarChanged_PropAfterburnImmune(ConVar convar, const char[] oldValue, const char[] newValue)
+{
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		if (!IsClientInGame(client))
+			continue;
+		
+		if (TF2_GetClientTeam(client) != TFTeam_Props)
+			continue;
+		
+		if (convar.BoolValue)
+			TF2_AddCondition(client, TFCond_AfterburnImmune);
+		else
+			TF2_RemoveCondition(client, TFCond_AfterburnImmune);
+	}
 }
 
 public void ConVarChanged_ChatTipInterval(ConVar convar, const char[] oldValue, const char[] newValue)

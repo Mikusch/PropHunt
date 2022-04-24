@@ -131,6 +131,7 @@ ConVar ph_prop_min_size;
 ConVar ph_prop_max_size;
 ConVar ph_prop_select_distance;
 ConVar ph_prop_max_health;
+ConVar ph_prop_afterburn_immune;
 ConVar ph_hunter_damage_modifier_gun;
 ConVar ph_hunter_damage_modifier_melee;
 ConVar ph_hunter_damage_modifier_grapplinghook;
@@ -963,8 +964,10 @@ public Action Timer_PropPostSpawn(Handle timer, int serial)
 		AcceptEntityInput(client, "SetForcedTauntCam");
 		
 		// Apply gameplay conditions
-		TF2_AddCondition(client, TFCond_AfterburnImmune);
 		TF2_AddCondition(client, TFCond_SpawnOutline);
+		
+		if (ph_prop_afterburn_immune.BoolValue)
+			TF2_AddCondition(client, TFCond_AfterburnImmune);
 	}
 	
 	return Plugin_Continue;
