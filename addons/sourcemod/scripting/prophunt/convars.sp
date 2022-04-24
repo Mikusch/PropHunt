@@ -50,6 +50,7 @@ void ConVars_Initialize()
 	ph_chat_tip_interval = CreateConVar("ph_chat_tip_interval", "240.0", "Interval at which tips are printed in chat, in seconds. Set to 0 to disable chat tips.");
 	ph_bonus_refresh_interval = CreateConVar("ph_bonus_refresh_interval", "60.0", "Interval at which the control point bonus refreshes, in seconds.");
 	ph_healing_modifier = CreateConVar("ph_healing_modifier", "0.25", "Modifier of the amount of healing received from continuous healing sources.");
+	ph_flamethrower_velocity = CreateConVar("ph_flamethrower_velocity", "300.0", "Velocity to add to the player while firing the Flame Thrower. Set to 0 to disable Flame Thrower flying.");
 	ph_open_doors_after_setup = CreateConVar("ph_open_doors_after_setup", "1", "When set, open all doors after setup time ends.");
 	ph_setup_truce = CreateConVar("ph_setup_truce", "0", "When set, props can not be damaged during setup.");
 	ph_setup_time = CreateConVar("ph_setup_time", "45", "Length of the setup time, in seconds.");
