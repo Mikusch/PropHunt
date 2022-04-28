@@ -15,6 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#pragma semicolon 1
+
 #define FLOAT_EPSILON	0.0001
 
 #define WEAPONDATA_SIZE	58	// sizeof(WeaponData_t)

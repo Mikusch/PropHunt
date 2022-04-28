@@ -15,6 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#pragma semicolon 1
+
 static PHPropType g_PlayerPropType[MAXPLAYERS + 1];
 static int g_PlayerPropIndex[MAXPLAYERS + 1];
 static int g_PlayerOldMaxHealth[MAXPLAYERS + 1];
@@ -146,4 +148,4 @@ methodmap PHPlayer
 		this.IsLastProp = false;
 		this.NextTauntTime = -1.0;
 	}
-}
+};

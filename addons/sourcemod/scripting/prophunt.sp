@@ -80,7 +80,7 @@ enum PHPropType
 	Prop_None,		/**< Invalid or no prop */
 	Prop_Static,	/**< Static prop, index corresponds to position in static prop array */
 	Prop_Entity,	/**< Entity-based prop, index corresponds to entity reference */
-}
+};
 
 char g_TauntSounds[][] =
 {

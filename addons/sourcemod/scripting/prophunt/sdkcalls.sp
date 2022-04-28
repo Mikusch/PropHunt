@@ -15,6 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#pragma semicolon 1
+
 static Handle g_SDKCallCastSelfHeal;
 static Handle g_SDKCallFindCriterionIndex;
 static Handle g_SDKCallRemoveCriteria;
