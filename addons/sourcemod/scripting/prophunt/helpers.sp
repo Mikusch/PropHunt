@@ -16,6 +16,7 @@
  */
 
 #pragma semicolon 1
+#pragma newdecls required
 
 #define FLOAT_EPSILON	0.0001
 

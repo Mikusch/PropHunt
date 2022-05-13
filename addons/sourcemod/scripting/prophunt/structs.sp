@@ -16,6 +16,7 @@
  */
 
 #pragma semicolon 1
+#pragma newdecls required
 
 // Map Config
 enum struct MapConfig

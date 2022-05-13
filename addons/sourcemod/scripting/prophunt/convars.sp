@@ -16,6 +16,7 @@
  */
 
 #pragma semicolon 1
+#pragma newdecls required
 
 #define COMMAND_MAX_LENGTH	512
 

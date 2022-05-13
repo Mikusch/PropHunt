@@ -16,6 +16,7 @@
  */
 
 #pragma semicolon 1
+#pragma newdecls required
 
 static Handle g_SDKCallCastSelfHeal;
 static Handle g_SDKCallFindCriterionIndex;

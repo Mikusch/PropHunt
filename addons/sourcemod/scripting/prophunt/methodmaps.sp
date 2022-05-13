@@ -16,6 +16,7 @@
  */
 
 #pragma semicolon 1
+#pragma newdecls required
 
 static PHPropType g_PlayerPropType[MAXPLAYERS + 1];
 static int g_PlayerPropIndex[MAXPLAYERS + 1];
