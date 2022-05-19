@@ -1,0 +1,161 @@
+/*
+ * Copyright (C) 2021  Mikusch
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+"Phrases"
+{
+	"PH_Target_Props"
+	{
+		"it"		"Oggetti"
+	}
+	
+	"PH_Target_Hunters"
+	{
+		"it"		"Cacciatori"
+	}
+	
+	"PH_Tip_Prefix"
+	{
+		"it"		"{green}Consiglio: {default}"
+	}
+	
+	"PH_Tip_01"
+	{
+		"#format"	"{1:s}"
+		"it"		"Stai giocando a {darkorange}PropHunt Neu {default}({1}) creato da {gold}Mikusch{default}."
+	}
+	
+	"PH_Tip_02"
+	{
+		"it"		"Da {blue}Cacciatore{default}, usa le armi che applicano Sanguinamento,Jarate o Latte Pazzo per evitare che gli oggetti cambino il loro travestimento."
+	}
+	
+	"PH_Tip_03"
+	{
+		"it"		"Da {red}Oggetto{default}, usa PropLock™ per congelarti a mezz'aria."
+	}
+	
+	"PH_Tip_04"
+	{
+		"it"		"Il bonus ai punti di controllo guarisce l'utente e gli alleati vicini e respinge i nemici vicini."
+	}
+	
+	"PH_Tip_05"
+	{
+		"it"		"Da {blue}Cacciatore{default}, il Rampino permette di inseguire gli Oggetti e di accedere alle aree più difficili da raggiungere."
+	}
+	
+	"PH_Tip_06"
+	{
+		"it"		"Da {red}Oggetto{default}, hai l'abilità di respirare sott'acqua."
+	}
+	
+	"PH_PropLock_Enabled"
+	{
+		"it"		"PropLock™ attivato"
+	}
+	
+	"PH_PropLock_Unavailable"
+	{
+		"it"		"PropLock™ non disponibile"
+	}
+	
+	"PH_Disguise_Changed"
+	{
+		"#format"	"{1:s}"
+		"it"		"Ora sei travestito da: {lightgreen}{1}"
+	}
+	
+	"PH_Disguise_Reset"
+	{
+		"it"		"Il tuo travestimento è stato ripristinato."
+	}
+	
+	"PH_PropSelect_CannotDisguise"
+	{
+		"#format"	"{1:s},{2:T}"
+		"it"		"Impossibile travestirsi da: {red}{1} {default}({2})"
+	}
+	
+	"PH_PropSelect_TooSmall"
+	{
+		"it"		"oggetto troppo piccolo"
+	}
+	
+	"PH_PropSelect_TooBig"
+	{
+		"it"		"oggetto troppo grande"
+	}
+	
+	"PH_PropSelect_Blacklisted"
+	{
+		"it"		"oggetto bandito"
+	}
+	
+	"PH_PropSelect_NotAllowed"
+	{
+		"it"		"{red}Non è possibile cambiare oggetto mentre si è sottoposti a effetti di stato negativi."
+	}
+	
+	"PH_ConVarQuery_DisallowedValue"
+	{
+		"#format"	"{1:s},{2:s}"
+		"it"		"\"{1}\" non può essere impostato su \"{2}\"."
+	}
+	
+	"PH_ConVarQuery_QueryNotOkay"
+	{
+		"#format"	"{1:s}"
+		"it"		"Non è stato possibile interrogare il client per il valore di \"{1}\"."
+	}
+	
+	"PH_PropControls"
+	{
+		"it"		"%%+attack%% SELEZIONA OGGETTO %%+attack2%% BLOCCA OGGETTO %%+attack3%% SCHERNA %%+reload%% ALTERNA TERZA PERSONA"
+	}
+	
+	"PH_Bonus_Refreshed"
+	{
+		"it"		"Bonus del punto di controllo aggiornato!"
+	}
+	
+	"PH_Bonus_Received"
+	{
+		"it"		"Bonus del punto di controllo ricevuto! {lightgreen}Salute ripristinata."
+	}
+	
+	"PH_Command_GetModel_Success"
+	{
+		"#format"	"{1:N},{2:s}"
+		"it"		"modello attuale di{1}: {lightgreen}{2}"
+	}
+	
+	"PH_Command_GetModel_NoModelSet"
+	{
+		"it"		"Nessun client corrispondente ha un set di modelli personalizzati."
+	}
+	
+	"PH_Command_SetModel_Success"
+	{
+		"#format"	"{1:s},{2:t}"
+		"it"		"Modello forzato {lightgreen}{1} {default}su {2}."
+	}
+	
+	"PH_Command_ReloadConfig_Success"
+	{
+		"it"		"La cache della configurazione è stata aggiornata."
+	}
+}
