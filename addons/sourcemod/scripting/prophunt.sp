@@ -131,6 +131,7 @@ ConVar ph_prop_min_size;
 ConVar ph_prop_max_size;
 ConVar ph_prop_select_distance;
 ConVar ph_prop_max_health;
+ConVar ph_prop_afterburn_immune;
 ConVar ph_hunter_damage_modifier_gun;
 ConVar ph_hunter_damage_modifier_melee;
 ConVar ph_hunter_damage_modifier_grapplinghook;
@@ -142,6 +143,7 @@ ConVar ph_regenerate_last_prop;
 ConVar ph_bonus_refresh_interval;
 ConVar ph_chat_tip_interval;
 ConVar ph_healing_modifier;
+ConVar ph_flamethrower_velocity;
 ConVar ph_open_doors_after_setup;
 ConVar ph_setup_truce;
 ConVar ph_setup_time;
@@ -262,14 +264,17 @@ public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname
 	if (!ShouldPlayerDealSelfDamage(client))
 		return Plugin_Continue;
 	
-	if (strcmp(weaponname, "tf_weapon_flamethrower") == 0)
-	{
-		// The damage of flame throwers is calculated as Damage x TimeFireDelay
-		float damage = GetWeaponDamage(weapon) * GetWeaponTimeFireDelay(weapon) * ph_hunter_damage_modifier_flamethrower.FloatValue;
-		int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
-		
-		SDKHooks_TakeDamage(client, weapon, client, damage, damageType, weapon);
-	}
+	if (strcmp(weaponname, "tf_weapon_flamethrower") != 0)
+		return Plugin_Continue;
+	
+	// The damage of flame throwers is calculated as Damage x TimeFireDelay
+	float damage = GetWeaponDamage(weapon) * GetWeaponTimeFireDelay(weapon) * ph_hunter_damage_modifier_flamethrower.FloatValue;
+	int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
+	
+	SDKHooks_TakeDamage(client, weapon, client, damage, damageType, weapon);
+	
+	// Allow Pyros to fly using their Flame Thrower
+	ApplyFlameThrowerVelocity(client);
 	
 	return Plugin_Continue;
 }
@@ -791,6 +796,26 @@ void DoTaunt(int client)
 	PHPlayer(client).NextTauntTime = GetGameTime() + 1.0;
 }
 
+void ApplyFlameThrowerVelocity(int client)
+{
+	float velocityToAdd = ph_flamethrower_velocity.FloatValue;
+	if (velocityToAdd <= 0.0)
+		return;
+	
+	float velocity[3];
+	GetEntPropVector(client, Prop_Data, "m_vecVelocity", velocity);
+	
+	// Scary values taken from Prop Hunt Redux
+	if (velocity[0] < (velocityToAdd / 2.0) && velocity[0] > -(velocityToAdd / 2.0))
+		velocity[0] *= 1.08;
+	if (velocity[1] < (velocityToAdd / 2.0) && velocity[1] > -(velocityToAdd / 2.0))
+		velocity[1] *= 1.08;
+	if (velocity[2] > 0 && velocity[2] < velocityToAdd)
+		velocity[2] = velocity[2] * 1.15;
+	
+	TeleportEntity(client, NULL_VECTOR, NULL_VECTOR, velocity);
+}
+
 void CheckLastPropStanding(int client)
 {
 	// Prevent this from triggering multiple times due to arena mode being weird
@@ -963,8 +988,10 @@ public Action Timer_PropPostSpawn(Handle timer, int serial)
 		AcceptEntityInput(client, "SetForcedTauntCam");
 		
 		// Apply gameplay conditions
-		TF2_AddCondition(client, TFCond_AfterburnImmune);
 		TF2_AddCondition(client, TFCond_SpawnOutline);
+		
+		if (ph_prop_afterburn_immune.BoolValue)
+			TF2_AddCondition(client, TFCond_AfterburnImmune);
 	}
 	
 	return Plugin_Continue;
