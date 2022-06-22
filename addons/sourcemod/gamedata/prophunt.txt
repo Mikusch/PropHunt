@@ -101,8 +101,8 @@
 			}
 			"CTFPlayer::InitClass"
 			{
-				"linux"		"490"
-				"windows"	"483"
+				"linux"		"491"
+				"windows"	"484"
 			}
 			"CTFWeaponBaseGun::FireProjectile"
 			{
