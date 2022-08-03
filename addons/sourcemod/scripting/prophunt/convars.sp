@@ -59,6 +59,7 @@ void ConVars_Initialize()
 	ph_setup_time = CreateConVar("ph_setup_time", "45", "Length of the setup time, in seconds.");
 	ph_round_time = CreateConVar("ph_round_time", "225", "Length of the round time, in seconds.");
 	ph_relay_name = CreateConVar("ph_relay_name", "hidingover", "Name of the relay to trigger when setup time ends.");
+	ph_gravity_modifier = CreateConVar("ph_gravity_modifier", "0.625", "Modifier to player gravity.");
 	
 	ConVars_AddConVar("tf_arena_round_time", "0");
 	ConVars_AddConVar("tf_arena_override_cap_enable_time", "0");
@@ -67,7 +68,6 @@ void ConVars_Initialize()
 	ConVars_AddConVar("tf_weapon_criticals", "0");
 	ConVars_AddConVar("mp_show_voice_icons", "0");
 	ConVars_AddConVar("mp_forcecamera", "1");
-	ConVars_AddConVar("sv_gravity", "500");
 }
 
 void ConVars_Toggle(bool enable)
@@ -76,11 +76,13 @@ void ConVars_Toggle(bool enable)
 	{
 		ph_prop_afterburn_immune.AddChangeHook(ConVarChanged_PropAfterburnImmune);
 		ph_chat_tip_interval.AddChangeHook(ConVarChanged_ChatTipInterval);
+		ph_gravity_modifier.AddChangeHook(ConVarChanged_GravityModifier);
 	}
 	else
 	{
 		ph_prop_afterburn_immune.RemoveChangeHook(ConVarChanged_PropAfterburnImmune);
 		ph_chat_tip_interval.RemoveChangeHook(ConVarChanged_ChatTipInterval);
+		ph_gravity_modifier.RemoveChangeHook(ConVarChanged_GravityModifier);
 	}
 	
 	StringMapSnapshot snapshot = g_ConVars.Snapshot();
@@ -198,4 +200,15 @@ public void ConVarChanged_ChatTipInterval(ConVar convar, const char[] oldValue, 
 	
 	if (convar.FloatValue > 0)
 		g_ChatTipTimer = CreateTimer(convar.FloatValue, Timer_PrintChatTip, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
+}
+
+public void ConVarChanged_GravityModifier(ConVar convar, const char[] oldValue, const char[] newValue)
+{
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		if (!IsClientInGame(client))
+			continue;
+		
+		SetEntityGravity(client, convar.FloatValue);
+	}
 }

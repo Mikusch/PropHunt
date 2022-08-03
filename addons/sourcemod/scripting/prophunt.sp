@@ -149,6 +149,7 @@ ConVar ph_setup_truce;
 ConVar ph_setup_time;
 ConVar ph_round_time;
 ConVar ph_relay_name;
+ConVar ph_gravity_modifier;
 
 #include "prophunt/methodmaps.sp"
 #include "prophunt/structs.sp"

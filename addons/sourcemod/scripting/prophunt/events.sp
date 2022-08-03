@@ -96,6 +96,8 @@ public void EventHook_PlayerSpawn(Event event, const char[] name, bool dontBroad
 		// Some things, like setting conditions, only works with a delay
 		CreateTimer(0.1, Timer_PropPostSpawn, GetClientSerial(client));
 	}
+	
+	SetEntityGravity(client, ph_gravity_modifier.FloatValue);
 }
 
 public void EventHook_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
