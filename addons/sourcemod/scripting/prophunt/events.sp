@@ -80,13 +80,6 @@ public void EventHook_PlayerSpawn(Event event, const char[] name, bool dontBroad
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	
-	// Prevent latespawning
-	if (GameRules_GetRoundState() != RoundState_Preround)
-	{
-		ForcePlayerSuicide(client);
-		return;
-	}
-	
 	TFTeam team = TF2_GetClientTeam(client);
 	
 	// Ensure the player is playing as a valid class for their team
