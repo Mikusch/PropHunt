@@ -905,7 +905,7 @@ public Action EntityOutput_OnSetupFinished(const char[] output, int caller, int 
 	
 	if (relayName[0] != EOS)
 	{
-		int relay = MaxClients + 1;
+		int relay = -1;
 		while ((relay = FindEntityByClassname(relay, "logic_relay")) != -1)
 		{
 			char name[64];
@@ -919,7 +919,7 @@ public Action EntityOutput_OnSetupFinished(const char[] output, int caller, int 
 	// Open all doors in the map
 	if (ph_open_doors_after_setup.BoolValue)
 	{
-		int door = MaxClients + 1;
+		int door = -1;
 		while ((door = FindEntityByClassname(door, "func_door")) != -1)
 		{
 			AcceptEntityInput(door, "Open");
