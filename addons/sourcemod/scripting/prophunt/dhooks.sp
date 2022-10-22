@@ -159,14 +159,14 @@ static void DHooks_HookEntity(DynamicHook hook, HookMode mode, int entity, DHook
 		g_DynamicHookIds.Push(hookid);
 }
 
-public void DHookRemovalCB_OnHookRemoved(int hookid)
+static void DHookRemovalCB_OnHookRemoved(int hookid)
 {
 	int index = g_DynamicHookIds.FindValue(hookid);
 	if (index != -1)
 		g_DynamicHookIds.Erase(index);
 }
 
-public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
+static MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
 {
 	if (TF2_GetClientTeam(player) == TFTeam_Props)
 	{
@@ -251,7 +251,7 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_CanPlayerMove_Post(int player, DHookReturn ret)
+static MRESReturn DHookCallback_CanPlayerMove_Post(int player, DHookReturn ret)
 {
 	if (g_InSetup && ph_hunter_setup_freeze.BoolValue)
 	{
@@ -265,7 +265,7 @@ public MRESReturn DHookCallback_CanPlayerMove_Post(int player, DHookReturn ret)
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params)
+static MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params)
 {
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	
@@ -283,7 +283,7 @@ public MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_HookTarget_Post(int projectile, DHookParam params)
+static MRESReturn DHookCallback_HookTarget_Post(int projectile, DHookParam params)
 {
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	
@@ -299,7 +299,7 @@ public MRESReturn DHookCallback_HookTarget_Post(int projectile, DHookParam param
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_Heal_Pre(Address playerShared, DHookParam params)
+static MRESReturn DHookCallback_Heal_Pre(Address playerShared, DHookParam params)
 {
 	int player = GetPlayerSharedOuter(playerShared);
 	
@@ -315,7 +315,7 @@ public MRESReturn DHookCallback_Heal_Pre(Address playerShared, DHookParam params
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_Push_Post(int weapon)
+static MRESReturn DHookCallback_Push_Post(int weapon)
 {
 	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
 	
@@ -331,7 +331,7 @@ public MRESReturn DHookCallback_Push_Post(int weapon)
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_SetInWaitingForPlayers_Pre(DHookParam params)
+static MRESReturn DHookCallback_SetInWaitingForPlayers_Pre(DHookParam params)
 {
 	// Re-enables waiting for player period
 	g_OldGameType = GameRules_GetProp("m_nGameType");
@@ -340,14 +340,14 @@ public MRESReturn DHookCallback_SetInWaitingForPlayers_Pre(DHookParam params)
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_SetInWaitingForPlayers_Post(DHookParam params)
+static MRESReturn DHookCallback_SetInWaitingForPlayers_Post(DHookParam params)
 {
 	GameRules_SetProp("m_nGameType", g_OldGameType);
 	
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_Spawn_Pre(int player)
+static MRESReturn DHookCallback_Spawn_Pre(int player)
 {
 	// This needs to happen before the first call to CTFPlayer::GetMaxHealthForBuffing
 	ClearCustomModel(player);
@@ -356,7 +356,7 @@ public MRESReturn DHookCallback_Spawn_Pre(int player)
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_TakeHealth_Pre(int entity, DHookReturn ret, DHookParam params)
+static MRESReturn DHookCallback_TakeHealth_Pre(int entity, DHookReturn ret, DHookParam params)
 {
 	// Make sure we don't reduce healing induced by CTFPlayerShared::Heal since we already handle that above
 	if (!g_InHealthKitTouch && !TF2_IsPlayerInCondition(entity, TFCond_Healing))
@@ -370,7 +370,7 @@ public MRESReturn DHookCallback_TakeHealth_Pre(int entity, DHookReturn ret, DHoo
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_ModifyOrAppendCriteria_Post(int player, DHookParam params)
+static MRESReturn DHookCallback_ModifyOrAppendCriteria_Post(int player, DHookParam params)
 {
 	if (TF2_GetClientTeam(player) == TFTeam_Hunters)
 	{
@@ -387,7 +387,7 @@ public MRESReturn DHookCallback_ModifyOrAppendCriteria_Post(int player, DHookPar
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_FireProjectile_Post(int weapon, DHookReturn ret, DHookParam params)
+static MRESReturn DHookCallback_FireProjectile_Post(int weapon, DHookReturn ret, DHookParam params)
 {
 	int player = params.Get(1);
 	int projectile = ret.Value;
@@ -403,7 +403,7 @@ public MRESReturn DHookCallback_FireProjectile_Post(int weapon, DHookReturn ret,
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_Smack_Post(int weapon)
+static MRESReturn DHookCallback_Smack_Post(int weapon)
 {
 	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
 	
@@ -418,7 +418,7 @@ public MRESReturn DHookCallback_Smack_Post(int weapon)
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_HasKnockback_Post(int scattergun, DHookReturn ret)
+static MRESReturn DHookCallback_HasKnockback_Post(int scattergun, DHookReturn ret)
 {
 	// Disables the Force-A-Nature knockback during setup
 	if (g_InSetup)

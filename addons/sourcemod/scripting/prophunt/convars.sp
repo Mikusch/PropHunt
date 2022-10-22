@@ -151,7 +151,7 @@ static void ConVars_Disable(const char[] name)
 	}
 }
 
-public void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
+static void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
 {
 	char name[COMMAND_MAX_LENGTH];
 	convar.GetName(name, sizeof(name));
@@ -171,13 +171,13 @@ public void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] n
 	}
 }
 
-public void ConVarChanged_Enable(ConVar convar, const char[] oldValue, const char[] newValue)
+static void ConVarChanged_Enable(ConVar convar, const char[] oldValue, const char[] newValue)
 {
 	if (g_IsEnabled != convar.BoolValue)
 		TogglePlugin(convar.BoolValue);
 }
 
-public void ConVarChanged_PropAfterburnImmune(ConVar convar, const char[] oldValue, const char[] newValue)
+static void ConVarChanged_PropAfterburnImmune(ConVar convar, const char[] oldValue, const char[] newValue)
 {
 	for (int client = 1; client <= MaxClients; client++)
 	{
@@ -194,7 +194,7 @@ public void ConVarChanged_PropAfterburnImmune(ConVar convar, const char[] oldVal
 	}
 }
 
-public void ConVarChanged_ChatTipInterval(ConVar convar, const char[] oldValue, const char[] newValue)
+static void ConVarChanged_ChatTipInterval(ConVar convar, const char[] oldValue, const char[] newValue)
 {
 	delete g_ChatTipTimer;
 	
@@ -202,7 +202,7 @@ public void ConVarChanged_ChatTipInterval(ConVar convar, const char[] oldValue, 
 		g_ChatTipTimer = CreateTimer(convar.FloatValue, Timer_PrintChatTip, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
 }
 
-public void ConVarChanged_GravityModifier(ConVar convar, const char[] oldValue, const char[] newValue)
+static void ConVarChanged_GravityModifier(ConVar convar, const char[] oldValue, const char[] newValue)
 {
 	for (int client = 1; client <= MaxClients; client++)
 	{

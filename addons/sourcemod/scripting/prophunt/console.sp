@@ -47,7 +47,7 @@ void Console_Toggle(bool enable)
 	}
 }
 
-public bool MultiTargetFilter_FilterProps(const char[] pattern, ArrayList clients)
+static bool MultiTargetFilter_FilterProps(const char[] pattern, ArrayList clients)
 {
 	for (int client = 1; client <= MaxClients; client++)
 	{
@@ -58,7 +58,7 @@ public bool MultiTargetFilter_FilterProps(const char[] pattern, ArrayList client
 	return clients.Length > 0;
 }
 
-public bool MultiTargetFilter_FilterHunters(const char[] pattern, ArrayList clients)
+static bool MultiTargetFilter_FilterHunters(const char[] pattern, ArrayList clients)
 {
 	for (int client = 1; client <= MaxClients; client++)
 	{
@@ -69,7 +69,7 @@ public bool MultiTargetFilter_FilterHunters(const char[] pattern, ArrayList clie
 	return clients.Length > 0;
 }
 
-public Action ConCmd_GetModel(int client, int args)
+static Action ConCmd_GetModel(int client, int args)
 {
 	if (!g_IsEnabled)
 		return Plugin_Continue;
@@ -113,7 +113,7 @@ public Action ConCmd_GetModel(int client, int args)
 	return Plugin_Handled;
 }
 
-public Action ConCmd_SetModel(int client, int args)
+static Action ConCmd_SetModel(int client, int args)
 {
 	if (!g_IsEnabled)
 		return Plugin_Continue;
@@ -161,7 +161,7 @@ public Action ConCmd_SetModel(int client, int args)
 	return Plugin_Handled;
 }
 
-public Action ConCmd_ReloadConfigs(int client, int args)
+static Action ConCmd_ReloadConfigs(int client, int args)
 {
 	if (!g_IsEnabled)
 		return Plugin_Continue;
@@ -174,7 +174,7 @@ public Action ConCmd_ReloadConfigs(int client, int args)
 	return Plugin_Handled;
 }
 
-public Action CommandListener_Build(int client, const char[] command, int argc)
+static Action CommandListener_Build(int client, const char[] command, int argc)
 {
 	if (argc < 1)
 		return Plugin_Continue;

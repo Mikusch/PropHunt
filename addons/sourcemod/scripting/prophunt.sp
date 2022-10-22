@@ -865,7 +865,7 @@ void CheckLastPropStanding(int client)
 	}
 }
 
-public void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue, any expectedValue)
+static void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue, any expectedValue)
 {
 	// Client might have disconnected at this point
 	if (!IsClientInGame(client))
@@ -884,62 +884,7 @@ public void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQue
 	KickClient(client, "%t", "PH_ConVarQuery_QueryNotOkay", cvarName);
 }
 
-public Action EntityOutput_OnSetupFinished(const char[] output, int caller, int activator, float delay)
-{
-	g_InSetup = false;
-	
-	// Setup control point bonus
-	g_ControlPointBonusTimer = CreateTimer(ph_bonus_refresh_interval.FloatValue, Timer_RefreshControlPointBonus, _, TIMER_REPEAT);
-	TriggerTimer(g_ControlPointBonusTimer);
-	
-	// Refresh speed of all clients to allow hunters to move
-	for (int client = 1; client <= MaxClients; client++)
-	{
-		if (IsClientInGame(client))
-			TF2_AddCondition(client, TFCond_SpeedBuffAlly, 0.01);
-	}
-	
-	// Trigger named relays
-	char relayName[64];
-	ph_relay_name.GetString(relayName, sizeof(relayName));
-	
-	if (relayName[0] != EOS)
-	{
-		int relay = -1;
-		while ((relay = FindEntityByClassname(relay, "logic_relay")) != -1)
-		{
-			char name[64];
-			GetEntPropString(relay, Prop_Data, "m_iName", name, sizeof(name));
-			
-			if (strcmp(name, relayName) == 0)
-				AcceptEntityInput(relay, "Trigger");
-		}
-	}
-	
-	// Open all doors in the map
-	if (ph_open_doors_after_setup.BoolValue)
-	{
-		int door = -1;
-		while ((door = FindEntityByClassname(door, "func_door")) != -1)
-		{
-			AcceptEntityInput(door, "Open");
-		}
-	}
-	
-	// End the truce
-	GameRules_SetProp("m_bTruceActive", false);
-	
-	return Plugin_Continue;
-}
-
-public Action EntityOutput_OnFinished(const char[] output, int caller, int activator, float delay)
-{
-	SetWinningTeam(TFTeam_Props);
-	
-	return Plugin_Continue;
-}
-
-public bool TraceEntityEnumerator_EnumerateTriggers(int entity, int client)
+static bool TraceEntityEnumerator_EnumerateTriggers(int entity, int client)
 {
 	char classname[16];
 	if (GetEntityClassname(entity, classname, sizeof(classname)) && strcmp(classname, "trigger_hurt") == 0)
@@ -974,31 +919,12 @@ public bool TraceEntityEnumerator_EnumerateTriggers(int entity, int client)
 	return true;
 }
 
-public bool TraceEntityFilter_IgnoreEntity(int entity, int mask, any data)
+static bool TraceEntityFilter_IgnoreEntity(int entity, int mask, any data)
 {
 	return entity != data;
 }
 
-public Action Timer_PropPostSpawn(Handle timer, int serial)
-{
-	int client = GetClientFromSerial(serial);
-	if (client != 0)
-	{
-		// Enable thirdperson
-		SetVariantInt(PHPlayer(client).InForcedTauntCam);
-		AcceptEntityInput(client, "SetForcedTauntCam");
-		
-		// Apply gameplay conditions
-		TF2_AddCondition(client, TFCond_SpawnOutline);
-		
-		if (ph_prop_afterburn_immune.BoolValue)
-			TF2_AddCondition(client, TFCond_AfterburnImmune);
-	}
-	
-	return Plugin_Continue;
-}
-
-public Action Timer_CheckStaticPropInfo(Handle timer)
+static Action Timer_CheckStaticPropInfo(Handle timer)
 {
 	// Query every Hunter for r_staticpropinfo to prevent cheating
 	for (int client = 1; client <= MaxClients; client++)
@@ -1010,7 +936,7 @@ public Action Timer_CheckStaticPropInfo(Handle timer)
 	return Plugin_Continue;
 }
 
-public Action Timer_PrintChatTip(Handle timer)
+Action Timer_PrintChatTip(Handle timer)
 {
 	static int count;
 	
@@ -1031,21 +957,6 @@ public Action Timer_PrintChatTip(Handle timer)
 		count = 0;
 		Timer_PrintChatTip(timer);
 	}
-	
-	return Plugin_Continue;
-}
-
-public Action Timer_RefreshControlPointBonus(Handle timer)
-{
-	if (timer != g_ControlPointBonusTimer)
-		return Plugin_Stop;
-	
-	for (int client = 1; client <= MaxClients; client++)
-	{
-		PHPlayer(client).HasReceivedBonus = false;
-	}
-	
-	CPrintToChatAll("%s %t", PLUGIN_TAG, "PH_Bonus_Refreshed");
 	
 	return Plugin_Continue;
 }

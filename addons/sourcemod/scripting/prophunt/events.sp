@@ -76,7 +76,7 @@ static void Events_AddEvent(const char[] name, EventHook callback, EventHookMode
 	}
 }
 
-public void EventHook_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
+static void EventHook_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	
@@ -100,7 +100,7 @@ public void EventHook_PlayerSpawn(Event event, const char[] name, bool dontBroad
 	SetEntityGravity(client, ph_gravity_modifier.FloatValue);
 }
 
-public void EventHook_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
+static void EventHook_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
 	int victim = GetClientOfUserId(event.GetInt("userid"));
 	int attacker = GetClientOfUserId(event.GetInt("attacker"));
@@ -134,7 +134,7 @@ public void EventHook_PlayerDeath(Event event, const char[] name, bool dontBroad
 	CheckLastPropStanding(victim);
 }
 
-public void EventHook_PostInventoryApplication(Event event, const char[] name, bool dontBroadcast)
+static void EventHook_PostInventoryApplication(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	if (TF2_GetClientTeam(client) == TFTeam_Props && !PHPlayer(client).IsLastProp)
@@ -171,7 +171,7 @@ public void EventHook_PostInventoryApplication(Event event, const char[] name, b
 	}
 }
 
-public void EventHook_TeamplayRoundStart(Event event, const char[] name, bool dontBroadcast)
+static void EventHook_TeamplayRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	g_InSetup = false;
 	g_IsLastPropStanding = false;
@@ -187,7 +187,7 @@ public void EventHook_TeamplayRoundStart(Event event, const char[] name, bool do
 	}
 }
 
-public void EventHook_TeamplayRoundWin(Event event, const char[] name, bool dontBroadcast)
+static void EventHook_TeamplayRoundWin(Event event, const char[] name, bool dontBroadcast)
 {
 	delete g_ControlPointBonusTimer;
 	
@@ -201,7 +201,7 @@ public void EventHook_TeamplayRoundWin(Event event, const char[] name, bool dont
 	SDKCall_SetSwitchTeams(true);
 }
 
-public void EventHook_ArenaRoundStart(Event event, const char[] name, bool dontBroadcast)
+static void EventHook_ArenaRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	g_InSetup = true;
 	
@@ -222,4 +222,93 @@ public void EventHook_ArenaRoundStart(Event event, const char[] name, bool dontB
 			HookSingleEntityOutput(timer, "OnFinished", EntityOutput_OnFinished, true);
 		}
 	}
+}
+
+static Action Timer_PropPostSpawn(Handle timer, int serial)
+{
+	int client = GetClientFromSerial(serial);
+	if (client != 0)
+	{
+		// Enable thirdperson
+		SetVariantInt(PHPlayer(client).InForcedTauntCam);
+		AcceptEntityInput(client, "SetForcedTauntCam");
+		
+		// Apply gameplay conditions
+		TF2_AddCondition(client, TFCond_SpawnOutline);
+		
+		if (ph_prop_afterburn_immune.BoolValue)
+			TF2_AddCondition(client, TFCond_AfterburnImmune);
+	}
+	
+	return Plugin_Continue;
+}
+
+static Action Timer_RefreshControlPointBonus(Handle timer)
+{
+	if (timer != g_ControlPointBonusTimer)
+		return Plugin_Stop;
+	
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		PHPlayer(client).HasReceivedBonus = false;
+	}
+	
+	CPrintToChatAll("%s %t", PLUGIN_TAG, "PH_Bonus_Refreshed");
+	
+	return Plugin_Continue;
+}
+
+static Action EntityOutput_OnSetupFinished(const char[] output, int caller, int activator, float delay)
+{
+	g_InSetup = false;
+	
+	// Setup control point bonus
+	g_ControlPointBonusTimer = CreateTimer(ph_bonus_refresh_interval.FloatValue, Timer_RefreshControlPointBonus, _, TIMER_REPEAT);
+	TriggerTimer(g_ControlPointBonusTimer);
+	
+	// Refresh speed of all clients to allow hunters to move
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		if (IsClientInGame(client))
+			TF2_AddCondition(client, TFCond_SpeedBuffAlly, 0.01);
+	}
+	
+	// Trigger named relays
+	char relayName[64];
+	ph_relay_name.GetString(relayName, sizeof(relayName));
+	
+	if (relayName[0] != EOS)
+	{
+		int relay = -1;
+		while ((relay = FindEntityByClassname(relay, "logic_relay")) != -1)
+		{
+			char name[64];
+			GetEntPropString(relay, Prop_Data, "m_iName", name, sizeof(name));
+			
+			if (strcmp(name, relayName) == 0)
+				AcceptEntityInput(relay, "Trigger");
+		}
+	}
+	
+	// Open all doors in the map
+	if (ph_open_doors_after_setup.BoolValue)
+	{
+		int door = -1;
+		while ((door = FindEntityByClassname(door, "func_door")) != -1)
+		{
+			AcceptEntityInput(door, "Open");
+		}
+	}
+	
+	// End the truce
+	GameRules_SetProp("m_bTruceActive", false);
+	
+	return Plugin_Continue;
+}
+
+static Action EntityOutput_OnFinished(const char[] output, int caller, int activator, float delay)
+{
+	SetWinningTeam(TFTeam_Props);
+	
+	return Plugin_Continue;
 }

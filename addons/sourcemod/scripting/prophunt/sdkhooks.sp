@@ -53,7 +53,7 @@ void SDKHooks_OnEntityCreated(int entity, const char[] classname)
 	}
 }
 
-public Action SDKHookCB_Client_OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3], int damagecustom)
+static Action SDKHookCB_Client_OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3], int damagecustom)
 {
 	// Prevent props from drowning
 	if (damagetype & DMG_DROWN && TF2_GetClientTeam(victim) == TFTeam_Props)
@@ -65,7 +65,7 @@ public Action SDKHookCB_Client_OnTakeDamage(int victim, int &attacker, int &infl
 	return Plugin_Continue;
 }
 
-public void SDKHookCB_PropDynamic_SpawnPost(int prop)
+static void SDKHookCB_PropDynamic_SpawnPost(int prop)
 {
 	if (!g_IsMapRunning)
 		return;
@@ -109,19 +109,19 @@ public void SDKHookCB_PropDynamic_SpawnPost(int prop)
 	}
 }
 
-public Action SDKHookCB_HealthKit_Touch(int healthkit, int other)
+static Action SDKHookCB_HealthKit_Touch(int healthkit, int other)
 {
 	g_InHealthKitTouch = true;
 	
 	return Plugin_Continue;
 }
 
-public void SDKHookCB_HealthKit_TouchPost(int healthkit, int other)
+static void SDKHookCB_HealthKit_TouchPost(int healthkit, int other)
 {
 	g_InHealthKitTouch = false;
 }
 
-public Action SDKHookCB_ControlPoint_StartTouch(int prop, int other)
+static Action SDKHookCB_ControlPoint_StartTouch(int prop, int other)
 {
 	if (!IsSeekingTime())
 		return Plugin_Continue;
@@ -141,7 +141,7 @@ public Action SDKHookCB_ControlPoint_StartTouch(int prop, int other)
 	return Plugin_Continue;
 }
 
-public Action SDKHookCB_TauntProp_SetTransmit(int entity, int client)
+static Action SDKHookCB_TauntProp_SetTransmit(int entity, int client)
 {
 	if (!IsSeekingTime())
 		return Plugin_Handled;
@@ -153,7 +153,7 @@ public Action SDKHookCB_TauntProp_SetTransmit(int entity, int client)
 	return Plugin_Continue;
 }
 
-public void SDKHookCB_ProjectileJar_SpawnPost(int projectile)
+static void SDKHookCB_ProjectileJar_SpawnPost(int projectile)
 {
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	
@@ -167,7 +167,7 @@ public void SDKHookCB_ProjectileJar_SpawnPost(int projectile)
 	}
 }
 
-public void SDKHookCB_ProjectileBall_SpawnPost(int projectile)
+static void SDKHookCB_ProjectileBall_SpawnPost(int projectile)
 {
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	
@@ -181,7 +181,7 @@ public void SDKHookCB_ProjectileBall_SpawnPost(int projectile)
 	}
 }
 
-public void SDKHookCB_ProjectileMechanicalArmOrb_SpawnPost(int projectile)
+static void SDKHookCB_ProjectileMechanicalArmOrb_SpawnPost(int projectile)
 {
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	
