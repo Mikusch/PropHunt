@@ -25,12 +25,12 @@ void Offsets_Init(GameData gamedata)
 	g_offsets = new StringMap();
 	
 	SetOffset(gamedata, "CTFWeaponBase", "m_iWeaponMode");
-	SetOffset(gamedata,"CTFWeaponBase", "m_pWeaponInfo");
+	SetOffset(gamedata, "CTFWeaponBase", "m_pWeaponInfo");
 	
-	SetOffset(gamedata,NULL_STRING, "sizeof(WeaponData_t)");
-	SetOffset(gamedata,"WeaponData_t", "m_nDamage");
-	SetOffset(gamedata,"WeaponData_t", "m_nBulletsPerShot");
-	SetOffset(gamedata,"WeaponData_t", "m_flTimeFireDelay");
+	SetOffset(gamedata, NULL_STRING, "sizeof(WeaponData_t)");
+	SetOffset(gamedata, "WeaponData_t", "m_nDamage");
+	SetOffset(gamedata, "WeaponData_t", "m_nBulletsPerShot");
+	SetOffset(gamedata, "WeaponData_t", "m_flTimeFireDelay");
 }
 
 any GetOffset(const char[] cls, const char[] prop)
