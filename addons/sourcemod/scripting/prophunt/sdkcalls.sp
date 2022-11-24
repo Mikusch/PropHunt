@@ -22,20 +22,18 @@ static Handle g_SDKCallCastSelfHeal;
 static Handle g_SDKCallFindCriterionIndex;
 static Handle g_SDKCallRemoveCriteria;
 static Handle g_SDKCallSetSwitchTeams;
-static Handle g_SDKCallGetBaseEntity;
 static Handle g_SDKCallGetDamageType;
 static Handle g_SDKCallInitClass;
 static Handle g_SDKCallGetProjectileDamage;
 static Handle g_SDKCallGetMeleeDamage;
 static Handle g_SDKCallJarGetDamage;
 
-void SDKCalls_Initialize(GameData gamedata)
+void SDKCalls_Init(GameData gamedata)
 {
 	g_SDKCallCastSelfHeal = PrepSDKCall_CastSelfHeal(gamedata);
 	g_SDKCallFindCriterionIndex = PrepSDKCall_FindCriterionIndex(gamedata);
 	g_SDKCallRemoveCriteria = PrepSDKCall_RemoveCriteria(gamedata);
 	g_SDKCallSetSwitchTeams = PrepSDKCall_SetSwitchTeams(gamedata);
-	g_SDKCallGetBaseEntity = PrepSDKCall_GetBaseEntity(gamedata);
 	g_SDKCallGetDamageType = PrepSDKCall_GetDamageType(gamedata);
 	g_SDKCallInitClass = PrepSDKCall_InitClass(gamedata);
 	g_SDKCallGetProjectileDamage = PrepSDKCall_GetProjectileDamage(gamedata);
@@ -93,19 +91,6 @@ static Handle PrepSDKCall_SetSwitchTeams(GameData gamedata)
 	Handle call = EndPrepSDKCall();
 	if (!call)
 		LogMessage("Failed to create SDKCall: CTeamplayRules::SetSwitchTeams");
-	
-	return call;
-}
-
-static Handle PrepSDKCall_GetBaseEntity(GameData gamedata)
-{
-	StartPrepSDKCall(SDKCall_Raw);
-	PrepSDKCall_SetFromConf(gamedata, SDKConf_Virtual, "CBaseEntity::GetBaseEntity");
-	PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
-	
-	Handle call = EndPrepSDKCall();
-	if (!call)
-		LogMessage("Failed to create SDKCall: CBaseEntity::GetBaseEntity");
 	
 	return call;
 }
@@ -203,14 +188,6 @@ void SDKCall_SetSwitchTeams(bool shouldSwitch)
 {
 	if (g_SDKCallSetSwitchTeams)
 		SDKCall(g_SDKCallSetSwitchTeams, shouldSwitch);
-}
-
-int SDKCall_GetBaseEntity(Address address)
-{
-	if (g_SDKCallGetBaseEntity)
-		return SDKCall(g_SDKCallGetBaseEntity, address);
-	else
-		return -1;
 }
 
 int SDKCall_GetDamageType(int entity)

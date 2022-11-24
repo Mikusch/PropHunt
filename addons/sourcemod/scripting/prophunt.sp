@@ -26,11 +26,12 @@
 #include <tf2attributes>
 #include <tf2items>
 #include <tf_econ_data>
+#include <tf2utils>
 
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION	"1.5.0"
+#define PLUGIN_VERSION	"1.6.0"
 
 #define PLUGIN_TAG	"[{orange}PropHunt{default}]"
 
@@ -117,14 +118,6 @@ Handle g_ControlPointBonusTimer;
 // Forwards
 GlobalForward g_ForwardOnPlayerDisguised;
 
-// Offsets
-int g_OffsetWeaponMode;
-int g_OffsetWeaponInfo;
-int g_OffsetPlayerSharedOuter;
-int g_OffsetWeaponDamage;
-int g_OffsetWeaponBulletsPerShot;
-int g_OffsetWeaponTimeFireDelay;
-
 // ConVars
 ConVar ph_enable;
 ConVar ph_prop_min_size;
@@ -159,6 +152,7 @@ ConVar ph_gravity_modifier;
 #include "prophunt/dhooks.sp"
 #include "prophunt/events.sp"
 #include "prophunt/helpers.sp"
+#include "prophunt/offsets.sp"
 #include "prophunt/sdkcalls.sp"
 #include "prophunt/sdkhooks.sp"
 
@@ -176,9 +170,9 @@ public void OnPluginStart()
 	LoadTranslations("common.phrases");
 	LoadTranslations("prophunt.phrases");
 	
-	Console_Initialize();
-	ConVars_Initialize();
-	Events_Initialize();
+	Console_Init();
+	ConVars_Init();
+	Events_Init();
 	
 	g_PropConfigs = new ArrayList(sizeof(PropConfig));
 	
@@ -189,15 +183,9 @@ public void OnPluginStart()
 	GameData gamedata = new GameData("prophunt");
 	if (gamedata)
 	{
-		DHooks_Initialize(gamedata);
-		SDKCalls_Initialize(gamedata);
-		
-		g_OffsetWeaponMode = gamedata.GetOffset("CTFWeaponBase::m_iWeaponMode");
-		g_OffsetWeaponInfo = gamedata.GetOffset("CTFWeaponBase::m_pWeaponInfo");
-		g_OffsetPlayerSharedOuter = gamedata.GetOffset("CTFPlayerShared::m_pOuter");
-		g_OffsetWeaponDamage = gamedata.GetOffset("WeaponData_t::m_nDamage");
-		g_OffsetWeaponBulletsPerShot = gamedata.GetOffset("WeaponData_t::m_nBulletsPerShot");
-		g_OffsetWeaponTimeFireDelay = gamedata.GetOffset("WeaponData_t::m_flTimeFireDelay");
+		DHooks_Init(gamedata);
+		SDKCalls_Init(gamedata);
+		Offsets_Init(gamedata);
 		
 		delete gamedata;
 	}

@@ -37,7 +37,7 @@ static DynamicHook g_DHookHasKnockback;
 
 static int g_OldGameType;
 
-void DHooks_Initialize(GameData gamedata)
+void DHooks_Init(GameData gamedata)
 {
 	g_DynamicDetours = new ArrayList(sizeof(DetourData));
 	g_DynamicHookIds = new ArrayList();
@@ -299,9 +299,9 @@ static MRESReturn DHookCallback_HookTarget_Post(int projectile, DHookParam param
 	return MRES_Ignored;
 }
 
-static MRESReturn DHookCallback_Heal_Pre(Address playerShared, DHookParam params)
+static MRESReturn DHookCallback_Heal_Pre(Address pShared, DHookParam params)
 {
-	int player = GetPlayerSharedOuter(playerShared);
+	int player = TF2Util_GetPlayerFromSharedAddress(pShared);
 	
 	// Reduce healing from continuous sources (except control point bonus)
 	if (!TF2_IsPlayerInCondition(player, TFCond_HalloweenQuickHeal))

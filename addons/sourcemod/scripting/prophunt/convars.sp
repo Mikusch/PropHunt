@@ -30,7 +30,7 @@ enum struct ConVarData
 
 static StringMap g_ConVars;
 
-void ConVars_Initialize()
+void ConVars_Init()
 {
 	g_ConVars = new StringMap();
 	

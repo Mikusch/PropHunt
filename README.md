@@ -23,12 +23,12 @@ AlliedModders forum thread: https://forums.alliedmods.net/showthread.php?p=27712
 
 ## Requirements
 
-* SourceMod 1.10+
+* SourceMod 1.11+
 * [StaticProps](https://github.com/sigsegv-mvm/StaticProps)
 * [TF2Items](https://github.com/asherkin/TF2Items)
 * [TF2 Econ Data](https://github.com/nosoop/SM-TFEconData)
-* [TF2Attributes](https://github.com/nosoop/tf2attributes)
-* [DHooks 2 with Detour Support](https://github.com/peace-maker/DHooks2/tree/dynhooks) (included in SM 1.11)
+* [TF2Attributes](https://github.com/FlaminSarge/tf2attributes)
+* [TF2 Utils](https://github.com/nosoop/SM-TFUtils)
 * [More Colors](https://github.com/DoctorMcKay/sourcemod-plugins/blob/master/scripting/include/morecolors.inc) (compile only)
 
 ## Special Thanks

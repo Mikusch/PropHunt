@@ -29,7 +29,7 @@ enum struct EventData
 
 static ArrayList g_Events;
 
-void Events_Initialize()
+void Events_Init()
 {
 	g_Events = new ArrayList(sizeof(EventData));
 	
