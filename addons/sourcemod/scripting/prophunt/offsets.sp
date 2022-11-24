@@ -93,8 +93,6 @@ static void SetOffset(GameData gamedata, const char[] cls, const char[] prop)
 			
 			int offset = base_offset + gamedata.GetOffset(key);
 			g_offsets.SetValue(key, offset);
-			
-			LogMessage("%s %d (base %d)", key, offset, base_offset);
 		}
 		else
 		{
