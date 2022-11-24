@@ -184,8 +184,8 @@ public void OnPluginStart()
 	if (gamedata)
 	{
 		DHooks_Init(gamedata);
-		SDKCalls_Init(gamedata);
 		Offsets_Init(gamedata);
+		SDKCalls_Init(gamedata);
 		
 		delete gamedata;
 	}
