@@ -138,35 +138,29 @@ bool IsWeaponBaseMelee(int entity)
 	return HasEntProp(entity, Prop_Data, "CTFWeaponBaseMeleeSmack");
 }
 
-int GetWeaponData(int weapon)
+any GetWeaponData(int weapon)
 {
-	int weaponMode = GetEntData(weapon, g_OffsetWeaponMode);
-	int weaponInfo = GetEntData(weapon, g_OffsetWeaponInfo);
-	return weaponInfo + (WEAPONDATA_SIZE * weaponMode);
+	int weaponMode = GetEntData(weapon, GetOffset("CTFWeaponBase", "m_iWeaponMode"));
+	int weaponInfo = GetEntData(weapon, GetOffset("CTFWeaponBase", "m_pWeaponInfo"));
+	return weaponInfo + (GetOffset(NULL_STRING, "sizeof(WeaponData_t)") * weaponMode);
 }
 
 int GetWeaponDamage(int weapon)
 {
 	// m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_nDamage
-	return LoadFromAddress(view_as<Address>(GetWeaponData(weapon) + g_OffsetWeaponDamage), NumberType_Int32);
+	return LoadFromAddress(GetWeaponData(weapon) + GetOffset("WeaponData_t", "m_nDamage"), NumberType_Int32);
 }
 
 int GetWeaponBulletsPerShot(int weapon)
 {
 	// m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_nBulletsPerShot
-	return LoadFromAddress(view_as<Address>(GetWeaponData(weapon) + g_OffsetWeaponBulletsPerShot), NumberType_Int32);
+	return LoadFromAddress(GetWeaponData(weapon) + GetOffset("WeaponData_t", "m_nBulletsPerShot"), NumberType_Int32);
 }
 
 float GetWeaponTimeFireDelay(int weapon)
 {
 	// m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_flTimeFireDelay
-	return view_as<float>(LoadFromAddress(view_as<Address>(GetWeaponData(weapon) + g_OffsetWeaponTimeFireDelay), NumberType_Int32));
-}
-
-int GetPlayerSharedOuter(Address playerShared)
-{
-	Address outer = view_as<Address>(LoadFromAddress(playerShared + view_as<Address>(g_OffsetPlayerSharedOuter), NumberType_Int32));
-	return SDKCall_GetBaseEntity(outer);
+	return view_as<float>(LoadFromAddress(GetWeaponData(weapon) + GetOffset("WeaponData_t", "m_flTimeFireDelay"), NumberType_Int32));
 }
 
 bool GetConfigByModel(const char[] model, PropConfig config)

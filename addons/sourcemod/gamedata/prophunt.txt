@@ -19,6 +19,14 @@
 {
 	"tf"
 	{
+		"Keys"
+		{
+			"CTFWeaponBase_BaseOffset"
+			{
+				"linux"		"m_flEffectBarRegenTime"
+				"windows"	"m_flEffectBarRegenTime"
+			}
+		}
 		"Signatures"
 		{
 			"CTFPlayer::GetMaxHealthForBuffing"
@@ -73,11 +81,6 @@
 			{
 				"linux"		"163"
 				"windows"	"162"
-			}
-			"CBaseEntity::GetBaseEntity"
-			{
-				"linux" 	"6"
-				"windows" 	"5"
 			}
 			"CBaseEntity::Spawn"
 			{
@@ -136,18 +139,18 @@
 			}
 			"CTFWeaponBase::m_iWeaponMode"
 			{
-				"linux"		"1704"
-				"windows"	"1700"
+				"linux"		"4"
+				"windows"	"4"
 			}
 			"CTFWeaponBase::m_pWeaponInfo"
 			{
-				"linux"		"1716"
-				"windows"	"1712"
+				"linux"		"16"
+				"windows"	"16"
 			}
-			"CTFPlayerShared::m_pOuter"
+			"sizeof(WeaponData_t)"
 			{
-				"linux"		"400"
-				"windows"	"400"
+				"linux"		"58"
+				"windows"	"58"
 			}
 			"WeaponData_t::m_nDamage"
 			{
