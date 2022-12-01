@@ -79,63 +79,63 @@
 		{
 			"CTeamplayRules::SetSwitchTeams"
 			{
-				"linux"		"163"
-				"windows"	"162"
+				"linux"		"167"
+				"windows"	"166"
 			}
 			"CBaseEntity::Spawn"
 			{
-				"linux"		"23"
-				"windows"	"22"
+				"linux"		"25"
+				"windows"	"24"
 			}
 			"CBaseEntity::TakeHealth"
 			{
-				"linux"		"65"
-				"windows"	"64"
+				"linux"		"67"
+				"windows"	"66"
 			}
 			"CBaseEntity::ModifyOrAppendCriteria"
 			{
-				"linux"		"122"
-				"windows"	"121"
+				"linux"		"124"
+				"windows"	"123"
 			}
 			"CBaseEntity::GetDamageType"
 			{
-				"linux"		"131"
-				"windows"	"130"
+				"linux"		"134"
+				"windows"	"133"
 			}
 			"CTFPlayer::InitClass"
+			{
+				"linux"		"495"
+				"windows"	"488"
+			}
+			"CTFWeaponBaseGun::FireProjectile"
+			{
+				"linux"		"476"
+				"windows"	"469"
+			}
+			"CTFWeaponBaseGun::GetProjectileDamage"
 			{
 				"linux"		"491"
 				"windows"	"484"
 			}
-			"CTFWeaponBaseGun::FireProjectile"
-			{
-				"linux"		"473"
-				"windows"	"466"
-			}
-			"CTFWeaponBaseGun::GetProjectileDamage"
-			{
-				"linux"		"488"
-				"windows"	"481"
-			}
 			"CTFWeaponBaseMelee::Smack"
 			{
-				"linux"		"473"
-				"windows"	"466"
+				"linux"		"476"
+				"windows"	"469"
 			}
 			"CTFWeaponBaseMelee::GetMeleeDamage"
 			{
-				"linux"		"477"
-				"windows"	"470"
+				"linux"		"480"
+				"windows"	"473"
 			}
 			"CTFScatterGun::HasKnockback"
 			{
-				"linux"		"494"
-				"windows"	"487"
+				"linux"		"497"
+				"windows"	"490"
 			}
 			"CTFProjectile_Jar::GetDamage"
 			{
-				"linux"		"132"
-				"windows"	"131"
+				"linux"		"135"
+				"windows"	"134"
 			}
 			"CTFWeaponBase::m_iWeaponMode"
 			{
