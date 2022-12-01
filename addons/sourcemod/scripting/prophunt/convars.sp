@@ -42,6 +42,7 @@ void ConVars_Init()
 	ph_prop_select_distance = CreateConVar("ph_prop_select_distance", "128.0", "Minimum required distance to a prop for it to be selectable, in HU.");
 	ph_prop_max_health = CreateConVar("ph_prop_max_health", "300", "Maximum health of props, regardless of prop size. Set to 0 to unrestrict health.");
 	ph_prop_afterburn_immune = CreateConVar("ph_prop_afterburn_immune", "1", "When set, props do not take afterburn damage.");
+	ph_prop_proplock_enabled = CreateConVar("ph_prop_proplock_enabled", "1", "When set, props are allowed to freeze in place.");
 	ph_hunter_damage_modifier_gun = CreateConVar("ph_hunter_damage_modifier_gun", "0.35", "Modifier of self-damage taken from guns.");
 	ph_hunter_damage_modifier_melee = CreateConVar("ph_hunter_damage_modifier_melee", "0.15", "Modifier of self-damage taken from melees.");
 	ph_hunter_damage_modifier_grapplinghook = CreateConVar("ph_hunter_damage_modifier_grapplinghook", "1.0", "Modifier of self-damage taken from the Grappling Hook.");
@@ -75,12 +76,14 @@ void ConVars_Toggle(bool enable)
 	if (enable)
 	{
 		ph_prop_afterburn_immune.AddChangeHook(ConVarChanged_PropAfterburnImmune);
+		ph_prop_proplock_enabled.AddChangeHook(ConVarChanged_PropPropLockEnabled);
 		ph_chat_tip_interval.AddChangeHook(ConVarChanged_ChatTipInterval);
 		ph_gravity_modifier.AddChangeHook(ConVarChanged_GravityModifier);
 	}
 	else
 	{
 		ph_prop_afterburn_immune.RemoveChangeHook(ConVarChanged_PropAfterburnImmune);
+		ph_prop_proplock_enabled.RemoveChangeHook(ConVarChanged_PropPropLockEnabled);
 		ph_chat_tip_interval.RemoveChangeHook(ConVarChanged_ChatTipInterval);
 		ph_gravity_modifier.RemoveChangeHook(ConVarChanged_GravityModifier);
 	}
@@ -191,6 +194,27 @@ static void ConVarChanged_PropAfterburnImmune(ConVar convar, const char[] oldVal
 			TF2_AddCondition(client, TFCond_AfterburnImmune);
 		else
 			TF2_RemoveCondition(client, TFCond_AfterburnImmune);
+	}
+}
+
+static void ConVarChanged_PropPropLockEnabled(ConVar convar, const char[] oldValue, const char[] newValue)
+{
+	if (!convar.BoolValue)
+	{
+		for (int client = 1; client <= MaxClients; client++)
+		{
+			if (!IsClientInGame(client))
+				continue;
+			
+			if (!IsPlayerAlive(client))
+				continue;
+			
+			if (PHPlayer(client).PropLockEnabled)
+			{
+				PHPlayer(client).PropLockEnabled = false;
+				TogglePropLock(client, false);
+			}
+		}
 	}
 }
 

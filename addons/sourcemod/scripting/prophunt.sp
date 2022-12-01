@@ -125,6 +125,7 @@ ConVar ph_prop_max_size;
 ConVar ph_prop_select_distance;
 ConVar ph_prop_max_health;
 ConVar ph_prop_afterburn_immune;
+ConVar ph_prop_proplock_enabled;
 ConVar ph_hunter_damage_modifier_gun;
 ConVar ph_hunter_damage_modifier_melee;
 ConVar ph_hunter_damage_modifier_grapplinghook;
@@ -323,21 +324,27 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	// IN_ATTACK2 locks the player's prop view
 	if (buttons & IN_ATTACK2 && buttonsChanged & IN_ATTACK2)
 	{
-		// Check if the player is currently above a trigger_hurt
-		float origin[3];
-		GetClientAbsOrigin(client, origin);
-		TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, TraceEntityEnumerator_EnumerateTriggers, client);
-		
-		// Don't allow them to lock to avoid props hovering above deadly areas
-		if (!g_DisallowPropLocking)
+		if (ph_prop_proplock_enabled.BoolValue)
 		{
-			bool locked = PHPlayer(client).PropLockEnabled = !PHPlayer(client).PropLockEnabled;
-			TogglePropLock(client, locked);
+			// Check if the player is currently above a trigger_hurt
+			float origin[3];
+			GetClientAbsOrigin(client, origin);
+			TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, TraceEntityEnumerator_EnumerateTriggers, client);
+			
+			// Don't allow them to lock to avoid props hovering above deadly areas
+			if (!g_DisallowPropLocking)
+			{
+				TogglePropLock(client, !PHPlayer(client).PropLockEnabled);
+			}
+			else
+			{
+				PrintHintText(client, "%t", "PH_PropLock_Unavailable");
+				g_DisallowPropLocking = false;
+			}
 		}
 		else
 		{
 			PrintHintText(client, "%t", "PH_PropLock_Unavailable");
-			g_DisallowPropLocking = false;
 		}
 	}
 	
@@ -367,7 +374,6 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	{
 		if (PHPlayer(client).PropLockEnabled)
 		{
-			PHPlayer(client).PropLockEnabled = false;
 			TogglePropLock(client, false);
 		}
 	}
@@ -757,6 +763,8 @@ void ClearCustomModel(int client, bool notify = false)
 
 void TogglePropLock(int client, bool toggle)
 {
+	PHPlayer(client).PropLockEnabled = toggle;
+	
 	SetVariantInt(!toggle);
 	AcceptEntityInput(client, "SetCustomModelRotates");
 	
