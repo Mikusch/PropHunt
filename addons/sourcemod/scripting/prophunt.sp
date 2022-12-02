@@ -31,7 +31,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION	"1.6.0"
+#define PLUGIN_VERSION	"1.7.0"
 
 #define PLUGIN_TAG	"[{orange}PropHunt{default}]"
 
