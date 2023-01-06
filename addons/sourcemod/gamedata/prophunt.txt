@@ -109,28 +109,28 @@
 			}
 			"CTFWeaponBaseGun::FireProjectile"
 			{
-				"linux"		"476"
-				"windows"	"469"
+				"linux"		"477"
+				"windows"	"470"
 			}
 			"CTFWeaponBaseGun::GetProjectileDamage"
 			{
-				"linux"		"491"
-				"windows"	"484"
+				"linux"		"492"
+				"windows"	"485"
 			}
 			"CTFWeaponBaseMelee::Smack"
 			{
-				"linux"		"476"
-				"windows"	"469"
+				"linux"		"477"
+				"windows"	"470"
 			}
 			"CTFWeaponBaseMelee::GetMeleeDamage"
 			{
-				"linux"		"480"
-				"windows"	"473"
+				"linux"		"481"
+				"windows"	"474"
 			}
 			"CTFScatterGun::HasKnockback"
 			{
-				"linux"		"497"
-				"windows"	"490"
+				"linux"		"498"
+				"windows"	"491"
 			}
 			"CTFProjectile_Jar::GetDamage"
 			{
