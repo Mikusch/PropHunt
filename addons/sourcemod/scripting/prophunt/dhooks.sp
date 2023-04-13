@@ -35,8 +35,6 @@ static DynamicHook g_DHookFireProjectile;
 static DynamicHook g_DHookSmack;
 static DynamicHook g_DHookHasKnockback;
 
-static int g_OldGameType;
-
 void DHooks_Init(GameData gamedata)
 {
 	g_DynamicDetours = new ArrayList(sizeof(DetourData));
@@ -47,7 +45,6 @@ void DHooks_Init(GameData gamedata)
 	DHooks_AddDynamicDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, DHookCallback_HookTarget_Post);
 	DHooks_AddDynamicDetour(gamedata, "CTFPlayerShared::Heal", DHookCallback_Heal_Pre, _);
 	DHooks_AddDynamicDetour(gamedata, "CTFPistol_ScoutPrimary::Push", _, DHookCallback_Push_Post);
-	DHooks_AddDynamicDetour(gamedata, "CTeamplayRoundBasedRules::SetInWaitingForPlayers", DHookCallback_SetInWaitingForPlayers_Pre, DHookCallback_SetInWaitingForPlayers_Post);
 	
 	g_DHookSpawn = DHooks_AddDynamicHook(gamedata, "CBaseEntity::Spawn");
 	g_DHookTakeHealth = DHooks_AddDynamicHook(gamedata, "CBaseEntity::TakeHealth");
@@ -327,22 +324,6 @@ static MRESReturn DHookCallback_Push_Post(int weapon)
 		
 		SDKHooks_TakeDamage(owner, weapon, owner, damage, damageType, weapon);
 	}
-	
-	return MRES_Ignored;
-}
-
-static MRESReturn DHookCallback_SetInWaitingForPlayers_Pre(DHookParam params)
-{
-	// Re-enables waiting for player period
-	g_OldGameType = GameRules_GetProp("m_nGameType");
-	GameRules_SetProp("m_nGameType", 0);
-	
-	return MRES_Ignored;
-}
-
-static MRESReturn DHookCallback_SetInWaitingForPlayers_Post(DHookParam params)
-{
-	GameRules_SetProp("m_nGameType", g_OldGameType);
 	
 	return MRES_Ignored;
 }

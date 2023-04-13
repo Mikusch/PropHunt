@@ -18,7 +18,6 @@ AlliedModders forum thread: https://forums.alliedmods.net/showthread.php?p=27712
     * Dynamically calculated self-damage values depending on used weapon
     * Minimal weapon and class restrictions
 * Compatibility with almost any arena map without any additional configs
-* Functional waiting for players period in arena mode
 * Highly configurable using ConVars and configuration files
 
 ## Requirements

@@ -224,7 +224,7 @@ static void EventHook_ArenaRoundStart(Event event, const char[] name, bool dontB
 	}
 }
 
-static Action Timer_PropPostSpawn(Handle timer, int serial)
+static void Timer_PropPostSpawn(Handle timer, int serial)
 {
 	int client = GetClientFromSerial(serial);
 	if (client != 0)
@@ -239,8 +239,6 @@ static Action Timer_PropPostSpawn(Handle timer, int serial)
 		if (ph_prop_afterburn_immune.BoolValue)
 			TF2_AddCondition(client, TFCond_AfterburnImmune);
 	}
-	
-	return Plugin_Continue;
 }
 
 static Action Timer_RefreshControlPointBonus(Handle timer)

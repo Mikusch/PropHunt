@@ -31,7 +31,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION	"1.7.1"
+#define PLUGIN_VERSION	"1.7.2"
 
 #define PLUGIN_TAG	"[{orange}PropHunt{default}]"
 
@@ -920,7 +920,7 @@ static bool TraceEntityFilter_IgnoreEntity(int entity, int mask, any data)
 	return entity != data;
 }
 
-static Action Timer_CheckStaticPropInfo(Handle timer)
+static void Timer_CheckStaticPropInfo(Handle timer)
 {
 	// Query every Hunter for r_staticpropinfo to prevent cheating
 	for (int client = 1; client <= MaxClients; client++)
@@ -928,11 +928,9 @@ static Action Timer_CheckStaticPropInfo(Handle timer)
 		if (IsClientInGame(client) && !IsFakeClient(client) && TF2_GetClientTeam(client) == TFTeam_Hunters)
 			QueryClientConVar(client, "r_staticpropinfo", ConVarQuery_StaticPropInfo, 0);
 	}
-	
-	return Plugin_Continue;
 }
 
-Action Timer_PrintChatTip(Handle timer)
+void Timer_PrintChatTip(Handle timer)
 {
 	static int count;
 	
@@ -953,6 +951,4 @@ Action Timer_PrintChatTip(Handle timer)
 		count = 0;
 		Timer_PrintChatTip(timer);
 	}
-	
-	return Plugin_Continue;
 }
