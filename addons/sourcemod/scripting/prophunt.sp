@@ -27,6 +27,7 @@
 #include <tf2items>
 #include <tf_econ_data>
 #include <tf2utils>
+#include <prophunt>
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -83,7 +84,7 @@ enum PHPropType
 	Prop_Entity,	/**< Entity-based prop, index corresponds to entity reference */
 };
 
-char g_TauntSounds[][] =
+char g_DefaultTauntSounds[][] =
 {
 	"Halloween.BlackCat",
 	"Halloween.Gremlin",
@@ -114,9 +115,6 @@ bool g_InHealthKitTouch;
 Handle g_AntiCheatTimer;
 Handle g_ChatTipTimer;
 Handle g_ControlPointBonusTimer;
-
-// Forwards
-GlobalForward g_ForwardOnPlayerDisguised;
 
 // ConVars
 ConVar ph_enable;
@@ -152,6 +150,7 @@ ConVar ph_gravity_modifier;
 #include "prophunt/convars.sp"
 #include "prophunt/dhooks.sp"
 #include "prophunt/events.sp"
+#include "prophunt/forwards.sp"
 #include "prophunt/helpers.sp"
 #include "prophunt/offsets.sp"
 #include "prophunt/sdkcalls.sp"
@@ -174,6 +173,7 @@ public void OnPluginStart()
 	Console_Init();
 	ConVars_Init();
 	Events_Init();
+	Forwards_Init();
 	
 	g_PropConfigs = new ArrayList(sizeof(PropConfig));
 	
@@ -199,8 +199,6 @@ public void OnPluginStart()
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	RegPluginLibrary("prophunt");
-	
-	g_ForwardOnPlayerDisguised = new GlobalForward("PropHunt_OnPlayerDisguised", ET_Ignore, Param_Cell, Param_String);
 	
 	return APLRes_Success;
 }
@@ -297,11 +295,14 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	if (!g_IsEnabled)
 		return Plugin_Continue;
 	
+	int buttonsChanged = GetEntProp(client, Prop_Data, "m_afButtonPressed") | GetEntProp(client, Prop_Data, "m_afButtonReleased");
+	
+	if (buttons & IN_ATTACK3 && buttonsChanged & IN_ATTACK3)
+		DoTaunt(client);
+	
 	// Prop-only functionality below this point
 	if (TF2_GetClientTeam(client) != TFTeam_Props || !IsPlayerAlive(client))
 		return Plugin_Continue;
-	
-	int buttonsChanged = GetEntProp(client, Prop_Data, "m_afButtonPressed") | GetEntProp(client, Prop_Data, "m_afButtonReleased");
 	
 	// IN_ATTACK allows the player to pick a prop
 	if (buttons & IN_ATTACK && buttonsChanged & IN_ATTACK)
@@ -346,11 +347,6 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 		{
 			PrintHintText(client, "%t", "PH_PropLock_Unavailable");
 		}
-	}
-	
-	if (buttons & IN_ATTACK3 && buttonsChanged & IN_ATTACK3)
-	{
-		DoTaunt(client);
 	}
 	
 	// IN_RELOAD switches betweeen first-person and third-person view
@@ -721,10 +717,7 @@ void SetCustomModel(int client, const char[] model, PHPropType type, int index)
 	
 	SetEntProp(client, Prop_Data, "m_bloodColor", DONT_BLEED);
 	
-	Call_StartForward(g_ForwardOnPlayerDisguised);
-	Call_PushCell(client);
-	Call_PushString(model);
-	Call_Finish();
+	Forward_OnPlayerDisguised(client, model);
 	
 	char modelTidyName[PLATFORM_MAX_PATH];
 	GetModelTidyName(model, modelTidyName, sizeof(modelTidyName));
@@ -787,10 +780,26 @@ void DoTaunt(int client)
 	if (GetGameTime() < PHPlayer(client).NextTauntTime)
 		return;
 	
-	// Play a funny sound
-	EmitGameSoundToAll(g_TauntSounds[GetRandomInt(0, sizeof(g_TauntSounds) - 1)], client);
+	char sound[PLATFORM_MAX_PATH];
 	
-	PHPlayer(client).NextTauntTime = GetGameTime() + 1.0;
+	// Only props have taunt sounds by default, but subplugins can override this
+	if (TF2_GetClientTeam(client) == TFTeam_Props)
+		strcopy(sound, sizeof(sound), g_DefaultTauntSounds[GetRandomInt(0, sizeof(g_DefaultTauntSounds) - 1)]);
+	
+	Action result = Forwards_OnTaunt(client, sound, sizeof(sound));
+	
+	if (result >= Plugin_Handled)
+		return;
+	
+	if (sound[0] == EOS)
+		return;
+	
+	if (PrecacheScriptSound(sound))
+		EmitGameSoundToAll(sound, client);
+	else if (PrecacheSound(sound))
+		EmitSoundToAll(sound, client, SNDCHAN_STATIC, 85, .pitch = GetRandomInt(90, 110));
+	
+	PHPlayer(client).NextTauntTime = GetGameTime() + 2.0;
 }
 
 void ApplyFlameThrowerVelocity(int client)

@@ -290,7 +290,7 @@ void PrintKeyHintText(int client, const char[] format, any...)
 	VFormat(buffer, sizeof(buffer), format, 3);
 	
 	BfWrite bf = UserMessageToBfWrite(StartMessageOne("KeyHintText", client));
-	bf.WriteByte(1);	//One message
+	bf.WriteByte(1); // One message
 	bf.WriteString(buffer);
 	EndMessage();
 }

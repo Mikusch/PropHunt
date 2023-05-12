@@ -28,6 +28,17 @@
  */
 forward void PropHunt_OnPlayerDisguised(int client, const char[] model);
 
+/**
+ * Called when a player is taunting.
+ *
+ * @param client		The client index.
+ * @param sound			The sound being played.
+ * @param maxlength		Maximum length of the sound buffer.
+ *
+ * @return Plugin_Handled to block the taunt from playing, Plugin_Continue otherwise.
+ */
+forward Action PropHunt_OnPlayerTaunt(int client, char sound[], int maxlength);
+
 public SharedPlugin __pl_prophunt =
 {
 	name = "prophunt",
