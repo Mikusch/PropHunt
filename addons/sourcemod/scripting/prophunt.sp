@@ -27,7 +27,6 @@
 #include <tf2items>
 #include <tf_econ_data>
 #include <tf2utils>
-#include <prophunt>
 
 #pragma semicolon 1
 #pragma newdecls required
