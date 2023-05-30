@@ -294,13 +294,16 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	if (!g_IsEnabled)
 		return Plugin_Continue;
 	
+	if (!IsPlayerAlive(client))
+		return Plugin_Continue;
+	
 	int buttonsChanged = GetEntProp(client, Prop_Data, "m_afButtonPressed") | GetEntProp(client, Prop_Data, "m_afButtonReleased");
 	
 	if (buttons & IN_ATTACK3 && buttonsChanged & IN_ATTACK3)
 		DoTaunt(client);
 	
 	// Prop-only functionality below this point
-	if (TF2_GetClientTeam(client) != TFTeam_Props || !IsPlayerAlive(client))
+	if (TF2_GetClientTeam(client) != TFTeam_Props)
 		return Plugin_Continue;
 	
 	// IN_ATTACK allows the player to pick a prop
