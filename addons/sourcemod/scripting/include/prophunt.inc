@@ -37,7 +37,7 @@ forward void PropHunt_OnPlayerDisguised(int client, const char[] model);
  *
  * @return Plugin_Handled to block the taunt from playing, Plugin_Continue otherwise.
  */
-forward Action PropHunt_OnPlayerTaunt(int client, char sound[], int maxlength);
+forward Action PropHunt_OnPlayerTaunt(int client, char[] sound, int maxlength);
 
 public SharedPlugin __pl_prophunt =
 {
