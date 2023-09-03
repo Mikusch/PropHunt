@@ -763,11 +763,12 @@ void TogglePropLock(int client, bool toggle)
 	SetVariantInt(!toggle);
 	AcceptEntityInput(client, "SetCustomModelRotates");
 	
+	SetEntPropVector(client, Prop_Data, "m_vecAbsVelocity", ZERO_VECTOR);
+	
 	if (toggle)
 	{
 		EmitSoundToClient(client, LOCK_SOUND, _, SNDCHAN_STATIC);
 		SetEntityMoveType(client, MOVETYPE_NONE);
-		SetEntPropVector(client, Prop_Data, "m_vecAbsVelocity", ZERO_VECTOR);
 		PrintHintText(client, "%t", "PH_PropLock_Enabled");
 	}
 	else
