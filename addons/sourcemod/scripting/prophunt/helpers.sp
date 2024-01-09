@@ -36,6 +36,7 @@ static const TFClassType g_ValidHunterClasses[] =
 	TFClass_Medic,
 	TFClass_Heavy,
 	TFClass_Pyro,
+	TFClass_Spy,
 	TFClass_Engineer,
 };
 

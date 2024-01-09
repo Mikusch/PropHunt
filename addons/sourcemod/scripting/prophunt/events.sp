@@ -81,9 +81,10 @@ static void EventHook_PlayerSpawn(Event event, const char[] name, bool dontBroad
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	
 	TFTeam team = TF2_GetClientTeam(client);
+	TFClassType class = TF2_GetPlayerClass(client);
 	
 	// Ensure the player is playing as a valid class for their team
-	if (!IsValidClass(team, TF2_GetPlayerClass(client)))
+	if (!IsValidClass(team, class))
 	{
 		TF2_SetPlayerClass(client, GetRandomValidClass(team), _, false);
 		SDKCall_InitClass(client);
@@ -95,6 +96,16 @@ static void EventHook_PlayerSpawn(Event event, const char[] name, bool dontBroad
 		
 		// Some things, like setting conditions, only works with a delay
 		CreateTimer(0.1, Timer_PropPostSpawn, GetClientSerial(client));
+	}
+	
+	if (team == TFTeam_Hunters && class == TFClass_Spy)
+	{
+		// Prevent Spy from using TargetID to find props
+		SetEntProp(client, Prop_Send, "m_iHideHUD", GetEntProp(client, Prop_Send, "m_iHideHUD") | HIDEHUD_TARGET_ID);
+	}
+	else
+	{
+		SetEntProp(client, Prop_Send, "m_iHideHUD", GetEntProp(client, Prop_Send, "m_iHideHUD") & ~HIDEHUD_TARGET_ID);
 	}
 	
 	SetEntityGravity(client, ph_gravity_modifier.FloatValue);

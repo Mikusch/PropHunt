@@ -31,13 +31,15 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION	"1.8.0"
+#define PLUGIN_VERSION	"1.8.1"
 
 #define PLUGIN_TAG	"[{orange}PropHunt{default}]"
 
 #define DONT_BLEED	0
 
 #define DMG_MELEE	DMG_BLAST_SURFACE
+
+#define HIDEHUD_TARGET_ID	(1 << 16)
 
 #define ITEM_DEFINDEX_GRAPPLINGHOOK			1152
 #define ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH	269
