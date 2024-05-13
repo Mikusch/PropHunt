@@ -15,6 +15,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#pragma semicolon 1
+#pragma newdecls required
+
 // Map Config
 enum struct MapConfig
 {
@@ -96,6 +99,7 @@ enum struct PropConfig
 	bool blacklist;
 	float offset[3];
 	float rotation[3];
+	int health;
 	
 	void ReadFromKv(KeyValues kv)
 	{
@@ -107,7 +111,7 @@ enum struct PropConfig
 		
 		char pattern[256];
 		kv.GetString("model_pattern", pattern, sizeof(pattern));
-		if (pattern[0] != '\0')
+		if (pattern[0] != EOS)
 		{
 			RegexError errcode;
 			char message[256];
@@ -120,6 +124,7 @@ enum struct PropConfig
 		this.blacklist = view_as<bool>(kv.GetNum("blacklist"));
 		kv.GetVector("offset", this.offset);
 		kv.GetVector("rotation", this.rotation);
+		this.health = kv.GetNum("health");
 	}
 }
 

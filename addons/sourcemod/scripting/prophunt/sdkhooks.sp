@@ -15,9 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#pragma semicolon 1
+#pragma newdecls required
+
 void SDKHooks_HookClient(int client)
 {
 	SDKHook(client, SDKHook_OnTakeDamage, SDKHookCB_Client_OnTakeDamage);
+}
+
+void SDKHooks_UnhookClient(int client)
+{
+	SDKUnhook(client, SDKHook_OnTakeDamage, SDKHookCB_Client_OnTakeDamage);
 }
 
 void SDKHooks_OnEntityCreated(int entity, const char[] classname)
@@ -31,9 +39,21 @@ void SDKHooks_OnEntityCreated(int entity, const char[] classname)
 		SDKHook(entity, SDKHook_Touch, SDKHookCB_HealthKit_Touch);
 		SDKHook(entity, SDKHook_TouchPost, SDKHookCB_HealthKit_TouchPost);
 	}
+	else if (strncmp(classname, "tf_projectile_jar", 17) == 0 || strcmp(classname, "tf_projectile_cleaver") == 0)
+	{
+		SDKHook(entity, SDKHook_SpawnPost, SDKHookCB_ProjectileJar_SpawnPost);
+	}
+	else if (strcmp(classname, "tf_projectile_stun_ball") == 0 || strcmp(classname, "tf_projectile_ball_ornament") == 0)
+	{
+		SDKHook(entity, SDKHook_SpawnPost, SDKHookCB_ProjectileBall_SpawnPost);
+	}
+	else if (strcmp(classname, "tf_projectile_mechanicalarmorb") == 0)
+	{
+		SDKHook(entity, SDKHook_SpawnPost, SDKHookCB_ProjectileMechanicalArmOrb_SpawnPost);
+	}
 }
 
-public Action SDKHookCB_Client_OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3], int damagecustom)
+static Action SDKHookCB_Client_OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3], int damagecustom)
 {
 	// Prevent props from drowning
 	if (damagetype & DMG_DROWN && TF2_GetClientTeam(victim) == TFTeam_Props)
@@ -45,7 +65,7 @@ public Action SDKHookCB_Client_OnTakeDamage(int victim, int &attacker, int &infl
 	return Plugin_Continue;
 }
 
-public void SDKHookCB_PropDynamic_SpawnPost(int prop)
+static void SDKHookCB_PropDynamic_SpawnPost(int prop)
 {
 	if (!g_IsMapRunning)
 		return;
@@ -89,21 +109,21 @@ public void SDKHookCB_PropDynamic_SpawnPost(int prop)
 	}
 }
 
-public Action SDKHookCB_HealthKit_Touch(int healthkit, int other)
+static Action SDKHookCB_HealthKit_Touch(int healthkit, int other)
 {
 	g_InHealthKitTouch = true;
 	
 	return Plugin_Continue;
 }
 
-public void SDKHookCB_HealthKit_TouchPost(int healthkit, int other)
+static void SDKHookCB_HealthKit_TouchPost(int healthkit, int other)
 {
 	g_InHealthKitTouch = false;
 }
 
-public Action SDKHookCB_ControlPoint_StartTouch(int prop, int other)
+static Action SDKHookCB_ControlPoint_StartTouch(int prop, int other)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+	if (!IsSeekingTime())
 		return Plugin_Continue;
 	
 	// Players touching the capture area receive a health bonus
@@ -121,9 +141,9 @@ public Action SDKHookCB_ControlPoint_StartTouch(int prop, int other)
 	return Plugin_Continue;
 }
 
-public Action SDKHookCB_TauntProp_SetTransmit(int entity, int client)
+static Action SDKHookCB_TauntProp_SetTransmit(int entity, int client)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
+	if (!IsSeekingTime())
 		return Plugin_Handled;
 	
 	// Give the control point an outline if the bonus is available
@@ -131,4 +151,47 @@ public Action SDKHookCB_TauntProp_SetTransmit(int entity, int client)
 		return Plugin_Handled;
 	
 	return Plugin_Continue;
+}
+
+static void SDKHookCB_ProjectileJar_SpawnPost(int projectile)
+{
+	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
+	
+	if (IsEntityClient(owner) && ShouldPlayerDealSelfDamage(owner))
+	{
+		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
+		float damage = SDKCall_JarGetDamage(projectile) * ph_hunter_damage_modifier_projectile.FloatValue;
+		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
+		
+		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
+	}
+}
+
+static void SDKHookCB_ProjectileBall_SpawnPost(int projectile)
+{
+	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
+	
+	if (IsEntityClient(owner) && ShouldPlayerDealSelfDamage(owner))
+	{
+		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
+		float damage = FindConVar("sv_proj_stunball_damage").FloatValue * ph_hunter_damage_modifier_projectile.FloatValue;
+		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
+		
+		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
+	}
+}
+
+static void SDKHookCB_ProjectileMechanicalArmOrb_SpawnPost(int projectile)
+{
+	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
+	
+	if (IsEntityClient(owner) && ShouldPlayerDealSelfDamage(owner))
+	{
+		// The damage value for the mechanical arm orb is hardcoded
+		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
+		float damage = 15.0 * ph_hunter_damage_modifier_projectile.FloatValue;
+		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
+		
+		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
+	}
 }

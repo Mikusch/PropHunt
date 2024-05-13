@@ -15,20 +15,39 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-void Console_Initialize()
+#pragma semicolon 1
+#pragma newdecls required
+
+void Console_Init()
 {
-	AddMultiTargetFilter("@prop", MultiTargetFilter_FilterProps, "PH_Target_Props", true);
-	AddMultiTargetFilter("@props", MultiTargetFilter_FilterProps, "PH_Target_Props", true);
-	AddMultiTargetFilter("@hunters", MultiTargetFilter_FilterHunters, "PH_Target_Hunters", true);
-	AddMultiTargetFilter("@hunter", MultiTargetFilter_FilterHunters, "PH_Target_Hunters", true);
-	
 	RegAdminCmd("sm_getmodel", ConCmd_GetModel, ADMFLAG_CHEATS);
 	RegAdminCmd("sm_setmodel", ConCmd_SetModel, ADMFLAG_CHEATS);
-	
-	AddCommandListener(CommandListener_Build, "build");
+	RegAdminCmd("sm_reloadconfigs", ConCmd_ReloadConfigs, ADMFLAG_CONFIG);
 }
 
-public bool MultiTargetFilter_FilterProps(const char[] pattern, ArrayList clients)
+void Console_Toggle(bool enable)
+{
+	if (enable)
+	{
+		AddMultiTargetFilter("@prop", MultiTargetFilter_FilterProps, "PH_Target_Props", true);
+		AddMultiTargetFilter("@props", MultiTargetFilter_FilterProps, "PH_Target_Props", true);
+		AddMultiTargetFilter("@hunters", MultiTargetFilter_FilterHunters, "PH_Target_Hunters", true);
+		AddMultiTargetFilter("@hunter", MultiTargetFilter_FilterHunters, "PH_Target_Hunters", true);
+		
+		AddCommandListener(CommandListener_Build, "build");
+	}
+	else
+	{
+		RemoveMultiTargetFilter("@prop", MultiTargetFilter_FilterProps);
+		RemoveMultiTargetFilter("@props", MultiTargetFilter_FilterProps);
+		RemoveMultiTargetFilter("@hunters", MultiTargetFilter_FilterHunters);
+		RemoveMultiTargetFilter("@hunter", MultiTargetFilter_FilterHunters);
+		
+		RemoveCommandListener(CommandListener_Build, "build");
+	}
+}
+
+static bool MultiTargetFilter_FilterProps(const char[] pattern, ArrayList clients)
 {
 	for (int client = 1; client <= MaxClients; client++)
 	{
@@ -39,7 +58,7 @@ public bool MultiTargetFilter_FilterProps(const char[] pattern, ArrayList client
 	return clients.Length > 0;
 }
 
-public bool MultiTargetFilter_FilterHunters(const char[] pattern, ArrayList clients)
+static bool MultiTargetFilter_FilterHunters(const char[] pattern, ArrayList clients)
 {
 	for (int client = 1; client <= MaxClients; client++)
 	{
@@ -50,8 +69,11 @@ public bool MultiTargetFilter_FilterHunters(const char[] pattern, ArrayList clie
 	return clients.Length > 0;
 }
 
-public Action ConCmd_GetModel(int client, int args)
+static Action ConCmd_GetModel(int client, int args)
 {
+	if (!g_IsEnabled)
+		return Plugin_Continue;
+	
 	if (args < 1)
 	{
 		ReplyToCommand(client, "[SM] Usage: sm_getmodel <#userid|name>");
@@ -65,7 +87,7 @@ public Action ConCmd_GetModel(int client, int args)
 	int target_list[MAXPLAYERS], target_count;
 	bool tn_is_ml;
 	
-	if ((target_count = ProcessTargetString(target, client, target_list, MaxClients + 1, COMMAND_TARGET_NONE, target_name, sizeof(target_name), tn_is_ml)) <= 0)
+	if ((target_count = ProcessTargetString(target, client, target_list, sizeof(target_list), COMMAND_TARGET_NONE, target_name, sizeof(target_name), tn_is_ml)) <= 0)
 	{
 		ReplyToTargetError(client, target_count);
 		return Plugin_Handled;
@@ -91,8 +113,11 @@ public Action ConCmd_GetModel(int client, int args)
 	return Plugin_Handled;
 }
 
-public Action ConCmd_SetModel(int client, int args)
+static Action ConCmd_SetModel(int client, int args)
 {
+	if (!g_IsEnabled)
+		return Plugin_Continue;
+	
 	if (args < 2)
 	{
 		ReplyToCommand(client, "[SM] Usage: sm_setmodel <#userid|name> <model>");
@@ -107,7 +132,7 @@ public Action ConCmd_SetModel(int client, int args)
 	int target_list[MAXPLAYERS], target_count;
 	bool tn_is_ml;
 	
-	if ((target_count = ProcessTargetString(target, client, target_list, MaxClients + 1, COMMAND_TARGET_NONE, target_name, sizeof(target_name), tn_is_ml)) <= 0)
+	if ((target_count = ProcessTargetString(target, client, target_list, sizeof(target_list), COMMAND_TARGET_NONE, target_name, sizeof(target_name), tn_is_ml)) <= 0)
 	{
 		ReplyToTargetError(client, target_count);
 		return Plugin_Handled;
@@ -115,7 +140,7 @@ public Action ConCmd_SetModel(int client, int args)
 	
 	for (int i = 0; i < target_count; i++)
 	{
-		if (model[0] != '\0')
+		if (model[0] != EOS)
 			SetCustomModel(target_list[i], model, Prop_None, -1);
 		else
 			ClearCustomModel(target_list[i], true);
@@ -136,7 +161,20 @@ public Action ConCmd_SetModel(int client, int args)
 	return Plugin_Handled;
 }
 
-public Action CommandListener_Build(int client, const char[] command, int argc)
+static Action ConCmd_ReloadConfigs(int client, int args)
+{
+	if (!g_IsEnabled)
+		return Plugin_Continue;
+	
+	ReadPropConfig();
+	ReadMapConfig();
+	
+	CReplyToCommand(client, "%s %t", PLUGIN_TAG, "PH_Command_ReloadConfig_Success");
+	
+	return Plugin_Handled;
+}
+
+static Action CommandListener_Build(int client, const char[] command, int argc)
 {
 	if (argc < 1)
 		return Plugin_Continue;

@@ -15,6 +15,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#pragma semicolon 1
+#pragma newdecls required
+
 #define FLOAT_EPSILON	0.0001
 
 #define WEAPONDATA_SIZE	58	// sizeof(WeaponData_t)
@@ -33,6 +36,7 @@ static const TFClassType g_ValidHunterClasses[] =
 	TFClass_Medic,
 	TFClass_Heavy,
 	TFClass_Pyro,
+	TFClass_Spy,
 	TFClass_Engineer,
 };
 
@@ -135,35 +139,29 @@ bool IsWeaponBaseMelee(int entity)
 	return HasEntProp(entity, Prop_Data, "CTFWeaponBaseMeleeSmack");
 }
 
-int GetWeaponData(int weapon)
+any GetWeaponData(int weapon)
 {
-	int weaponMode = GetEntData(weapon, g_OffsetWeaponMode);
-	int weaponInfo = GetEntData(weapon, g_OffsetWeaponInfo);
-	return weaponInfo + (WEAPONDATA_SIZE * weaponMode);
+	int weaponMode = GetEntData(weapon, GetOffset("CTFWeaponBase", "m_iWeaponMode"));
+	int weaponInfo = GetEntData(weapon, GetOffset("CTFWeaponBase", "m_pWeaponInfo"));
+	return weaponInfo + (GetOffset(NULL_STRING, "sizeof(WeaponData_t)") * weaponMode);
 }
 
 int GetWeaponDamage(int weapon)
 {
 	// m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_nDamage
-	return LoadFromAddress(view_as<Address>(GetWeaponData(weapon) + g_OffsetWeaponDamage), NumberType_Int32);
+	return LoadFromAddress(GetWeaponData(weapon) + GetOffset("WeaponData_t", "m_nDamage"), NumberType_Int32);
 }
 
 int GetWeaponBulletsPerShot(int weapon)
 {
 	// m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_nBulletsPerShot
-	return LoadFromAddress(view_as<Address>(GetWeaponData(weapon) + g_OffsetWeaponBulletsPerShot), NumberType_Int32);
+	return LoadFromAddress(GetWeaponData(weapon) + GetOffset("WeaponData_t", "m_nBulletsPerShot"), NumberType_Int32);
 }
 
 float GetWeaponTimeFireDelay(int weapon)
 {
 	// m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_flTimeFireDelay
-	return view_as<float>(LoadFromAddress(view_as<Address>(GetWeaponData(weapon) + g_OffsetWeaponTimeFireDelay), NumberType_Int32));
-}
-
-int GetPlayerSharedOuter(Address playerShared)
-{
-	Address outer = view_as<Address>(LoadFromAddress(playerShared + view_as<Address>(g_OffsetPlayerSharedOuter), NumberType_Int32));
-	return SDKCall_GetBaseEntity(outer);
+	return view_as<float>(LoadFromAddress(GetWeaponData(weapon) + GetOffset("WeaponData_t", "m_flTimeFireDelay"), NumberType_Int32));
 }
 
 bool GetConfigByModel(const char[] model, PropConfig config)
@@ -173,7 +171,7 @@ bool GetConfigByModel(const char[] model, PropConfig config)
 		if (g_PropConfigs.GetArray(i, config) > 0)
 		{
 			// Try to fetch config by exact match first
-			if (config.model[0] != '\0' && strcmp(config.model, model) == 0)
+			if (config.model[0] != EOS && strcmp(config.model, model) == 0)
 				return true;
 			
 			// Then, try the regular expression
@@ -203,7 +201,7 @@ void GetModelTidyName(const char[] model, char[] buffer, int maxlength)
 	// Remove .mdl at the end
 	int start = StrContains(buffer, ".mdl");
 	if (start != -1)
-		buffer[start] = '\0';
+		buffer[start] = EOS;
 }
 
 bool IsEntityClient(int entity)
@@ -245,7 +243,7 @@ int GetEntitySkin(int entity)
 int CountCharInString(const char[] string, char letter)
 {
 	int i, count;
-	while (string[i] != '\0')
+	while (string[i] != EOS)
 	{
 		if (string[i++] == letter)
 			count++;
@@ -293,7 +291,7 @@ void PrintKeyHintText(int client, const char[] format, any...)
 	VFormat(buffer, sizeof(buffer), format, 3);
 	
 	BfWrite bf = UserMessageToBfWrite(StartMessageOne("KeyHintText", client));
-	bf.WriteByte(1);	//One message
+	bf.WriteByte(1); // One message
 	bf.WriteString(buffer);
 	EndMessage();
 }
@@ -307,6 +305,7 @@ void SetWinningTeam(TFTeam team)
 		SetEntProp(round_win, Prop_Data, "m_iTeamNum", team);
 		
 		AcceptEntityInput(round_win, "RoundWin");
+		RemoveEntity(round_win);
 	}
 }
 
@@ -349,6 +348,16 @@ TFClassType GetRandomValidClass(TFTeam team)
 		return g_ValidHunterClasses[GetRandomInt(0, sizeof(g_ValidHunterClasses) - 1)];
 	else
 		return TFClass_Unknown;
+}
+
+bool IsSeekingTime()
+{
+	return GameRules_GetRoundState() == RoundState_Stalemate && !g_InSetup;
+}
+
+bool ShouldPlayerDealSelfDamage(int client)
+{
+	return TF2_GetClientTeam(client) == TFTeam_Hunters && IsSeekingTime();
 }
 
 // FIXME: This does not hide weapons with strange stat clock attachments

@@ -15,6 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#pragma semicolon 1
+#pragma newdecls required
+
+enum struct DetourData
+{
+	DynamicDetour detour;
+	DHookCallback callbackPre;
+	DHookCallback callbackPost;
+}
+
+static ArrayList g_DynamicDetours;
+static ArrayList g_DynamicHookIds;
+
 static DynamicHook g_DHookSpawn;
 static DynamicHook g_DHookTakeHealth;
 static DynamicHook g_DHookModifyOrAppendCriteria;
@@ -22,72 +35,109 @@ static DynamicHook g_DHookFireProjectile;
 static DynamicHook g_DHookSmack;
 static DynamicHook g_DHookHasKnockback;
 
-static int g_OldGameType;
-
-void DHooks_Initialize(GameData gamedata)
+void DHooks_Init(GameData gamedata)
 {
-	DHooks_CreateDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHookCallback_GetMaxHealthForBuffing_Post);
-	DHooks_CreateDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHookCallback_CanPlayerMove_Post);
-	DHooks_CreateDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, _);
-	DHooks_CreateDetour(gamedata, "CTFPlayerShared::Heal", DHookCallback_Heal_Pre, _);
-	DHooks_CreateDetour(gamedata, "CTeamplayRoundBasedRules::SetInWaitingForPlayers", DHookCallback_SetInWaitingForPlayers_Pre, DHookCallback_SetInWaitingForPlayers_Post);
+	g_DynamicDetours = new ArrayList(sizeof(DetourData));
+	g_DynamicHookIds = new ArrayList();
 	
-	g_DHookSpawn = CreateDynamicHook(gamedata, "CBaseEntity::Spawn");
-	g_DHookTakeHealth = CreateDynamicHook(gamedata, "CBaseEntity::TakeHealth");
-	g_DHookModifyOrAppendCriteria = CreateDynamicHook(gamedata, "CBaseEntity::ModifyOrAppendCriteria");
-	g_DHookFireProjectile = CreateDynamicHook(gamedata, "CTFWeaponBaseGun::FireProjectile");
-	g_DHookSmack = CreateDynamicHook(gamedata, "CTFWeaponBaseMelee::Smack");
-	g_DHookHasKnockback = CreateDynamicHook(gamedata, "CTFScatterGun::HasKnockback");
+	DHooks_AddDynamicDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHookCallback_GetMaxHealthForBuffing_Post);
+	DHooks_AddDynamicDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHookCallback_CanPlayerMove_Post);
+	DHooks_AddDynamicDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, DHookCallback_HookTarget_Post);
+	DHooks_AddDynamicDetour(gamedata, "CTFPlayerShared::Heal", DHookCallback_Heal_Pre, _);
+	DHooks_AddDynamicDetour(gamedata, "CTFPistol_ScoutPrimary::Push", _, DHookCallback_Push_Post);
+	
+	g_DHookSpawn = DHooks_AddDynamicHook(gamedata, "CBaseEntity::Spawn");
+	g_DHookTakeHealth = DHooks_AddDynamicHook(gamedata, "CBaseEntity::TakeHealth");
+	g_DHookModifyOrAppendCriteria = DHooks_AddDynamicHook(gamedata, "CBaseEntity::ModifyOrAppendCriteria");
+	g_DHookFireProjectile = DHooks_AddDynamicHook(gamedata, "CTFWeaponBaseGun::FireProjectile");
+	g_DHookSmack = DHooks_AddDynamicHook(gamedata, "CTFWeaponBaseMelee::Smack");
+	g_DHookHasKnockback = DHooks_AddDynamicHook(gamedata, "CTFScatterGun::HasKnockback");
+}
+
+void DHooks_Toggle(bool enable)
+{
+	for (int i = 0; i < g_DynamicDetours.Length; i++)
+	{
+		DetourData data;
+		if (g_DynamicDetours.GetArray(i, data) > 0)
+		{
+			if (data.callbackPre != INVALID_FUNCTION)
+			{
+				if (enable)
+					data.detour.Enable(Hook_Pre, data.callbackPre);
+				else
+					data.detour.Disable(Hook_Pre, data.callbackPre);
+			}
+			
+			if (data.callbackPost != INVALID_FUNCTION)
+			{
+				if (enable)
+					data.detour.Enable(Hook_Post, data.callbackPost);
+				else
+					data.detour.Disable(Hook_Post, data.callbackPost);
+			}
+		}
+	}
+	
+	if (!enable)
+	{
+		for (int i = g_DynamicHookIds.Length - 1; i >= 0; i--)
+		{
+			int hookid = g_DynamicHookIds.Get(i);
+			DynamicHook.RemoveHook(hookid);
+		}
+	}
 }
 
 void DHooks_HookClient(int client)
 {
 	if (g_DHookSpawn)
-		g_DHookSpawn.HookEntity(Hook_Pre, client, DHookCallback_Spawn_Pre);
+		DHooks_HookEntity(g_DHookSpawn, Hook_Pre, client, DHookCallback_Spawn_Pre);
 	
 	if (g_DHookTakeHealth)
-		g_DHookTakeHealth.HookEntity(Hook_Pre, client, DHookCallback_TakeHealth_Pre);
+		DHooks_HookEntity(g_DHookTakeHealth, Hook_Pre, client, DHookCallback_TakeHealth_Pre);
 	
 	if (g_DHookModifyOrAppendCriteria)
-		g_DHookModifyOrAppendCriteria.HookEntity(Hook_Post, client, DHookCallback_ModifyOrAppendCriteria_Post);
+		DHooks_HookEntity(g_DHookModifyOrAppendCriteria, Hook_Post, client, DHookCallback_ModifyOrAppendCriteria_Post);
 }
 
 void DHooks_HookBaseGun(int weapon)
 {
 	if (g_DHookFireProjectile)
-		g_DHookFireProjectile.HookEntity(Hook_Pre, weapon, DHookCallback_FireProjectile_Pre);
+		DHooks_HookEntity(g_DHookFireProjectile, Hook_Post, weapon, DHookCallback_FireProjectile_Post);
 }
 
 void DHooks_HookBaseMelee(int weapon)
 {
 	if (g_DHookSmack)
-		g_DHookSmack.HookEntity(Hook_Pre, weapon, DHookCallback_Smack_Pre);
+		DHooks_HookEntity(g_DHookSmack, Hook_Post, weapon, DHookCallback_Smack_Post);
 }
 
 void DHooks_HookScatterGun(int scattergun)
 {
 	if (g_DHookHasKnockback)
-		g_DHookHasKnockback.HookEntity(Hook_Post, scattergun, DHookCallback_HasKnockback_Post);
+		DHooks_HookEntity(g_DHookHasKnockback, Hook_Post, scattergun, DHookCallback_HasKnockback_Post);
 }
 
-static void DHooks_CreateDetour(GameData gamedata, const char[] name, DHookCallback callbackPre = INVALID_FUNCTION, DHookCallback callbackPost = INVALID_FUNCTION)
+static void DHooks_AddDynamicDetour(GameData gamedata, const char[] name, DHookCallback callbackPre = INVALID_FUNCTION, DHookCallback callbackPost = INVALID_FUNCTION)
 {
 	DynamicDetour detour = DynamicDetour.FromConf(gamedata, name);
 	if (detour)
 	{
-		if (callbackPre != INVALID_FUNCTION)
-			detour.Enable(Hook_Pre, callbackPre);
+		DetourData data;
+		data.detour = detour;
+		data.callbackPre = callbackPre;
+		data.callbackPost = callbackPost;
 		
-		if (callbackPost != INVALID_FUNCTION)
-			detour.Enable(Hook_Post, callbackPost);
+		g_DynamicDetours.PushArray(data);
 	}
 	else
 	{
-		LogError("Failed to create detour: %s", name);
+		LogError("Failed to create detour setup handle for %s", name);
 	}
 }
 
-static DynamicHook CreateDynamicHook(GameData gamedata, const char[] name)
+static DynamicHook DHooks_AddDynamicHook(GameData gamedata, const char[] name)
 {
 	DynamicHook hook = DynamicHook.FromConf(gamedata, name);
 	if (!hook)
@@ -96,7 +146,24 @@ static DynamicHook CreateDynamicHook(GameData gamedata, const char[] name)
 	return hook;
 }
 
-public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
+static void DHooks_HookEntity(DynamicHook hook, HookMode mode, int entity, DHookCallback callback)
+{
+	if (!hook)
+		return;
+	
+	int hookid = hook.HookEntity(mode, entity, callback, DHookRemovalCB_OnHookRemoved);
+	if (hookid != INVALID_HOOK_ID)
+		g_DynamicHookIds.Push(hookid);
+}
+
+static void DHookRemovalCB_OnHookRemoved(int hookid)
+{
+	int index = g_DynamicHookIds.FindValue(hookid);
+	if (index != -1)
+		g_DynamicHookIds.Erase(index);
+}
+
+static MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
 {
 	if (TF2_GetClientTeam(player) == TFTeam_Props)
 	{
@@ -108,7 +175,12 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 		{
 			case Prop_Static:
 			{
-				if (StaticProp_GetOBBBounds(PHPlayer(player).PropIndex, mins, maxs))
+				// Check if the config wants to override the health
+				char model[PLATFORM_MAX_PATH];
+				PropConfig config;
+				if (StaticProp_GetModelName(PHPlayer(player).PropIndex, model, sizeof(model)) && GetConfigByModel(model, config) && config.health > 0)
+					maxHealth = config.health;
+				else if (StaticProp_GetOBBBounds(PHPlayer(player).PropIndex, mins, maxs))
 					maxHealth = RoundToCeil(GetVectorDistance(mins, maxs));
 			}
 			case Prop_Entity:
@@ -116,19 +188,29 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 				int entity = EntRefToEntIndex(PHPlayer(player).PropIndex);
 				if (entity != -1)
 				{
-					if (IsEntityClient(entity) && IsClientInGame(entity))
+					// Check if the config wants to override the health
+					char model[PLATFORM_MAX_PATH];
+					PropConfig config;
+					if (GetEntPropString(entity, Prop_Data, "m_ModelName", model, sizeof(model)) > 0 && GetConfigByModel(model, config) && config.health > 0)
 					{
-						maxHealth = GetPlayerMaxHealth(entity);
-					}
-					else if (HasEntProp(entity, Prop_Data, "m_iMaxHealth") && GetEntProp(entity, Prop_Data, "m_iMaxHealth") > 1)
-					{
-						maxHealth = GetEntProp(entity, Prop_Data, "m_iMaxHealth");
+						maxHealth = config.health;
 					}
 					else
 					{
-						GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
-						GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
-						maxHealth = RoundToCeil(GetVectorDistance(mins, maxs));
+						if (IsEntityClient(entity) && IsClientInGame(entity) && TF2_GetClientTeam(entity) == TFTeam_Hunters)
+						{
+							maxHealth = GetPlayerMaxHealth(entity);
+						}
+						else if (!IsEntityClient(entity) && HasEntProp(entity, Prop_Data, "m_iMaxHealth") && GetEntProp(entity, Prop_Data, "m_iMaxHealth") > 1)
+						{
+							maxHealth = GetEntProp(entity, Prop_Data, "m_iMaxHealth");
+						}
+						else
+						{
+							GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
+							GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
+							maxHealth = RoundToCeil(GetVectorDistance(mins, maxs));
+						}
 					}
 				}
 				else
@@ -166,7 +248,7 @@ public MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_CanPlayerMove_Post(int player, DHookReturn ret)
+static MRESReturn DHookCallback_CanPlayerMove_Post(int player, DHookReturn ret)
 {
 	if (g_InSetup && ph_hunter_setup_freeze.BoolValue)
 	{
@@ -180,21 +262,12 @@ public MRESReturn DHookCallback_CanPlayerMove_Post(int player, DHookReturn ret)
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params)
+static MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params)
 {
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	
 	if (TF2_GetClientTeam(owner) == TFTeam_Hunters)
 	{
-		if (GameRules_GetRoundState() == RoundState_Stalemate && !g_InSetup)
-		{
-			int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
-			float damage = SDKCall_GetProjectileDamage(launcher) * ph_hunter_damage_modifier_grapplinghook.FloatValue;
-			int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
-			
-			SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
-		}
-		
 		// Don't allow hunters to hook onto props
 		if (!params.IsNull(1))
 		{
@@ -207,9 +280,25 @@ public MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_Heal_Pre(Address playerShared, DHookParam params)
+static MRESReturn DHookCallback_HookTarget_Post(int projectile, DHookParam params)
 {
-	int player = GetPlayerSharedOuter(playerShared);
+	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
+	
+	if (ShouldPlayerDealSelfDamage(owner))
+	{
+		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
+		float damage = SDKCall_GetProjectileDamage(launcher) * ph_hunter_damage_modifier_grapplinghook.FloatValue;
+		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
+		
+		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
+	}
+	
+	return MRES_Ignored;
+}
+
+static MRESReturn DHookCallback_Heal_Pre(Address pShared, DHookParam params)
+{
+	int player = TF2Util_GetPlayerFromSharedAddress(pShared);
 	
 	// Reduce healing from continuous sources (except control point bonus)
 	if (!TF2_IsPlayerInCondition(player, TFCond_HalloweenQuickHeal))
@@ -223,23 +312,23 @@ public MRESReturn DHookCallback_Heal_Pre(Address playerShared, DHookParam params
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_SetInWaitingForPlayers_Pre(DHookParam params)
+static MRESReturn DHookCallback_Push_Post(int weapon)
 {
-	// Re-enables waiting for player period
-	g_OldGameType = GameRules_GetProp("m_nGameType");
-	GameRules_SetProp("m_nGameType", 0);
+	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
+	
+	if (ShouldPlayerDealSelfDamage(owner))
+	{
+		// The damage value for the push is hardcoded
+		float damage = 1.0 * ph_hunter_damage_modifier_scoutprimary_push.FloatValue;
+		int damageType = DMG_MELEE | DMG_NEVERGIB | DMG_CLUB | DMG_PREVENT_PHYSICS_FORCE;
+		
+		SDKHooks_TakeDamage(owner, weapon, owner, damage, damageType, weapon);
+	}
 	
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_SetInWaitingForPlayers_Post(DHookParam params)
-{
-	GameRules_SetProp("m_nGameType", g_OldGameType);
-	
-	return MRES_Ignored;
-}
-
-public MRESReturn DHookCallback_Spawn_Pre(int player)
+static MRESReturn DHookCallback_Spawn_Pre(int player)
 {
 	// This needs to happen before the first call to CTFPlayer::GetMaxHealthForBuffing
 	ClearCustomModel(player);
@@ -248,7 +337,7 @@ public MRESReturn DHookCallback_Spawn_Pre(int player)
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_TakeHealth_Pre(int entity, DHookReturn ret, DHookParam params)
+static MRESReturn DHookCallback_TakeHealth_Pre(int entity, DHookReturn ret, DHookParam params)
 {
 	// Make sure we don't reduce healing induced by CTFPlayerShared::Heal since we already handle that above
 	if (!g_InHealthKitTouch && !TF2_IsPlayerInCondition(entity, TFCond_Healing))
@@ -262,7 +351,7 @@ public MRESReturn DHookCallback_TakeHealth_Pre(int entity, DHookReturn ret, DHoo
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_ModifyOrAppendCriteria_Post(int player, DHookParam params)
+static MRESReturn DHookCallback_ModifyOrAppendCriteria_Post(int player, DHookParam params)
 {
 	if (TF2_GetClientTeam(player) == TFTeam_Hunters)
 	{
@@ -279,32 +368,27 @@ public MRESReturn DHookCallback_ModifyOrAppendCriteria_Post(int player, DHookPar
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_FireProjectile_Pre(int weapon, DHookReturn ret, DHookParam params)
+static MRESReturn DHookCallback_FireProjectile_Post(int weapon, DHookReturn ret, DHookParam params)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
-		return MRES_Ignored;
-	
 	int player = params.Get(1);
+	int projectile = ret.Value;
 	
-	if (TF2_GetClientTeam(player) == TFTeam_Hunters)
+	if (ShouldPlayerDealSelfDamage(player))
 	{
 		float damage = SDKCall_GetProjectileDamage(weapon) * GetWeaponBulletsPerShot(weapon) * ph_hunter_damage_modifier_gun.FloatValue;
 		int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
 		
-		SDKHooks_TakeDamage(player, weapon, player, damage, damageType, weapon);
+		SDKHooks_TakeDamage(player, projectile != -1 ? projectile : weapon, player, damage, damageType, weapon);
 	}
 	
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_Smack_Pre(int weapon)
+static MRESReturn DHookCallback_Smack_Post(int weapon)
 {
-	if (GameRules_GetRoundState() != RoundState_Stalemate || g_InSetup)
-		return MRES_Ignored;
-	
 	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
 	
-	if (TF2_GetClientTeam(owner) == TFTeam_Hunters)
+	if (ShouldPlayerDealSelfDamage(owner))
 	{
 		int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
 		float damage = SDKCall_GetMeleeDamage(weapon, owner, damageType, 0) * ph_hunter_damage_modifier_melee.FloatValue;
@@ -315,7 +399,7 @@ public MRESReturn DHookCallback_Smack_Pre(int weapon)
 	return MRES_Ignored;
 }
 
-public MRESReturn DHookCallback_HasKnockback_Post(int scattergun, DHookReturn ret)
+static MRESReturn DHookCallback_HasKnockback_Post(int scattergun, DHookReturn ret)
 {
 	// Disables the Force-A-Nature knockback during setup
 	if (g_InSetup)

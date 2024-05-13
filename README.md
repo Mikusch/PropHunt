@@ -1,8 +1,10 @@
-<img alt="PropHunt Neu Logo" src="https://user-images.githubusercontent.com/25514044/142745733-071c7ba2-15c3-4731-b0d8-8100a73ca0c9.png" width="350"/>
-
 # PropHunt Neu
 
+<img alt="PropHunt Neu Logo" src="https://user-images.githubusercontent.com/25514044/142745733-071c7ba2-15c3-4731-b0d8-8100a73ca0c9.png" width="420"/>
+
 PropHunt Neu is my own take on the classic hide 'n seek gamemode for Team Fortress 2.
+
+AlliedModders forum thread: https://forums.alliedmods.net/showthread.php?p=2771274
 
 ## Features
 
@@ -15,18 +17,17 @@ PropHunt Neu is my own take on the classic hide 'n seek gamemode for Team Fortre
 * Greatly improved Hunter (BLU) gameplay
     * Dynamically calculated self-damage values depending on used weapon
     * Minimal weapon and class restrictions
-* Works out-of-the-box on any arena map without any additional configs
-* Functional waiting for players period in arena mode
+* Compatibility with almost any arena map without any additional configs
 * Highly configurable using ConVars and configuration files
 
 ## Requirements
 
-* SourceMod 1.10+
+* SourceMod 1.11+
 * [StaticProps](https://github.com/sigsegv-mvm/StaticProps)
 * [TF2Items](https://github.com/asherkin/TF2Items)
 * [TF2 Econ Data](https://github.com/nosoop/SM-TFEconData)
-* [TF2Attributes](https://github.com/nosoop/tf2attributes)
-* [DHooks 2 with Detour Support](https://github.com/peace-maker/DHooks2/tree/dynhooks) (included in SM 1.11)
+* [TF2Attributes](https://github.com/FlaminSarge/tf2attributes)
+* [TF2 Utils](https://github.com/nosoop/SM-TFUtils)
 * [More Colors](https://github.com/DoctorMcKay/sourcemod-plugins/blob/master/scripting/include/morecolors.inc) (compile only)
 
 ## Special Thanks

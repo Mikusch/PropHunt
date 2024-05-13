@@ -15,14 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-static PHPropType g_PlayerPropType[MAXPLAYERS + 1];
-static int g_PlayerPropIndex[MAXPLAYERS + 1];
-static int g_PlayerOldMaxHealth[MAXPLAYERS + 1];
-static bool g_PlayerPropLockEnabled[MAXPLAYERS + 1];
-static bool g_PlayerInForcedTauntCam[MAXPLAYERS + 1];
-static bool g_PlayerHasReceivedBonus[MAXPLAYERS + 1];
-static bool g_PlayerIsLastProp[MAXPLAYERS + 1];
-static float g_PlayerNextTauntTime[MAXPLAYERS + 1];
+#pragma semicolon 1
+#pragma newdecls required
+
+static PHPropType g_aPlayerStatsPropType[MAXPLAYERS + 1];
+static int g_aPlayerStatsPropIndex[MAXPLAYERS + 1];
+static int g_aPlayerStatsOldMaxHealth[MAXPLAYERS + 1];
+static bool g_aPlayerStatsPropLockEnabled[MAXPLAYERS + 1];
+static bool g_aPlayerStatsInForcedTauntCam[MAXPLAYERS + 1];
+static bool g_aPlayerStatsHasReceivedBonus[MAXPLAYERS + 1];
+static bool g_aPlayerStatsIsLastProp[MAXPLAYERS + 1];
+static float g_aPlayerStatsNextTauntTime[MAXPLAYERS + 1];
 
 methodmap PHPlayer
 {
@@ -43,11 +46,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_PlayerPropType[this._client];
+			return g_aPlayerStatsPropType[this._client];
 		}
 		public set(PHPropType type)
 		{
-			g_PlayerPropType[this._client] = type;
+			g_aPlayerStatsPropType[this._client] = type;
 		}
 	}
 	
@@ -55,11 +58,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_PlayerPropIndex[this._client];
+			return g_aPlayerStatsPropIndex[this._client];
 		}
 		public set(int index)
 		{
-			g_PlayerPropIndex[this._client] = index;
+			g_aPlayerStatsPropIndex[this._client] = index;
 		}
 	}
 	
@@ -67,11 +70,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_PlayerOldMaxHealth[this._client];
+			return g_aPlayerStatsOldMaxHealth[this._client];
 		}
 		public set(int health)
 		{
-			g_PlayerOldMaxHealth[this._client] = health;
+			g_aPlayerStatsOldMaxHealth[this._client] = health;
 		}
 	}
 	
@@ -79,11 +82,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_PlayerPropLockEnabled[this._client];
+			return g_aPlayerStatsPropLockEnabled[this._client];
 		}
 		public set(bool enabled)
 		{
-			g_PlayerPropLockEnabled[this._client] = enabled;
+			g_aPlayerStatsPropLockEnabled[this._client] = enabled;
 		}
 	}
 	
@@ -91,11 +94,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_PlayerInForcedTauntCam[this._client];
+			return g_aPlayerStatsInForcedTauntCam[this._client];
 		}
 		public set(bool inForcedTauntCam)
 		{
-			g_PlayerInForcedTauntCam[this._client] = inForcedTauntCam;
+			g_aPlayerStatsInForcedTauntCam[this._client] = inForcedTauntCam;
 		}
 	}
 	
@@ -103,11 +106,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_PlayerHasReceivedBonus[this._client];
+			return g_aPlayerStatsHasReceivedBonus[this._client];
 		}
 		public set(bool hasReceivedBonus)
 		{
-			g_PlayerHasReceivedBonus[this._client] = hasReceivedBonus;
+			g_aPlayerStatsHasReceivedBonus[this._client] = hasReceivedBonus;
 		}
 	}
 	
@@ -115,11 +118,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_PlayerIsLastProp[this._client];
+			return g_aPlayerStatsIsLastProp[this._client];
 		}
 		public set(bool isLastProp)
 		{
-			g_PlayerIsLastProp[this._client] = isLastProp;
+			g_aPlayerStatsIsLastProp[this._client] = isLastProp;
 		}
 	}
 	
@@ -127,11 +130,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_PlayerNextTauntTime[this._client];
+			return g_aPlayerStatsNextTauntTime[this._client];
 		}
 		public set(float time)
 		{
-			g_PlayerNextTauntTime[this._client] = time;
+			g_aPlayerStatsNextTauntTime[this._client] = time;
 		}
 	}
 	
@@ -144,5 +147,6 @@ methodmap PHPlayer
 		this.InForcedTauntCam = true;
 		this.HasReceivedBonus = false;
 		this.IsLastProp = false;
+		this.NextTauntTime = -1.0;
 	}
-}
+};

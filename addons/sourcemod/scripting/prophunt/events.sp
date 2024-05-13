@@ -15,31 +15,76 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-void Events_Initialize()
+#pragma semicolon 1
+#pragma newdecls required
+
+#define MAX_EVENT_NAME_LENGTH	32
+
+enum struct EventData
 {
-	HookEvent("player_spawn", Event_PlayerSpawn);
-	HookEvent("player_death", Event_PlayerDeath);
-	HookEvent("post_inventory_application", Event_PostInventoryApplication);
-	HookEvent("teamplay_round_start", Event_TeamplayRoundStart);
-	HookEvent("teamplay_round_win", Event_TeamplayRoundWin);
-	HookEvent("arena_round_start", Event_ArenaRoundStart);
+	char name[MAX_EVENT_NAME_LENGTH];
+	EventHook callback;
+	EventHookMode mode;
 }
 
-public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
+static ArrayList g_Events;
+
+void Events_Init()
+{
+	g_Events = new ArrayList(sizeof(EventData));
+	
+	Events_AddEvent("player_spawn", EventHook_PlayerSpawn);
+	Events_AddEvent("player_death", EventHook_PlayerDeath);
+	Events_AddEvent("post_inventory_application", EventHook_PostInventoryApplication);
+	Events_AddEvent("teamplay_round_start", EventHook_TeamplayRoundStart);
+	Events_AddEvent("teamplay_round_win", EventHook_TeamplayRoundWin);
+	Events_AddEvent("arena_round_start", EventHook_ArenaRoundStart);
+}
+
+void Events_Toggle(bool enable)
+{
+	for (int i = 0; i < g_Events.Length; i++)
+	{
+		EventData data;
+		if (g_Events.GetArray(i, data) > 0)
+		{
+			if (enable)
+				HookEvent(data.name, data.callback, data.mode);
+			else
+				UnhookEvent(data.name, data.callback, data.mode);
+		}
+	}
+}
+
+static void Events_AddEvent(const char[] name, EventHook callback, EventHookMode mode = EventHookMode_Post)
+{
+	Event event = CreateEvent(name, true);
+	if (event)
+	{
+		event.Cancel();
+		
+		EventData data;
+		strcopy(data.name, sizeof(data.name), name);
+		data.callback = callback;
+		data.mode = mode;
+		
+		g_Events.PushArray(data);
+	}
+	else
+	{
+		LogError("Failed to create event with name %s", name);
+	}
+}
+
+static void EventHook_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	
-	// Prevent latespawning
-	if (GameRules_GetRoundState() != RoundState_Preround)
-	{
-		ForcePlayerSuicide(client);
-		return;
-	}
-	
 	TFTeam team = TF2_GetClientTeam(client);
+	TFClassType class = TF2_GetPlayerClass(client);
 	
 	// Ensure the player is playing as a valid class for their team
-	if (!IsValidClass(team, TF2_GetPlayerClass(client)))
+	if (!IsValidClass(team, class))
 	{
 		TF2_SetPlayerClass(client, GetRandomValidClass(team), _, false);
 		SDKCall_InitClass(client);
@@ -52,9 +97,21 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 		// Some things, like setting conditions, only works with a delay
 		CreateTimer(0.1, Timer_PropPostSpawn, GetClientSerial(client));
 	}
+	
+	if (team == TFTeam_Hunters && class == TFClass_Spy)
+	{
+		// Prevent Spy from using TargetID to find props
+		SetEntProp(client, Prop_Send, "m_iHideHUD", GetEntProp(client, Prop_Send, "m_iHideHUD") | HIDEHUD_TARGET_ID);
+	}
+	else
+	{
+		SetEntProp(client, Prop_Send, "m_iHideHUD", GetEntProp(client, Prop_Send, "m_iHideHUD") & ~HIDEHUD_TARGET_ID);
+	}
+	
+	SetEntityGravity(client, ph_gravity_modifier.FloatValue);
 }
 
-public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
+static void EventHook_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
 	int victim = GetClientOfUserId(event.GetInt("userid"));
 	int attacker = GetClientOfUserId(event.GetInt("attacker"));
@@ -88,7 +145,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 	CheckLastPropStanding(victim);
 }
 
-public void Event_PostInventoryApplication(Event event, const char[] name, bool dontBroadcast)
+static void EventHook_PostInventoryApplication(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	if (TF2_GetClientTeam(client) == TFTeam_Props && !PHPlayer(client).IsLastProp)
@@ -125,9 +182,10 @@ public void Event_PostInventoryApplication(Event event, const char[] name, bool 
 	}
 }
 
-public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBroadcast)
+static void EventHook_TeamplayRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	g_InSetup = false;
+	g_IsLastPropStanding = false;
 	
 	delete g_ControlPointBonusTimer;
 	
@@ -140,7 +198,7 @@ public void Event_TeamplayRoundStart(Event event, const char[] name, bool dontBr
 	}
 }
 
-public void Event_TeamplayRoundWin(Event event, const char[] name, bool dontBroadcast)
+static void EventHook_TeamplayRoundWin(Event event, const char[] name, bool dontBroadcast)
 {
 	delete g_ControlPointBonusTimer;
 	
@@ -154,7 +212,7 @@ public void Event_TeamplayRoundWin(Event event, const char[] name, bool dontBroa
 	SDKCall_SetSwitchTeams(true);
 }
 
-public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroadcast)
+static void EventHook_ArenaRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	g_InSetup = true;
 	
@@ -175,11 +233,91 @@ public void Event_ArenaRoundStart(Event event, const char[] name, bool dontBroad
 			HookSingleEntityOutput(timer, "OnFinished", EntityOutput_OnFinished, true);
 		}
 	}
+}
+
+static void Timer_PropPostSpawn(Handle timer, int serial)
+{
+	int client = GetClientFromSerial(serial);
+	if (client != 0)
+	{
+		// Enable thirdperson
+		SetVariantInt(PHPlayer(client).InForcedTauntCam);
+		AcceptEntityInput(client, "SetForcedTauntCam");
+		
+		// Apply gameplay conditions
+		TF2_AddCondition(client, TFCond_SpawnOutline);
+		
+		if (ph_prop_afterburn_immune.BoolValue)
+			TF2_AddCondition(client, TFCond_AfterburnImmune);
+	}
+}
+
+static Action Timer_RefreshControlPointBonus(Handle timer)
+{
+	if (timer != g_ControlPointBonusTimer)
+		return Plugin_Stop;
 	
-	// Kick cheaters out of the game
 	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsClientInGame(client) && !IsFakeClient(client))
-			QueryClientConVar(client, "r_staticpropinfo", ConVarQuery_StaticPropInfo);
+		PHPlayer(client).HasReceivedBonus = false;
 	}
+	
+	CPrintToChatAll("%s %t", PLUGIN_TAG, "PH_Bonus_Refreshed");
+	
+	return Plugin_Continue;
+}
+
+static Action EntityOutput_OnSetupFinished(const char[] output, int caller, int activator, float delay)
+{
+	g_InSetup = false;
+	
+	// Setup control point bonus
+	g_ControlPointBonusTimer = CreateTimer(ph_bonus_refresh_interval.FloatValue, Timer_RefreshControlPointBonus, _, TIMER_REPEAT);
+	TriggerTimer(g_ControlPointBonusTimer);
+	
+	// Refresh speed of all clients to allow hunters to move
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		if (IsClientInGame(client))
+			TF2_AddCondition(client, TFCond_SpeedBuffAlly, 0.01);
+	}
+	
+	// Trigger named relays
+	char relayName[64];
+	ph_relay_name.GetString(relayName, sizeof(relayName));
+	
+	if (relayName[0] != EOS)
+	{
+		int relay = -1;
+		while ((relay = FindEntityByClassname(relay, "logic_relay")) != -1)
+		{
+			char name[64];
+			GetEntPropString(relay, Prop_Data, "m_iName", name, sizeof(name));
+			
+			if (strcmp(name, relayName) == 0)
+				AcceptEntityInput(relay, "Trigger");
+		}
+	}
+	
+	// Open all doors in the map
+	if (ph_open_doors_after_setup.BoolValue)
+	{
+		int door = -1;
+		while ((door = FindEntityByClassname(door, "func_door")) != -1)
+		{
+			AcceptEntityInput(door, "Open");
+		}
+	}
+	
+	// End the truce
+	GameRules_SetProp("m_bTruceActive", false);
+	
+	return Plugin_Continue;
+}
+
+static Action EntityOutput_OnFinished(const char[] output, int caller, int activator, float delay)
+{
+	SetWinningTeam(TFTeam_Props);
+	
+	return Plugin_Continue;
 }
