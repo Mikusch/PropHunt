@@ -233,6 +233,20 @@ static void EventHook_ArenaRoundStart(Event event, const char[] name, bool dontB
 			HookSingleEntityOutput(timer, "OnFinished", EntityOutput_OnFinished, true);
 		}
 	}
+	
+	if (ph_hunter_setup_freeze.BoolValue)
+	{
+		for (int client = 1; client <= MaxClients; client++)
+		{
+			if (!IsClientInGame(client))
+				continue;
+			
+			if (TF2_GetClientTeam(client) != TFTeam_Hunters)
+				continue;
+			
+			TF2Attrib_AddCustomPlayerAttribute(client, "no_attack", 1.0);
+		}
+	}
 }
 
 static void Timer_PropPostSpawn(Handle timer, int serial)
@@ -276,10 +290,18 @@ static Action EntityOutput_OnSetupFinished(const char[] output, int caller, int 
 	TriggerTimer(g_ControlPointBonusTimer);
 	
 	// Refresh speed of all clients to allow hunters to move
-	for (int client = 1; client <= MaxClients; client++)
+	if (ph_hunter_setup_freeze.BoolValue)
 	{
-		if (IsClientInGame(client))
-			TF2_AddCondition(client, TFCond_SpeedBuffAlly, 0.01);
+		for (int client = 1; client <= MaxClients; client++)
+		{
+			if (!IsClientInGame(client))
+				continue;
+			
+			if (TF2_GetClientTeam(client) != TFTeam_Hunters)
+				continue;
+			
+			TF2Attrib_RemoveCustomPlayerAttribute(client, "no_attack");
+		}
 	}
 	
 	// Trigger named relays

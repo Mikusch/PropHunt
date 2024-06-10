@@ -41,10 +41,10 @@ void DHooks_Init(GameData gamedata)
 	g_DynamicHookIds = new ArrayList();
 	
 	DHooks_AddDynamicDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHookCallback_GetMaxHealthForBuffing_Post);
-	DHooks_AddDynamicDetour(gamedata, "CTFPlayer::CanPlayerMove", _, DHookCallback_CanPlayerMove_Post);
 	DHooks_AddDynamicDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, DHookCallback_HookTarget_Post);
 	DHooks_AddDynamicDetour(gamedata, "CTFPlayerShared::Heal", DHookCallback_Heal_Pre, _);
 	DHooks_AddDynamicDetour(gamedata, "CTFPistol_ScoutPrimary::Push", _, DHookCallback_Push_Post);
+	DHooks_AddDynamicDetour(gamedata, "CTFPlayer::TeamFortress_CalculateMaxSpeed", _, DHookCallback_CalculateMaxSpeed_Post);
 	
 	g_DHookSpawn = DHooks_AddDynamicHook(gamedata, "CBaseEntity::Spawn");
 	g_DHookTakeHealth = DHooks_AddDynamicHook(gamedata, "CBaseEntity::TakeHealth");
@@ -248,20 +248,6 @@ static MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 	return MRES_Ignored;
 }
 
-static MRESReturn DHookCallback_CanPlayerMove_Post(int player, DHookReturn ret)
-{
-	if (g_InSetup && ph_hunter_setup_freeze.BoolValue)
-	{
-		if (TF2_GetClientTeam(player) == TFTeam_Hunters)
-		{
-			ret.Value = false;
-			return MRES_Supercede;
-		}
-	}
-	
-	return MRES_Ignored;
-}
-
 static MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params)
 {
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
@@ -323,6 +309,17 @@ static MRESReturn DHookCallback_Push_Post(int weapon)
 		int damageType = DMG_MELEE | DMG_NEVERGIB | DMG_CLUB | DMG_PREVENT_PHYSICS_FORCE;
 		
 		SDKHooks_TakeDamage(owner, weapon, owner, damage, damageType, weapon);
+	}
+	
+	return MRES_Ignored;
+}
+
+static MRESReturn DHookCallback_CalculateMaxSpeed_Post(int client, DHookReturn ret)
+{
+	if (g_InSetup && ph_hunter_setup_freeze.BoolValue && TF2_GetClientTeam(client) == TFTeam_Hunters)
+	{
+		ret.Value = 1.0;
+		return MRES_Supercede;
 	}
 	
 	return MRES_Ignored;
