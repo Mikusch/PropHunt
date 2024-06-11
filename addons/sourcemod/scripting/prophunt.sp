@@ -31,7 +31,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION	"1.8.2"
+#define PLUGIN_VERSION	"1.8.3"
 
 #define PLUGIN_TAG	"[{orange}PropHunt{default}]"
 
@@ -75,6 +75,42 @@ enum
 	EF_ITEM_BLINK			= 0x100,	// blink an item so that the user notices it.
 	EF_PARENT_ANIMATES		= 0x200,	// always assume that the parent entity is animating
 	EF_MAX_BITS = 10
+};
+
+enum
+{
+	LOADOUT_POSITION_INVALID = -1,
+
+	// Weapons & Equipment
+	LOADOUT_POSITION_PRIMARY = 0,
+	LOADOUT_POSITION_SECONDARY,
+	LOADOUT_POSITION_MELEE,
+	LOADOUT_POSITION_UTILITY,
+	LOADOUT_POSITION_BUILDING,
+	LOADOUT_POSITION_PDA,
+	LOADOUT_POSITION_PDA2,
+
+	// Wearables. If you add new wearable slots, make sure you add them to IsWearableSlot() below this.
+	LOADOUT_POSITION_HEAD,
+	LOADOUT_POSITION_MISC,
+
+	// other
+	LOADOUT_POSITION_ACTION,
+
+	// More wearables, yay!
+	LOADOUT_POSITION_MISC2,
+
+	// taunts
+	LOADOUT_POSITION_TAUNT,
+	LOADOUT_POSITION_TAUNT2,
+	LOADOUT_POSITION_TAUNT3,
+	LOADOUT_POSITION_TAUNT4,
+	LOADOUT_POSITION_TAUNT5,
+	LOADOUT_POSITION_TAUNT6,
+	LOADOUT_POSITION_TAUNT7,
+	LOADOUT_POSITION_TAUNT8,
+
+	CLASS_LOADOUT_POSITION_COUNT,
 };
 
 // Prop types
@@ -304,8 +340,17 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	if (buttons & IN_ATTACK3 && buttonsChanged & IN_ATTACK3)
 		DoTaunt(client);
 	
+	TFTeam team = TF2_GetClientTeam(client);
+	
+	// Band-aid fix to disallow any kind of movement during pre-round
+	if (g_InSetup && team == TFTeam_Hunters && ph_hunter_setup_freeze.BoolValue)
+	{
+		SetEntProp(client, Prop_Send, "m_bAllowMoveDuringTaunt", false);
+		SetEntPropFloat(client, Prop_Send, "m_flItemChargeMeter", 0.0, LOADOUT_POSITION_SECONDARY);
+	}
+	
 	// Prop-only functionality below this point
-	if (TF2_GetClientTeam(client) != TFTeam_Props)
+	if (team != TFTeam_Props)
 		return Plugin_Continue;
 	
 	// IN_ATTACK allows the player to pick a prop
