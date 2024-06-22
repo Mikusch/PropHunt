@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2021  Mikusch
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 "Phrases"
 {
 	"PH_Target_Props"
@@ -28,7 +45,7 @@
 	
 	"PH_Tip_03"
 	{
-		"tr"		"{red}Nesne{default} olarak, havada kendinizi dondurmak için NesneKilit™ kullanın."
+		"tr"		"Bir {red}Nesne{default} olarak, havada kendinizi dondurmak için NesneKilit™ kullanın."
 	}
 	
 	"PH_Tip_04"
@@ -38,7 +55,7 @@
 	
 	"PH_Tip_05"
 	{
-		"tr"		"{blue}Avcı{default} olarak, Kancan nesneleri kovalamanı ve ulaşılması zor alanlara erişmeni sağlar."
+		"tr"		"Bir {blue}Avcı{default} olarak, Kancan nesneleri kovalamanı ve ulaşılması zor alanlara erişmeni sağlar."
 	}
 	
 	"PH_Tip_06"
@@ -70,7 +87,7 @@
 	"PH_PropSelect_CannotDisguise"
 	{
 		"#format"	"{1:s},{2:T}"
-		"tr"		"{red}{1} {default}({2}) olarak dönüşülemiyor"
+		"tr"		"{red}{1} {default}({2}) olarak dönüşülemiyor."
 	}
 	
 	"PH_PropSelect_TooSmall"
@@ -90,7 +107,7 @@
 	
 	"PH_PropSelect_NotAllowed"
 	{
-		"tr"		"{red}Negatif durum etkilerindeyken nesne değiştiremezsiniz."
+		"tr"		"{red}Olumsuz durum etkilerinin altındayken nesne değiştiremezsiniz."
 	}
 	
 	"PH_ConVarQuery_DisallowedValue"
