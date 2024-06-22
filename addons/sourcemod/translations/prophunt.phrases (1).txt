@@ -1,0 +1,144 @@
+"Phrases"
+{
+	"PH_Target_Props"
+	{
+		"tr"		"Nesneler"
+	}
+	
+	"PH_Target_Hunters"
+	{
+		"tr"		"Avcılar"
+	}
+	
+	"PH_Tip_Prefix"
+	{
+		"tr"		"{green}İpucu: {default}"
+	}
+	
+	"PH_Tip_01"
+	{
+		"#format"	"{1:s}"
+		"tr"		"Şu anda {gold} Mikusch {default} tarafından yapılmış {darkorange}PropHunt Neu {default} ({1}) oynuyorsun ."
+	}
+	
+	"PH_Tip_02"
+	{
+		"tr"		"Bir {blue}Avcı{default} olarak, nesnelerin dönüşmesini önlemek için Kanama, Kavate uygulayan silahlar veya Garip Bozuk Süt kullan."
+	}
+	
+	"PH_Tip_03"
+	{
+		"tr"		"{red}Nesne{default} olarak, havada kendinizi dondurmak için NesneKilit™ kullanın."
+	}
+	
+	"PH_Tip_04"
+	{
+		"tr"		"Kontrol noktası bonusu seni ve yakındaki müttefikleri iyileştirir ve yakındaki düşmanları yere serer."
+	}
+	
+	"PH_Tip_05"
+	{
+		"tr"		"{blue}Avcı{default} olarak, Kancan nesneleri kovalamanı ve ulaşılması zor alanlara erişmeni sağlar."
+	}
+	
+	"PH_Tip_06"
+	{
+		"tr"		"Bir {red}Nesne{default} olarak, su altında nefes alma yeteneğine sahipsin."
+	}
+	
+	"PH_PropLock_Enabled"
+	{
+		"tr"		"NesneKilit™ Etkin"
+	}
+	
+	"PH_PropLock_Unavailable"
+	{
+		"tr"		"NesneKilit™ Kullanılamıyor"
+	}
+	
+	"PH_Disguise_Changed"
+	{
+		"#format"	"{1:s}"
+		"tr"		"Şuna dönüştünüz: {lightgreen}{1}"
+	}
+	
+	"PH_Disguise_Reset"
+	{
+		"tr"		"Dönüşümün sıfırlandı."
+	}
+	
+	"PH_PropSelect_CannotDisguise"
+	{
+		"#format"	"{1:s},{2:T}"
+		"tr"		"{red}{1} {default}({2}) olarak dönüşülemiyor"
+	}
+	
+	"PH_PropSelect_TooSmall"
+	{
+		"tr"		"nesne çok küçük"
+	}
+	
+	"PH_PropSelect_TooBig"
+	{
+		"tr"		"nesne çok büyük"
+	}
+	
+	"PH_PropSelect_Blacklisted"
+	{
+		"tr"		"nesne yasaklı"
+	}
+	
+	"PH_PropSelect_NotAllowed"
+	{
+		"tr"		"{red}Negatif durum etkilerindeyken nesne değiştiremezsiniz."
+	}
+	
+	"PH_ConVarQuery_DisallowedValue"
+	{
+		"#format"	"{1:s},{2:s}"
+		"tr"		"\"{1}\", \"{2}\" olarak ayarlanamaz."
+	}
+	
+	"PH_ConVarQuery_QueryNotOkay"
+	{
+		"#format"	"{1:s}"
+		"tr"		"\"{1}\" değeri için kullanıcı sorgulanamadı."
+	}
+	
+	"PH_PropControls"
+	{
+		"tr"		"%%+attack%% NESNE SEÇ %%+attack2%% NESNEYİ KİLİTLE %%+attack3%% ALAY %%+reload%% ÜÇÜNCÜ ŞAHSA GEÇ"
+	}
+	
+	"PH_Bonus_Refreshed"
+	{
+		"tr"		"Kontrol noktası bonusu yenilendi!"
+	}
+	
+	"PH_Bonus_Received"
+	{
+		"tr"		"Kontrol noktası bonusu alındı! {lightgreen}Sağlık yenilendi."
+	}
+	
+	"PH_Command_GetModel_Success"
+	{
+		"#format"	"{1:N},{2:s}"
+		"tr"		"{1} adlı oyuncunun mevcut modeli: {lightgreen}{2}"
+	}
+	
+	"PH_Command_GetModel_NoModelSet"
+	{
+		"tr"		"Eşleşen kullanıcının özel bir model kümesi yok."
+	}
+	
+	"PH_Command_SetModel_Success"
+	{
+		"#format"	"{1:s},{2:t}"
+		"tr"		"Zorunlu model {lightgreen}{1} {default}açık {2}."
+	}
+	
+	"PH_Command_ReloadConfig_Success"
+	{
+		"tr"		"Yapılandırma önbelleği yenilendi."
+	}
+}
