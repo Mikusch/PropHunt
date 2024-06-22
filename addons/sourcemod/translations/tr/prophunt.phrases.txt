@@ -50,7 +50,7 @@
 	
 	"PH_Tip_04"
 	{
-		"tr"		"Kontrol noktası bonusu seni ve yakındaki müttefikleri iyileştirir ve yakındaki düşmanları yere serer."
+		"tr"		"Kontrol noktası bonusu seni ve yakındaki müttefikleri iyileştirir ve yakındaki düşmanları geri iter."
 	}
 	
 	"PH_Tip_05"
@@ -124,7 +124,7 @@
 	
 	"PH_PropControls"
 	{
-		"tr"		"%%+attack%% NESNE SEÇ %%+attack2%% NESNEYİ KİLİTLE %%+attack3%% ALAY %%+reload%% ÜÇÜNCÜ ŞAHSA GEÇ"
+		"tr"		"%%+attack%% NESNE SEÇ %%+attack2%% NESNEYİ KİLİTLE %%+attack3%% ALAY %%+reload%% ÜÇÜNCÜ ŞAHIS"
 	}
 	
 	"PH_Bonus_Refreshed"
