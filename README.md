@@ -22,7 +22,7 @@ AlliedModders forum thread: https://forums.alliedmods.net/showthread.php?p=27712
 
 ## Requirements
 
-* SourceMod 1.11+
+* SourceMod 1.12+
 * [StaticProps](https://github.com/sigsegv-mvm/StaticProps)
 * [TF2Items](https://github.com/asherkin/TF2Items)
 * [TF2 Econ Data](https://github.com/nosoop/SM-TFEconData)
