@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021  Mikusch
+ * Copyright (C) 2025  Mikusch
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,16 +18,6 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-enum struct DetourData
-{
-	DynamicDetour detour;
-	DHookCallback callbackPre;
-	DHookCallback callbackPost;
-}
-
-static ArrayList g_DynamicDetours;
-static ArrayList g_DynamicHookIds;
-
 static DynamicHook g_DHookSpawn;
 static DynamicHook g_DHookTakeHealth;
 static DynamicHook g_DHookModifyOrAppendCriteria;
@@ -35,135 +25,45 @@ static DynamicHook g_DHookFireProjectile;
 static DynamicHook g_DHookSmack;
 static DynamicHook g_DHookHasKnockback;
 
-void DHooks_Init(GameData gamedata)
+void DHooks_Init()
 {
-	g_DynamicDetours = new ArrayList(sizeof(DetourData));
-	g_DynamicHookIds = new ArrayList();
+	PSM_AddDynamicDetourFromConf("CTFPlayer::GetMaxHealthForBuffing", _, CTFPlayer_GetMaxHealthForBuffing_Post);
+	PSM_AddDynamicDetourFromConf("CTFProjectile_GrapplingHook::HookTarget", CTFProjectile_GrapplingHook_HookTarget_Pre, CTFProjectile_GrapplingHook_HookTarget_Post);
+	PSM_AddDynamicDetourFromConf("CTFPlayerShared::Heal", CTFPlayerShared_Heal_Pre, _);
+	PSM_AddDynamicDetourFromConf("CTFPistol_ScoutPrimary::Push", _, CTFPistol_ScoutPrimary_Push_Post);
+	PSM_AddDynamicDetourFromConf("CTFPlayer::TeamFortress_CalculateMaxSpeed", _, CTFPlayer_TeamFortress_CalculateMaxSpeed_Post);
 	
-	DHooks_AddDynamicDetour(gamedata, "CTFPlayer::GetMaxHealthForBuffing", _, DHookCallback_GetMaxHealthForBuffing_Post);
-	DHooks_AddDynamicDetour(gamedata, "CTFProjectile_GrapplingHook::HookTarget", DHookCallback_HookTarget_Pre, DHookCallback_HookTarget_Post);
-	DHooks_AddDynamicDetour(gamedata, "CTFPlayerShared::Heal", DHookCallback_Heal_Pre, _);
-	DHooks_AddDynamicDetour(gamedata, "CTFPistol_ScoutPrimary::Push", _, DHookCallback_Push_Post);
-	DHooks_AddDynamicDetour(gamedata, "CTFPlayer::TeamFortress_CalculateMaxSpeed", _, DHookCallback_CalculateMaxSpeed_Post);
-	
-	g_DHookSpawn = DHooks_AddDynamicHook(gamedata, "CBaseEntity::Spawn");
-	g_DHookTakeHealth = DHooks_AddDynamicHook(gamedata, "CBaseEntity::TakeHealth");
-	g_DHookModifyOrAppendCriteria = DHooks_AddDynamicHook(gamedata, "CBaseEntity::ModifyOrAppendCriteria");
-	g_DHookFireProjectile = DHooks_AddDynamicHook(gamedata, "CTFWeaponBaseGun::FireProjectile");
-	g_DHookSmack = DHooks_AddDynamicHook(gamedata, "CTFWeaponBaseMelee::Smack");
-	g_DHookHasKnockback = DHooks_AddDynamicHook(gamedata, "CTFScatterGun::HasKnockback");
+	g_DHookSpawn = PSM_AddDynamicHookFromConf("CBaseEntity::Spawn");
+	g_DHookTakeHealth = PSM_AddDynamicHookFromConf("CBaseEntity::TakeHealth");
+	g_DHookModifyOrAppendCriteria = PSM_AddDynamicHookFromConf("CBaseEntity::ModifyOrAppendCriteria");
+	g_DHookFireProjectile = PSM_AddDynamicHookFromConf("CTFWeaponBaseGun::FireProjectile");
+	g_DHookSmack = PSM_AddDynamicHookFromConf("CTFWeaponBaseMelee::Smack");
+	g_DHookHasKnockback = PSM_AddDynamicHookFromConf("CTFScatterGun::HasKnockback");
 }
 
-void DHooks_Toggle(bool enable)
+void DHooks_OnEntityCreated(int entity, const char[] classname)
 {
-	for (int i = 0; i < g_DynamicDetours.Length; i++)
+	if (0 < entity <= MaxClients)
 	{
-		DetourData data;
-		if (g_DynamicDetours.GetArray(i, data) > 0)
-		{
-			if (data.callbackPre != INVALID_FUNCTION)
-			{
-				if (enable)
-					data.detour.Enable(Hook_Pre, data.callbackPre);
-				else
-					data.detour.Disable(Hook_Pre, data.callbackPre);
-			}
-			
-			if (data.callbackPost != INVALID_FUNCTION)
-			{
-				if (enable)
-					data.detour.Enable(Hook_Post, data.callbackPost);
-				else
-					data.detour.Disable(Hook_Post, data.callbackPost);
-			}
-		}
+		PSM_DHookEntity(g_DHookSpawn, Hook_Pre, entity, CTFPlayer_Spawn_Pre);
+		PSM_DHookEntity(g_DHookTakeHealth, Hook_Pre, entity, CTFPlayer_TakeHealth_Pre);
+		PSM_DHookEntity(g_DHookModifyOrAppendCriteria, Hook_Post, entity, CTFPlayer_ModifyOrAppendCriteria_Post);
 	}
-	
-	if (!enable)
+	else if (HasEntProp(entity, Prop_Data, "CTFWeaponBaseGunZoomOutIn"))
 	{
-		for (int i = g_DynamicHookIds.Length - 1; i >= 0; i--)
-		{
-			int hookid = g_DynamicHookIds.Get(i);
-			DynamicHook.RemoveHook(hookid);
-		}
+		PSM_DHookEntity(g_DHookFireProjectile, Hook_Post, entity, CTFWeaponBaseGun_FireProjectile_Post);
+	}
+	else if (HasEntProp(entity, Prop_Data, "CTFWeaponBaseMeleeSmack"))
+	{
+		PSM_DHookEntity(g_DHookSmack, Hook_Post, entity, CTFWeaponBaseMelee_Smack_Post);
+	}
+	else if (StrEqual(classname, "tf_weapon_scattergun"))
+	{
+		PSM_DHookEntity(g_DHookHasKnockback, Hook_Post, entity, CTFScatterGun_HasKnockback_Post);
 	}
 }
 
-void DHooks_HookClient(int client)
-{
-	if (g_DHookSpawn)
-		DHooks_HookEntity(g_DHookSpawn, Hook_Pre, client, DHookCallback_Spawn_Pre);
-	
-	if (g_DHookTakeHealth)
-		DHooks_HookEntity(g_DHookTakeHealth, Hook_Pre, client, DHookCallback_TakeHealth_Pre);
-	
-	if (g_DHookModifyOrAppendCriteria)
-		DHooks_HookEntity(g_DHookModifyOrAppendCriteria, Hook_Post, client, DHookCallback_ModifyOrAppendCriteria_Post);
-}
-
-void DHooks_HookBaseGun(int weapon)
-{
-	if (g_DHookFireProjectile)
-		DHooks_HookEntity(g_DHookFireProjectile, Hook_Post, weapon, DHookCallback_FireProjectile_Post);
-}
-
-void DHooks_HookBaseMelee(int weapon)
-{
-	if (g_DHookSmack)
-		DHooks_HookEntity(g_DHookSmack, Hook_Post, weapon, DHookCallback_Smack_Post);
-}
-
-void DHooks_HookScatterGun(int scattergun)
-{
-	if (g_DHookHasKnockback)
-		DHooks_HookEntity(g_DHookHasKnockback, Hook_Post, scattergun, DHookCallback_HasKnockback_Post);
-}
-
-static void DHooks_AddDynamicDetour(GameData gamedata, const char[] name, DHookCallback callbackPre = INVALID_FUNCTION, DHookCallback callbackPost = INVALID_FUNCTION)
-{
-	DynamicDetour detour = DynamicDetour.FromConf(gamedata, name);
-	if (detour)
-	{
-		DetourData data;
-		data.detour = detour;
-		data.callbackPre = callbackPre;
-		data.callbackPost = callbackPost;
-		
-		g_DynamicDetours.PushArray(data);
-	}
-	else
-	{
-		LogError("Failed to create detour setup handle for %s", name);
-	}
-}
-
-static DynamicHook DHooks_AddDynamicHook(GameData gamedata, const char[] name)
-{
-	DynamicHook hook = DynamicHook.FromConf(gamedata, name);
-	if (!hook)
-		LogError("Failed to create hook setup handle for %s", name);
-	
-	return hook;
-}
-
-static void DHooks_HookEntity(DynamicHook hook, HookMode mode, int entity, DHookCallback callback)
-{
-	if (!hook)
-		return;
-	
-	int hookid = hook.HookEntity(mode, entity, callback, DHookRemovalCB_OnHookRemoved);
-	if (hookid != INVALID_HOOK_ID)
-		g_DynamicHookIds.Push(hookid);
-}
-
-static void DHookRemovalCB_OnHookRemoved(int hookid)
-{
-	int index = g_DynamicHookIds.FindValue(hookid);
-	if (index != -1)
-		g_DynamicHookIds.Erase(index);
-}
-
-static MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
+static MRESReturn CTFPlayer_GetMaxHealthForBuffing_Post(int player, DHookReturn ret)
 {
 	if (TF2_GetClientTeam(player) == TFTeam_Props)
 	{
@@ -248,7 +148,7 @@ static MRESReturn DHookCallback_GetMaxHealthForBuffing_Post(int player, DHookRet
 	return MRES_Ignored;
 }
 
-static MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params)
+static MRESReturn CTFProjectile_GrapplingHook_HookTarget_Pre(int projectile, DHookParam params)
 {
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	
@@ -266,7 +166,7 @@ static MRESReturn DHookCallback_HookTarget_Pre(int projectile, DHookParam params
 	return MRES_Ignored;
 }
 
-static MRESReturn DHookCallback_HookTarget_Post(int projectile, DHookParam params)
+static MRESReturn CTFProjectile_GrapplingHook_HookTarget_Post(int projectile, DHookParam params)
 {
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	
@@ -282,7 +182,7 @@ static MRESReturn DHookCallback_HookTarget_Post(int projectile, DHookParam param
 	return MRES_Ignored;
 }
 
-static MRESReturn DHookCallback_Heal_Pre(Address pShared, DHookParam params)
+static MRESReturn CTFPlayerShared_Heal_Pre(Address pShared, DHookParam params)
 {
 	int player = TF2Util_GetPlayerFromSharedAddress(pShared);
 	
@@ -298,7 +198,7 @@ static MRESReturn DHookCallback_Heal_Pre(Address pShared, DHookParam params)
 	return MRES_Ignored;
 }
 
-static MRESReturn DHookCallback_Push_Post(int weapon)
+static MRESReturn CTFPistol_ScoutPrimary_Push_Post(int weapon)
 {
 	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
 	
@@ -314,7 +214,7 @@ static MRESReturn DHookCallback_Push_Post(int weapon)
 	return MRES_Ignored;
 }
 
-static MRESReturn DHookCallback_CalculateMaxSpeed_Post(int client, DHookReturn ret)
+static MRESReturn CTFPlayer_TeamFortress_CalculateMaxSpeed_Post(int client, DHookReturn ret)
 {
 	if (g_InSetup && ph_hunter_setup_freeze.BoolValue && TF2_GetClientTeam(client) == TFTeam_Hunters)
 	{
@@ -325,7 +225,7 @@ static MRESReturn DHookCallback_CalculateMaxSpeed_Post(int client, DHookReturn r
 	return MRES_Ignored;
 }
 
-static MRESReturn DHookCallback_Spawn_Pre(int player)
+static MRESReturn CTFPlayer_Spawn_Pre(int player)
 {
 	// This needs to happen before the first call to CTFPlayer::GetMaxHealthForBuffing
 	ClearCustomModel(player);
@@ -334,7 +234,7 @@ static MRESReturn DHookCallback_Spawn_Pre(int player)
 	return MRES_Ignored;
 }
 
-static MRESReturn DHookCallback_TakeHealth_Pre(int entity, DHookReturn ret, DHookParam params)
+static MRESReturn CTFPlayer_TakeHealth_Pre(int entity, DHookReturn ret, DHookParam params)
 {
 	// Make sure we don't reduce healing induced by CTFPlayerShared::Heal since we already handle that above
 	if (!g_InHealthKitTouch && !TF2_IsPlayerInCondition(entity, TFCond_Healing))
@@ -348,7 +248,7 @@ static MRESReturn DHookCallback_TakeHealth_Pre(int entity, DHookReturn ret, DHoo
 	return MRES_Ignored;
 }
 
-static MRESReturn DHookCallback_ModifyOrAppendCriteria_Post(int player, DHookParam params)
+static MRESReturn CTFPlayer_ModifyOrAppendCriteria_Post(int player, DHookParam params)
 {
 	if (TF2_GetClientTeam(player) == TFTeam_Hunters)
 	{
@@ -365,7 +265,7 @@ static MRESReturn DHookCallback_ModifyOrAppendCriteria_Post(int player, DHookPar
 	return MRES_Ignored;
 }
 
-static MRESReturn DHookCallback_FireProjectile_Post(int weapon, DHookReturn ret, DHookParam params)
+static MRESReturn CTFWeaponBaseGun_FireProjectile_Post(int weapon, DHookReturn ret, DHookParam params)
 {
 	int player = params.Get(1);
 	int projectile = ret.Value;
@@ -381,7 +281,7 @@ static MRESReturn DHookCallback_FireProjectile_Post(int weapon, DHookReturn ret,
 	return MRES_Ignored;
 }
 
-static MRESReturn DHookCallback_Smack_Post(int weapon)
+static MRESReturn CTFWeaponBaseMelee_Smack_Post(int weapon)
 {
 	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
 	
@@ -396,7 +296,7 @@ static MRESReturn DHookCallback_Smack_Post(int weapon)
 	return MRES_Ignored;
 }
 
-static MRESReturn DHookCallback_HasKnockback_Post(int scattergun, DHookReturn ret)
+static MRESReturn CTFScatterGun_HasKnockback_Post(int scattergun, DHookReturn ret)
 {
 	// Disables the Force-A-Nature knockback during setup
 	if (g_InSetup)

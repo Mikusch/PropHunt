@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021  Mikusch
+ * Copyright (C) 2025  Mikusch
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,42 +18,36 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-void SDKHooks_HookClient(int client)
-{
-	SDKHook(client, SDKHook_OnTakeDamage, SDKHookCB_Client_OnTakeDamage);
-}
-
-void SDKHooks_UnhookClient(int client)
-{
-	SDKUnhook(client, SDKHook_OnTakeDamage, SDKHookCB_Client_OnTakeDamage);
-}
-
 void SDKHooks_OnEntityCreated(int entity, const char[] classname)
 {
-	if (strcmp(classname, "prop_dynamic") == 0)
+	if (0 < entity <= MaxClients)
 	{
-		SDKHook(entity, SDKHook_SpawnPost, SDKHookCB_PropDynamic_SpawnPost);
+		PSM_SDKHook(entity, SDKHook_OnTakeDamage, CTFPlayer_OnTakeDamage);
+	}
+	else if (StrEqual(classname, "prop_dynamic"))
+	{
+		PSM_SDKHook(entity, SDKHook_SpawnPost, CDynamicProp_SpawnPost);
 	}
 	else if (strncmp(classname, "item_healthkit_", 15) == 0)
 	{
-		SDKHook(entity, SDKHook_Touch, SDKHookCB_HealthKit_Touch);
-		SDKHook(entity, SDKHook_TouchPost, SDKHookCB_HealthKit_TouchPost);
+		PSM_SDKHook(entity, SDKHook_Touch, CHealthKit_Touch);
+		PSM_SDKHook(entity, SDKHook_TouchPost, CHealthKit_TouchPost);
 	}
-	else if (strncmp(classname, "tf_projectile_jar", 17) == 0 || strcmp(classname, "tf_projectile_cleaver") == 0)
+	else if (strncmp(classname, "tf_projectile_jar", 17) == 0 || StrEqual(classname, "tf_projectile_cleaver"))
 	{
-		SDKHook(entity, SDKHook_SpawnPost, SDKHookCB_ProjectileJar_SpawnPost);
+		PSM_SDKHook(entity, SDKHook_SpawnPost, CTFProjectile_Jar_SpawnPost);
 	}
-	else if (strcmp(classname, "tf_projectile_stun_ball") == 0 || strcmp(classname, "tf_projectile_ball_ornament") == 0)
+	else if (StrEqual(classname, "tf_projectile_stun_ball") || StrEqual(classname, "tf_projectile_ball_ornament"))
 	{
-		SDKHook(entity, SDKHook_SpawnPost, SDKHookCB_ProjectileBall_SpawnPost);
+		PSM_SDKHook(entity, SDKHook_SpawnPost, CTFStunBall_SpawnPost);
 	}
-	else if (strcmp(classname, "tf_projectile_mechanicalarmorb") == 0)
+	else if (StrEqual(classname, "tf_projectile_mechanicalarmorb"))
 	{
-		SDKHook(entity, SDKHook_SpawnPost, SDKHookCB_ProjectileMechanicalArmOrb_SpawnPost);
+		PSM_SDKHook(entity, SDKHook_SpawnPost, CTFProjectile_MechanicalArmOrb_SpawnPost);
 	}
 }
 
-static Action SDKHookCB_Client_OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3], int damagecustom)
+static Action CTFPlayer_OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3], int damagecustom)
 {
 	// Prevent props from drowning
 	if (damagetype & DMG_DROWN && TF2_GetClientTeam(victim) == TFTeam_Props)
@@ -65,7 +59,7 @@ static Action SDKHookCB_Client_OnTakeDamage(int victim, int &attacker, int &infl
 	return Plugin_Continue;
 }
 
-static void SDKHookCB_PropDynamic_SpawnPost(int prop)
+static void CDynamicProp_SpawnPost(int prop)
 {
 	if (!g_IsMapRunning)
 		return;
@@ -74,7 +68,7 @@ static void SDKHookCB_PropDynamic_SpawnPost(int prop)
 	GetEntPropString(prop, Prop_Data, "m_ModelName", model, sizeof(model));
 	
 	// Hook the control point prop
-	if (strcmp(model, "models/props_gameplay/cap_point_base.mdl") == 0)
+	if (StrEqual(model, "models/props_gameplay/cap_point_base.mdl"))
 	{
 		SDKHook(prop, SDKHook_StartTouch, SDKHookCB_ControlPoint_StartTouch);
 		
@@ -109,14 +103,14 @@ static void SDKHookCB_PropDynamic_SpawnPost(int prop)
 	}
 }
 
-static Action SDKHookCB_HealthKit_Touch(int healthkit, int other)
+static Action CHealthKit_Touch(int healthkit, int other)
 {
 	g_InHealthKitTouch = true;
 	
 	return Plugin_Continue;
 }
 
-static void SDKHookCB_HealthKit_TouchPost(int healthkit, int other)
+static void CHealthKit_TouchPost(int healthkit, int other)
 {
 	g_InHealthKitTouch = false;
 }
@@ -153,7 +147,7 @@ static Action SDKHookCB_TauntProp_SetTransmit(int entity, int client)
 	return Plugin_Continue;
 }
 
-static void SDKHookCB_ProjectileJar_SpawnPost(int projectile)
+static void CTFProjectile_Jar_SpawnPost(int projectile)
 {
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	
@@ -167,7 +161,7 @@ static void SDKHookCB_ProjectileJar_SpawnPost(int projectile)
 	}
 }
 
-static void SDKHookCB_ProjectileBall_SpawnPost(int projectile)
+static void CTFStunBall_SpawnPost(int projectile)
 {
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	
@@ -181,7 +175,7 @@ static void SDKHookCB_ProjectileBall_SpawnPost(int projectile)
 	}
 }
 
-static void SDKHookCB_ProjectileMechanicalArmOrb_SpawnPost(int projectile)
+static void CTFProjectile_MechanicalArmOrb_SpawnPost(int projectile)
 {
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	

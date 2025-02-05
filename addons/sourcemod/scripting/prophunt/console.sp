@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021  Mikusch
+ * Copyright (C) 2025  Mikusch
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,55 +23,18 @@ void Console_Init()
 	RegAdminCmd("sm_getmodel", ConCmd_GetModel, ADMFLAG_CHEATS);
 	RegAdminCmd("sm_setmodel", ConCmd_SetModel, ADMFLAG_CHEATS);
 	RegAdminCmd("sm_reloadconfigs", ConCmd_ReloadConfigs, ADMFLAG_CONFIG);
-}
-
-void Console_Toggle(bool enable)
-{
-	if (enable)
-	{
-		AddMultiTargetFilter("@prop", MultiTargetFilter_FilterProps, "PH_Target_Props", true);
-		AddMultiTargetFilter("@props", MultiTargetFilter_FilterProps, "PH_Target_Props", true);
-		AddMultiTargetFilter("@hunters", MultiTargetFilter_FilterHunters, "PH_Target_Hunters", true);
-		AddMultiTargetFilter("@hunter", MultiTargetFilter_FilterHunters, "PH_Target_Hunters", true);
-		
-		AddCommandListener(CommandListener_Build, "build");
-	}
-	else
-	{
-		RemoveMultiTargetFilter("@prop", MultiTargetFilter_FilterProps);
-		RemoveMultiTargetFilter("@props", MultiTargetFilter_FilterProps);
-		RemoveMultiTargetFilter("@hunters", MultiTargetFilter_FilterHunters);
-		RemoveMultiTargetFilter("@hunter", MultiTargetFilter_FilterHunters);
-		
-		RemoveCommandListener(CommandListener_Build, "build");
-	}
-}
-
-static bool MultiTargetFilter_FilterProps(const char[] pattern, ArrayList clients)
-{
-	for (int client = 1; client <= MaxClients; client++)
-	{
-		if (IsClientInGame(client) && TF2_GetClientTeam(client) == TFTeam_Props)
-			clients.Push(client);
-	}
 	
-	return clients.Length > 0;
-}
-
-static bool MultiTargetFilter_FilterHunters(const char[] pattern, ArrayList clients)
-{
-	for (int client = 1; client <= MaxClients; client++)
-	{
-		if (IsClientInGame(client) && TF2_GetClientTeam(client) == TFTeam_Hunters)
-			clients.Push(client);
-	}
+	PSM_AddCommandListener(CommandListener_Build, "build");
 	
-	return clients.Length > 0;
+	PSM_AddMultiTargetFilter("@prop", MultiTargetFilter_FilterProps, "PH_Target_Props", true);
+	PSM_AddMultiTargetFilter("@props", MultiTargetFilter_FilterProps, "PH_Target_Props", true);
+	PSM_AddMultiTargetFilter("@hunters", MultiTargetFilter_FilterHunters, "PH_Target_Hunters", true);
+	PSM_AddMultiTargetFilter("@hunter", MultiTargetFilter_FilterHunters, "PH_Target_Hunters", true);
 }
 
 static Action ConCmd_GetModel(int client, int args)
 {
-	if (!g_IsEnabled)
+	if (!PSM_IsEnabled())
 		return Plugin_Continue;
 	
 	if (args < 1)
@@ -115,7 +78,7 @@ static Action ConCmd_GetModel(int client, int args)
 
 static Action ConCmd_SetModel(int client, int args)
 {
-	if (!g_IsEnabled)
+	if (!PSM_IsEnabled())
 		return Plugin_Continue;
 	
 	if (args < 2)
@@ -163,7 +126,7 @@ static Action ConCmd_SetModel(int client, int args)
 
 static Action ConCmd_ReloadConfigs(int client, int args)
 {
-	if (!g_IsEnabled)
+	if (!PSM_IsEnabled())
 		return Plugin_Continue;
 	
 	ReadPropConfig();
@@ -192,4 +155,26 @@ static Action CommandListener_Build(int client, const char[] command, int argc)
 		return Plugin_Handled;
 	
 	return Plugin_Continue;
+}
+
+static bool MultiTargetFilter_FilterProps(const char[] pattern, ArrayList clients)
+{
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		if (IsClientInGame(client) && TF2_GetClientTeam(client) == TFTeam_Props)
+			clients.Push(client);
+	}
+	
+	return clients.Length > 0;
+}
+
+static bool MultiTargetFilter_FilterHunters(const char[] pattern, ArrayList clients)
+{
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		if (IsClientInGame(client) && TF2_GetClientTeam(client) == TFTeam_Hunters)
+			clients.Push(client);
+	}
+	
+	return clients.Length > 0;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021  Mikusch
+ * Copyright (C) 2025  Mikusch
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,11 +27,13 @@
 #include <tf2items>
 #include <tf_econ_data>
 #include <tf2utils>
+#include <cbasenpc>
+#include <pluginstatemanager>
 
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION	"1.8.3"
+#define PLUGIN_VERSION	"2.0.0"
 
 #define PLUGIN_TAG	"[{orange}PropHunt{default}]"
 
@@ -56,26 +58,6 @@
 
 const TFTeam TFTeam_Props = TFTeam_Red;
 const TFTeam TFTeam_Hunters = TFTeam_Blue;
-
-// Entity effects (from const.h)
-enum
-{
-	EF_BONEMERGE			= 0x001,	// Performs bone merge on client side
-	EF_BRIGHTLIGHT 			= 0x002,	// DLIGHT centered at entity origin
-	EF_DIMLIGHT 			= 0x004,	// player flashlight
-	EF_NOINTERP				= 0x008,	// don't interpolate the next frame
-	EF_NOSHADOW				= 0x010,	// Don't cast no shadow
-	EF_NODRAW				= 0x020,	// don't draw entity
-	EF_NORECEIVESHADOW		= 0x040,	// Don't receive no shadow
-	EF_BONEMERGE_FASTCULL	= 0x080,	// For use with EF_BONEMERGE. If this is set, then it places this ent's origin at its
-										// parent and uses the parent's bbox + the max extents of the aiment.
-										// Otherwise, it sets up the parent's bones every frame to figure out where to place
-										// the aiment, which is inefficient because it'll setup the parent's bones even if
-										// the parent is not in the PVS.
-	EF_ITEM_BLINK			= 0x100,	// blink an item so that the user notices it.
-	EF_PARENT_ANIMATES		= 0x200,	// always assume that the parent entity is animating
-	EF_MAX_BITS = 10
-};
 
 enum
 {
@@ -143,7 +125,6 @@ char g_DefaultTauntSounds[][] =
 };
 
 // Globals
-bool g_IsEnabled;
 bool g_IsMapRunning;
 bool g_InSetup;
 bool g_IsLastPropStanding;
@@ -154,7 +135,6 @@ Handle g_ChatTipTimer;
 Handle g_ControlPointBonusTimer;
 
 // ConVars
-ConVar ph_enable;
 ConVar ph_prop_min_size;
 ConVar ph_prop_max_size;
 ConVar ph_prop_select_distance;
@@ -204,33 +184,31 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
-	LoadTranslations("common.phrases");
-	LoadTranslations("prophunt.phrases");
+	GameData gameconf = new GameData("prophunt");
+	if (!gameconf)
+		SetFailState("Could not find prophunt gamedata");
 	
+	PSM_Init("ph_enabled", gameconf);
+	PSM_AddPluginStateChangedHook(OnPluginStateChanged);
+	
+	Offsets_Init(gameconf);
+	SDKCalls_Init(gameconf);
+	
+	delete gameconf;
+	
+	DHooks_Init();
 	Console_Init();
 	ConVars_Init();
 	Events_Init();
 	Forwards_Init();
 	
+	LoadTranslations("common.phrases");
+	LoadTranslations("prophunt.phrases");
+	
 	g_PropConfigs = new ArrayList(sizeof(PropConfig));
 	
 	// Read global prop config
 	ReadPropConfig();
-	
-	// Set up everything that needs gamedata
-	GameData gamedata = new GameData("prophunt");
-	if (gamedata)
-	{
-		DHooks_Init(gamedata);
-		Offsets_Init(gamedata);
-		SDKCalls_Init(gamedata);
-		
-		delete gamedata;
-	}
-	else
-	{
-		SetFailState("Could not find prophunt gamedata");
-	}
 }
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -242,40 +220,39 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnMapStart()
 {
-	g_IsMapRunning = true;
-	
-	// Read map config
 	ReadMapConfig();
+	Precache();
 }
 
 public void OnMapEnd()
 {
-	g_IsMapRunning = false;
+	if (!PSM_IsEnabled())
+		return;
+	
+	PSM_SetPluginState(false);
 	
 	g_CurrentMapConfig.Clear();
 }
 
 public void OnConfigsExecuted()
 {
-	if (g_IsEnabled != ph_enable.BoolValue)
-		TogglePlugin(ph_enable.BoolValue);
-	else if (g_IsEnabled)
-		Precache();
+	PSM_TogglePluginState();
 }
 
 public void OnEntityCreated(int entity, const char[] classname)
 {
-	if (!g_IsEnabled)
+	if (!PSM_IsEnabled())
 		return;
 	
+	DHooks_OnEntityCreated(entity, classname);
 	SDKHooks_OnEntityCreated(entity, classname);
 	
-	if (strcmp(classname, "tf_logic_arena") == 0)
+	if (StrEqual(classname, "tf_logic_arena"))
 	{
 		// Prevent arena from trying to enable the control point
 		DispatchKeyValue(entity, "CapEnableDelay", "0");
 	}
-	else if (strcmp(classname, "trigger_capture_area") == 0)
+	else if (StrEqual(classname, "trigger_capture_area"))
 	{
 		RemoveEntity(entity);
 	}
@@ -283,13 +260,13 @@ public void OnEntityCreated(int entity, const char[] classname)
 
 public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname, bool &result)
 {
-	if (!g_IsEnabled)
+	if (!PSM_IsEnabled())
 		return Plugin_Continue;
 	
 	if (!ShouldPlayerDealSelfDamage(client))
 		return Plugin_Continue;
 	
-	if (strcmp(weaponname, "tf_weapon_flamethrower") != 0)
+	if (!StrEqual(weaponname, "tf_weapon_flamethrower"))
 		return Plugin_Continue;
 	
 	// The damage of flame throwers is calculated as Damage x TimeFireDelay
@@ -306,13 +283,10 @@ public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname
 
 public void OnClientPutInServer(int client)
 {
-	if (!g_IsEnabled)
+	if (!PSM_IsEnabled())
 		return;
 	
 	PHPlayer(client).Reset();
-	
-	DHooks_HookClient(client);
-	SDKHooks_HookClient(client);
 	
 	// Fixes arena HUD messing up
 	if (!IsFakeClient(client))
@@ -321,7 +295,7 @@ public void OnClientPutInServer(int client)
 
 public void OnClientDisconnect(int client)
 {
-	if (!g_IsEnabled)
+	if (!PSM_IsEnabled())
 		return;
 	
 	CheckLastPropStanding(client);
@@ -329,7 +303,7 @@ public void OnClientDisconnect(int client)
 
 public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
 {
-	if (!g_IsEnabled)
+	if (!PSM_IsEnabled())
 		return Plugin_Continue;
 	
 	if (!IsPlayerAlive(client))
@@ -431,7 +405,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 
 public Action TF2Items_OnGiveNamedItem(int client, char[] classname, int itemDefIndex, Handle &item)
 {
-	if (!g_IsEnabled)
+	if (!PSM_IsEnabled())
 		return Plugin_Continue;
 	
 	if (TF2_GetClientTeam(client) == TFTeam_Props)
@@ -445,7 +419,7 @@ public Action TF2Items_OnGiveNamedItem(int client, char[] classname, int itemDef
 			return Plugin_Handled;
 		
 		// Lastly, remove power up canteens and spellbooks
-		if (strcmp(classname, "tf_powerup_bottle") == 0 || strcmp(classname, "tf_weapon_spellbook") == 0)
+		if (StrEqual(classname, "tf_powerup_bottle") || StrEqual(classname, "tf_weapon_spellbook"))
 			return Plugin_Handled;
 	}
 	
@@ -454,20 +428,8 @@ public Action TF2Items_OnGiveNamedItem(int client, char[] classname, int itemDef
 
 public void TF2Items_OnGiveNamedItem_Post(int client, char[] classname, int itemDefIndex, int level, int quality, int entity)
 {
-	if (!g_IsEnabled)
+	if (!PSM_IsEnabled())
 		return;
-	
-	// Is CTFWeaponBaseGun?
-	if (IsWeaponBaseGun(entity))
-		DHooks_HookBaseGun(entity);
-	
-	// Is CTFWeaponBaseMelee?
-	if (IsWeaponBaseMelee(entity))
-		DHooks_HookBaseMelee(entity);
-	
-	// Is Scattergun?
-	if (strcmp(classname, "tf_weapon_scattergun") == 0)
-		DHooks_HookScatterGun(entity);
 	
 	// Hide the last prop's items
 	if (PHPlayer(client).IsLastProp)
@@ -496,18 +458,29 @@ void Precache()
 	PrecacheSound(UNLOCK_SOUND);
 }
 
-void TogglePlugin(bool enable)
+void OnPluginStateChanged(bool enabled)
 {
-	g_IsEnabled = enable;
-	
-	Console_Toggle(enable);
-	ConVars_Toggle(enable);
-	DHooks_Toggle(enable);
-	Events_Toggle(enable);
-	
-	if (enable)
+	if (enabled)
 	{
-		Precache();
+		int entity = -1;
+		while ((entity = FindEntityByClassname(entity, "*")) != -1)
+		{
+			char classname[64];
+			if (!GetEntityClassname(entity, classname, sizeof(classname)))
+				continue;
+			
+			OnEntityCreated(entity, classname);
+		}
+		
+		for (int client = 1; client <= MaxClients; client++)
+		{
+			if (!IsClientInGame(client))
+				continue;
+			
+			OnClientPutInServer(client);
+		}
+		
+		OnMapStart();
 		
 		g_AntiCheatTimer = CreateTimer(0.1, Timer_CheckStaticPropInfo, _, TIMER_REPEAT);
 		
@@ -519,17 +492,6 @@ void TogglePlugin(bool enable)
 		delete g_AntiCheatTimer;
 		delete g_ChatTipTimer;
 		delete g_ControlPointBonusTimer;
-	}
-	
-	for (int client = 1; client <= MaxClients; client++)
-	{
-		if (!IsClientInGame(client))
-			continue;
-		
-		if (enable)
-			OnClientPutInServer(client);
-		else
-			SDKHooks_UnhookClient(client);
 	}
 	
 	if (GameRules_GetRoundState() >= RoundState_Preround)
@@ -685,7 +647,7 @@ bool DoModelNameChecks(int client, const char[] model, char[] message, int maxle
 	
 	// Ignore the model if the player is already disguised as it
 	char customModel[PLATFORM_MAX_PATH];
-	if (GetEntPropString(client, Prop_Send, "m_iszCustomModel", customModel, sizeof(customModel)) > 0 && strcmp(customModel, model) == 0)
+	if (GetEntPropString(client, Prop_Send, "m_iszCustomModel", customModel, sizeof(customModel)) > 0 && StrEqual(customModel, model))
 		return false;
 	
 	// Ignore the model if this is the player's actual playermodel
@@ -805,6 +767,9 @@ void ClearCustomModel(int client, bool notify = false)
 
 void TogglePropLock(int client, bool toggle)
 {
+	if (PHPlayer(client).PropLockEnabled == toggle)
+		return;
+	
 	PHPlayer(client).PropLockEnabled = toggle;
 	
 	SetVariantInt(!toggle);
@@ -812,17 +777,8 @@ void TogglePropLock(int client, bool toggle)
 	
 	SetEntPropVector(client, Prop_Data, "m_vecAbsVelocity", ZERO_VECTOR);
 	
-	if (toggle)
-	{
-		EmitSoundToClient(client, LOCK_SOUND, _, SNDCHAN_STATIC);
-		SetEntityMoveType(client, MOVETYPE_NONE);
-		PrintHintText(client, "%t", "PH_PropLock_Enabled");
-	}
-	else
-	{
-		EmitSoundToClient(client, UNLOCK_SOUND, _, SNDCHAN_STATIC);
-		SetEntityMoveType(client, MOVETYPE_WALK);
-	}
+	SetEntityMoveType(client, toggle ? MOVETYPE_NONE : MOVETYPE_WALK);
+	EmitSoundToClient(client, toggle ? LOCK_SOUND : UNLOCK_SOUND, _, SNDCHAN_STATIC);
 }
 
 void DoTaunt(int client)
@@ -942,7 +898,7 @@ static void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQue
 static bool TraceEntityEnumerator_EnumerateTriggers(int entity, int client)
 {
 	char classname[16];
-	if (GetEntityClassname(entity, classname, sizeof(classname)) && strcmp(classname, "trigger_hurt") == 0)
+	if (GetEntityClassname(entity, classname, sizeof(classname)) && StrEqual(classname, "trigger_hurt"))
 	{
 		if (!GetEntProp(entity, Prop_Data, "m_bDisabled"))
 		{

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021  Mikusch
+ * Copyright (C) 2025  Mikusch
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,25 +18,11 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define COMMAND_MAX_LENGTH	512
-
-enum struct ConVarData
-{
-	char name[COMMAND_MAX_LENGTH];
-	char value[COMMAND_MAX_LENGTH];
-	char initialValue[COMMAND_MAX_LENGTH];
-	bool enforce;
-}
-
-static StringMap g_ConVars;
-
 void ConVars_Init()
 {
-	g_ConVars = new StringMap();
-	
 	CreateConVar("ph_version", PLUGIN_VERSION, "PropHunt Neu version", FCVAR_SPONLY | FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_DONTRECORD);
-	ph_enable = CreateConVar("ph_enable", "1", "When set, the plugin will be enabled.");
-	ph_enable.AddChangeHook(ConVarChanged_Enable);
+	CreateConVar("ph_enable", "1", "When set, the plugin will be enabled.");
+	
 	ph_prop_min_size = CreateConVar("ph_prop_min_size", "40.0", "Minimum allowed size of props for them to be selectable.");
 	ph_prop_max_size = CreateConVar("ph_prop_max_size", "400.0", "Maximum allowed size of props for them to be selectable.");
 	ph_prop_select_distance = CreateConVar("ph_prop_select_distance", "128.0", "Minimum required distance to a prop for it to be selectable, in HU.");
@@ -62,122 +48,18 @@ void ConVars_Init()
 	ph_relay_name = CreateConVar("ph_relay_name", "hidingover", "Name of the relay to trigger when setup time ends.");
 	ph_gravity_modifier = CreateConVar("ph_gravity_modifier", "0.625", "Modifier to player gravity.");
 	
-	ConVars_AddConVar("tf_arena_round_time", "0");
-	ConVars_AddConVar("tf_arena_override_cap_enable_time", "0");
-	ConVars_AddConVar("tf_arena_use_queue", "0");
-	ConVars_AddConVar("tf_arena_first_blood", "0");
-	ConVars_AddConVar("tf_weapon_criticals", "0");
-	ConVars_AddConVar("mp_show_voice_icons", "0");
-	ConVars_AddConVar("mp_forcecamera", "1");
-}
-
-void ConVars_Toggle(bool enable)
-{
-	if (enable)
-	{
-		ph_prop_afterburn_immune.AddChangeHook(ConVarChanged_PropAfterburnImmune);
-		ph_prop_proplock_enabled.AddChangeHook(ConVarChanged_PropPropLockEnabled);
-		ph_chat_tip_interval.AddChangeHook(ConVarChanged_ChatTipInterval);
-		ph_gravity_modifier.AddChangeHook(ConVarChanged_GravityModifier);
-	}
-	else
-	{
-		ph_prop_afterburn_immune.RemoveChangeHook(ConVarChanged_PropAfterburnImmune);
-		ph_prop_proplock_enabled.RemoveChangeHook(ConVarChanged_PropPropLockEnabled);
-		ph_chat_tip_interval.RemoveChangeHook(ConVarChanged_ChatTipInterval);
-		ph_gravity_modifier.RemoveChangeHook(ConVarChanged_GravityModifier);
-	}
+	PSM_AddConVarChangeHook(ph_prop_afterburn_immune, ConVarChanged_PropAfterburnImmune);
+	PSM_AddConVarChangeHook(ph_prop_proplock_enabled, ConVarChanged_PropPropLockEnabled);
+	PSM_AddConVarChangeHook(ph_chat_tip_interval, ConVarChanged_ChatTipInterval);
+	PSM_AddConVarChangeHook(ph_gravity_modifier, ConVarChanged_GravityModifier);
 	
-	StringMapSnapshot snapshot = g_ConVars.Snapshot();
-	for (int i = 0; i < snapshot.Length; i++)
-	{
-		int size = snapshot.KeyBufferSize(i);
-		char[] key = new char[size];
-		snapshot.GetKey(i, key, size);
-		
-		if (enable)
-			ConVars_Enable(key);
-		else
-			ConVars_Disable(key);
-	}
-	delete snapshot;
-}
-
-static void ConVars_AddConVar(const char[] name, const char[] value, bool enforce = true)
-{
-	ConVar convar = FindConVar(name);
-	if (convar)
-	{
-		// Store ConVar information
-		ConVarData info;
-		strcopy(info.name, sizeof(info.name), name);
-		strcopy(info.value, sizeof(info.value), value);
-		info.enforce = enforce;
-		
-		g_ConVars.SetArray(name, info, sizeof(info));
-	}
-	else
-	{
-		LogError("Failed to find convar with name %s", name);
-	}
-}
-
-static void ConVars_Enable(const char[] name)
-{
-	ConVarData data;
-	if (g_ConVars.GetArray(name, data, sizeof(data)))
-	{
-		ConVar convar = FindConVar(data.name);
-		
-		// Store the current value so we can later reset the ConVar to it
-		convar.GetString(data.initialValue, sizeof(data.initialValue));
-		g_ConVars.SetArray(name, data, sizeof(data));
-		
-		// Update the current value
-		convar.SetString(data.value);
-		convar.AddChangeHook(OnConVarChanged);
-	}
-}
-
-static void ConVars_Disable(const char[] name)
-{
-	ConVarData data;
-	if (g_ConVars.GetArray(name, data, sizeof(data)))
-	{
-		ConVar convar = FindConVar(data.name);
-		
-		g_ConVars.SetArray(name, data, sizeof(data));
-		
-		// Restore the convar value
-		convar.RemoveChangeHook(OnConVarChanged);
-		convar.SetString(data.initialValue);
-	}
-}
-
-static void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	char name[COMMAND_MAX_LENGTH];
-	convar.GetName(name, sizeof(name));
-	
-	ConVarData data;
-	if (g_ConVars.GetArray(name, data, sizeof(data)))
-	{
-		if (!StrEqual(newValue, data.value))
-		{
-			strcopy(data.initialValue, sizeof(data.initialValue), newValue);
-			g_ConVars.SetArray(name, data, sizeof(data));
-			
-			// Restore our value if needed
-			if (data.enforce)
-				convar.SetString(data.value);
-		}
-	}
-}
-
-static void ConVarChanged_Enable(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-	if (g_IsEnabled != convar.BoolValue)
-		TogglePlugin(convar.BoolValue);
+	PSM_AddEnforcedConVar("tf_arena_round_time", "0");
+	PSM_AddEnforcedConVar("tf_arena_override_cap_enable_time", "0");
+	PSM_AddEnforcedConVar("tf_arena_use_queue", "0");
+	PSM_AddEnforcedConVar("tf_arena_first_blood", "0");
+	PSM_AddEnforcedConVar("tf_weapon_criticals", "0");
+	PSM_AddEnforcedConVar("mp_show_voice_icons", "0");
+	PSM_AddEnforcedConVar("mp_forcecamera", "1");
 }
 
 static void ConVarChanged_PropAfterburnImmune(ConVar convar, const char[] oldValue, const char[] newValue)

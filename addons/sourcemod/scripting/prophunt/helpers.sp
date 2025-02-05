@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021  Mikusch
+ * Copyright (C) 2025  Mikusch
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -129,16 +129,6 @@ bool CloseEnough(float a, float b, float epsilon)
 	return FloatAbs(a - b) <= epsilon;
 }
 
-bool IsWeaponBaseGun(int entity)
-{
-	return HasEntProp(entity, Prop_Data, "CTFWeaponBaseGunZoomOutIn");
-}
-
-bool IsWeaponBaseMelee(int entity)
-{
-	return HasEntProp(entity, Prop_Data, "CTFWeaponBaseMeleeSmack");
-}
-
 any GetWeaponData(int weapon)
 {
 	int weaponMode = GetEntData(weapon, GetOffset("CTFWeaponBase", "m_iWeaponMode"));
@@ -171,7 +161,7 @@ bool GetConfigByModel(const char[] model, PropConfig config)
 		if (g_PropConfigs.GetArray(i, config) > 0)
 		{
 			// Try to fetch config by exact match first
-			if (config.model[0] != EOS && strcmp(config.model, model) == 0)
+			if (config.model[0] != EOS && StrEqual(config.model, model))
 				return true;
 			
 			// Then, try the regular expression

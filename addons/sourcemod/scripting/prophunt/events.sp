@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021  Mikusch
+ * Copyright (C) 2025  Mikusch
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,65 +18,17 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define MAX_EVENT_NAME_LENGTH	32
-
-enum struct EventData
-{
-	char name[MAX_EVENT_NAME_LENGTH];
-	EventHook callback;
-	EventHookMode mode;
-}
-
-static ArrayList g_Events;
-
 void Events_Init()
 {
-	g_Events = new ArrayList(sizeof(EventData));
-	
-	Events_AddEvent("player_spawn", EventHook_PlayerSpawn);
-	Events_AddEvent("player_death", EventHook_PlayerDeath);
-	Events_AddEvent("post_inventory_application", EventHook_PostInventoryApplication);
-	Events_AddEvent("teamplay_round_start", EventHook_TeamplayRoundStart);
-	Events_AddEvent("teamplay_round_win", EventHook_TeamplayRoundWin);
-	Events_AddEvent("arena_round_start", EventHook_ArenaRoundStart);
+	PSM_AddEventHook("player_spawn", OnGameEvent_player_spawn);
+	PSM_AddEventHook("player_death", OnGameEvent_player_death);
+	PSM_AddEventHook("post_inventory_application", OnGameEvent_post_inventory_application);
+	PSM_AddEventHook("teamplay_round_start", OnGameEvent_teamplay_round_start);
+	PSM_AddEventHook("teamplay_round_win", OnGameEvent_teamplay_round_win);
+	PSM_AddEventHook("arena_round_start", OnGameEvent_arena_round_start);
 }
 
-void Events_Toggle(bool enable)
-{
-	for (int i = 0; i < g_Events.Length; i++)
-	{
-		EventData data;
-		if (g_Events.GetArray(i, data) > 0)
-		{
-			if (enable)
-				HookEvent(data.name, data.callback, data.mode);
-			else
-				UnhookEvent(data.name, data.callback, data.mode);
-		}
-	}
-}
-
-static void Events_AddEvent(const char[] name, EventHook callback, EventHookMode mode = EventHookMode_Post)
-{
-	Event event = CreateEvent(name, true);
-	if (event)
-	{
-		event.Cancel();
-		
-		EventData data;
-		strcopy(data.name, sizeof(data.name), name);
-		data.callback = callback;
-		data.mode = mode;
-		
-		g_Events.PushArray(data);
-	}
-	else
-	{
-		LogError("Failed to create event with name %s", name);
-	}
-}
-
-static void EventHook_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
+static void OnGameEvent_player_spawn(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	
@@ -111,7 +63,7 @@ static void EventHook_PlayerSpawn(Event event, const char[] name, bool dontBroad
 	SetEntityGravity(client, ph_gravity_modifier.FloatValue);
 }
 
-static void EventHook_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
+static void OnGameEvent_player_death(Event event, const char[] name, bool dontBroadcast)
 {
 	int victim = GetClientOfUserId(event.GetInt("userid"));
 	int attacker = GetClientOfUserId(event.GetInt("attacker"));
@@ -145,7 +97,7 @@ static void EventHook_PlayerDeath(Event event, const char[] name, bool dontBroad
 	CheckLastPropStanding(victim);
 }
 
-static void EventHook_PostInventoryApplication(Event event, const char[] name, bool dontBroadcast)
+static void OnGameEvent_post_inventory_application(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	if (TF2_GetClientTeam(client) == TFTeam_Props && !PHPlayer(client).IsLastProp)
@@ -182,7 +134,7 @@ static void EventHook_PostInventoryApplication(Event event, const char[] name, b
 	}
 }
 
-static void EventHook_TeamplayRoundStart(Event event, const char[] name, bool dontBroadcast)
+static void OnGameEvent_teamplay_round_start(Event event, const char[] name, bool dontBroadcast)
 {
 	g_InSetup = false;
 	g_IsLastPropStanding = false;
@@ -198,7 +150,7 @@ static void EventHook_TeamplayRoundStart(Event event, const char[] name, bool do
 	}
 }
 
-static void EventHook_TeamplayRoundWin(Event event, const char[] name, bool dontBroadcast)
+static void OnGameEvent_teamplay_round_win(Event event, const char[] name, bool dontBroadcast)
 {
 	delete g_ControlPointBonusTimer;
 	
@@ -212,7 +164,7 @@ static void EventHook_TeamplayRoundWin(Event event, const char[] name, bool dont
 	SDKCall_SetSwitchTeams(true);
 }
 
-static void EventHook_ArenaRoundStart(Event event, const char[] name, bool dontBroadcast)
+static void OnGameEvent_arena_round_start(Event event, const char[] name, bool dontBroadcast)
 {
 	g_InSetup = true;
 	
@@ -316,7 +268,7 @@ static Action EntityOutput_OnSetupFinished(const char[] output, int caller, int 
 			char name[64];
 			GetEntPropString(relay, Prop_Data, "m_iName", name, sizeof(name));
 			
-			if (strcmp(name, relayName) == 0)
+			if (StrEqual(name, relayName))
 				AcceptEntityInput(relay, "Trigger");
 		}
 	}
