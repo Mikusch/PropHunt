@@ -39,7 +39,7 @@ static void OnGameEvent_player_spawn(Event event, const char[] name, bool dontBr
 	if (!IsValidClass(team, class))
 	{
 		TF2_SetPlayerClass(client, GetRandomValidClass(team), _, false);
-		SDKCall_InitClass(client);
+		SDKCall_CTFPlayer_InitClass(client);
 	}
 	
 	if (team == TFTeam_Props)
@@ -161,7 +161,7 @@ static void OnGameEvent_teamplay_round_win(Event event, const char[] name, bool 
 	}
 	
 	// Always switch teams on round end
-	SDKCall_SetSwitchTeams(true);
+	SDKCall_CTeamplayRules_SetSwitchTeams(true);
 }
 
 static void OnGameEvent_arena_round_start(Event event, const char[] name, bool dontBroadcast)

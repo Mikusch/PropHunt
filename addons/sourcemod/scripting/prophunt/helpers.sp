@@ -142,12 +142,6 @@ int GetWeaponDamage(int weapon)
 	return LoadFromAddress(GetWeaponData(weapon) + GetOffset("WeaponData_t", "m_nDamage"), NumberType_Int32);
 }
 
-int GetWeaponBulletsPerShot(int weapon)
-{
-	// m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_nBulletsPerShot
-	return LoadFromAddress(GetWeaponData(weapon) + GetOffset("WeaponData_t", "m_nBulletsPerShot"), NumberType_Int32);
-}
-
 float GetWeaponTimeFireDelay(int weapon)
 {
 	// m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_flTimeFireDelay
@@ -378,4 +372,14 @@ void SetItemAlpha(int item, int alpha)
 			SetEntityRenderColor(extraWearable, 255, 255, 255, alpha);
 		}
 	}
+}
+
+bool IsCTFBaseRocket(int entity)
+{
+	return HasEntProp(entity, Prop_Send, "m_iDeflected") && !IsCTFWeaponBaseGrenadeProj(entity);
+}
+
+bool IsCTFWeaponBaseGrenadeProj(int entity)
+{
+	return HasEntProp(entity, Prop_Send, "m_hDeflectOwner");
 }

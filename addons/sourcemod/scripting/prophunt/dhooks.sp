@@ -18,12 +18,12 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-static DynamicHook g_DHookSpawn;
-static DynamicHook g_DHookTakeHealth;
-static DynamicHook g_DHookModifyOrAppendCriteria;
-static DynamicHook g_DHookFireProjectile;
-static DynamicHook g_DHookSmack;
-static DynamicHook g_DHookHasKnockback;
+static DynamicHook g_CBaseEntity_Spawn;
+static DynamicHook g_CBaseEntity_TakeHealth;
+static DynamicHook g_CBaseEntity_ModifyOrAppendCriteria;
+static DynamicHook g_CTFScatterGun_HasKnockback;
+static DynamicHook g_CTFBaseRocket_Explode;
+static DynamicHook g_CTFWeaponBaseGrenadeProj_Explode;
 
 void DHooks_Init()
 {
@@ -33,33 +33,33 @@ void DHooks_Init()
 	PSM_AddDynamicDetourFromConf("CTFPistol_ScoutPrimary::Push", _, CTFPistol_ScoutPrimary_Push_Post);
 	PSM_AddDynamicDetourFromConf("CTFPlayer::TeamFortress_CalculateMaxSpeed", _, CTFPlayer_TeamFortress_CalculateMaxSpeed_Post);
 	
-	g_DHookSpawn = PSM_AddDynamicHookFromConf("CBaseEntity::Spawn");
-	g_DHookTakeHealth = PSM_AddDynamicHookFromConf("CBaseEntity::TakeHealth");
-	g_DHookModifyOrAppendCriteria = PSM_AddDynamicHookFromConf("CBaseEntity::ModifyOrAppendCriteria");
-	g_DHookFireProjectile = PSM_AddDynamicHookFromConf("CTFWeaponBaseGun::FireProjectile");
-	g_DHookSmack = PSM_AddDynamicHookFromConf("CTFWeaponBaseMelee::Smack");
-	g_DHookHasKnockback = PSM_AddDynamicHookFromConf("CTFScatterGun::HasKnockback");
+	g_CBaseEntity_Spawn = PSM_AddDynamicHookFromConf("CBaseEntity::Spawn");
+	g_CBaseEntity_TakeHealth = PSM_AddDynamicHookFromConf("CBaseEntity::TakeHealth");
+	g_CBaseEntity_ModifyOrAppendCriteria = PSM_AddDynamicHookFromConf("CBaseEntity::ModifyOrAppendCriteria");
+	g_CTFScatterGun_HasKnockback = PSM_AddDynamicHookFromConf("CTFScatterGun::HasKnockback");
+	g_CTFBaseRocket_Explode = PSM_AddDynamicHookFromConf("CTFBaseRocket::Explode");
+	g_CTFWeaponBaseGrenadeProj_Explode = PSM_AddDynamicHookFromConf("CTFWeaponBaseGrenadeProj::Explode");
 }
 
 void DHooks_OnEntityCreated(int entity, const char[] classname)
 {
 	if (0 < entity <= MaxClients)
 	{
-		PSM_DHookEntity(g_DHookSpawn, Hook_Pre, entity, CTFPlayer_Spawn_Pre);
-		PSM_DHookEntity(g_DHookTakeHealth, Hook_Pre, entity, CTFPlayer_TakeHealth_Pre);
-		PSM_DHookEntity(g_DHookModifyOrAppendCriteria, Hook_Post, entity, CTFPlayer_ModifyOrAppendCriteria_Post);
-	}
-	else if (HasEntProp(entity, Prop_Data, "CTFWeaponBaseGunZoomOutIn"))
-	{
-		PSM_DHookEntity(g_DHookFireProjectile, Hook_Post, entity, CTFWeaponBaseGun_FireProjectile_Post);
-	}
-	else if (HasEntProp(entity, Prop_Data, "CTFWeaponBaseMeleeSmack"))
-	{
-		PSM_DHookEntity(g_DHookSmack, Hook_Post, entity, CTFWeaponBaseMelee_Smack_Post);
+		PSM_DHookEntity(g_CBaseEntity_Spawn, Hook_Pre, entity, CTFPlayer_Spawn_Pre);
+		PSM_DHookEntity(g_CBaseEntity_TakeHealth, Hook_Pre, entity, CTFPlayer_TakeHealth_Pre);
+		PSM_DHookEntity(g_CBaseEntity_ModifyOrAppendCriteria, Hook_Post, entity, CTFPlayer_ModifyOrAppendCriteria_Post);
 	}
 	else if (StrEqual(classname, "tf_weapon_scattergun"))
 	{
-		PSM_DHookEntity(g_DHookHasKnockback, Hook_Post, entity, CTFScatterGun_HasKnockback_Post);
+		PSM_DHookEntity(g_CTFScatterGun_HasKnockback, Hook_Post, entity, CTFScatterGun_HasKnockback_Post);
+	}
+	else if (IsCTFBaseRocket(entity))
+	{
+		PSM_DHookEntity(g_CTFBaseRocket_Explode, Hook_Post, entity, CTFBaseRocket_Explode_Post);
+	}
+	else if (IsCTFWeaponBaseGrenadeProj(entity))
+	{
+		PSM_DHookEntity(g_CTFWeaponBaseGrenadeProj_Explode, Hook_Post, entity, CTFWeaponBaseGrenadeProj_Explode_Post);
 	}
 }
 
@@ -173,8 +173,8 @@ static MRESReturn CTFProjectile_GrapplingHook_HookTarget_Post(int projectile, DH
 	if (ShouldPlayerDealSelfDamage(owner))
 	{
 		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
-		float damage = SDKCall_GetProjectileDamage(launcher) * ph_hunter_damage_modifier_grapplinghook.FloatValue;
-		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
+		float damage = SDKCall_CTFWeaponBaseGun_GetProjectileDamage(launcher) * ph_hunter_damage_modifier_grapplinghook.FloatValue;
+		int damageType = SDKCall_CBaseEntity_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
 		
 		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
 	}
@@ -254,43 +254,12 @@ static MRESReturn CTFPlayer_ModifyOrAppendCriteria_Post(int player, DHookParam p
 	{
 		int criteriaSet = params.Get(1);
 		
-		if (SDKCall_FindCriterionIndex(criteriaSet, "crosshair_enemy") == -1)
+		if (SDKCall_AI_CriteriaSet_FindCriterionIndex(criteriaSet, "crosshair_enemy") == -1)
 			return MRES_Ignored;
 		
 		// Prevent Hunters from revealing props using voice lines
-		SDKCall_RemoveCriteria(criteriaSet, "crosshair_on");
-		SDKCall_RemoveCriteria(criteriaSet, "crosshair_enemy");
-	}
-	
-	return MRES_Ignored;
-}
-
-static MRESReturn CTFWeaponBaseGun_FireProjectile_Post(int weapon, DHookReturn ret, DHookParam params)
-{
-	int player = params.Get(1);
-	int projectile = ret.Value;
-	
-	if (ShouldPlayerDealSelfDamage(player))
-	{
-		float damage = SDKCall_GetProjectileDamage(weapon) * GetWeaponBulletsPerShot(weapon) * ph_hunter_damage_modifier_gun.FloatValue;
-		int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
-		
-		SDKHooks_TakeDamage(player, projectile != -1 ? projectile : weapon, player, damage, damageType, weapon);
-	}
-	
-	return MRES_Ignored;
-}
-
-static MRESReturn CTFWeaponBaseMelee_Smack_Post(int weapon)
-{
-	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
-	
-	if (ShouldPlayerDealSelfDamage(owner))
-	{
-		int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
-		float damage = SDKCall_GetMeleeDamage(weapon, owner, damageType, 0) * ph_hunter_damage_modifier_melee.FloatValue;
-		
-		SDKHooks_TakeDamage(owner, weapon, owner, damage, damageType, weapon);
+		SDKCall_AI_CriteriaSet_RemoveCriteria(criteriaSet, "crosshair_on");
+		SDKCall_AI_CriteriaSet_RemoveCriteria(criteriaSet, "crosshair_enemy");
 	}
 	
 	return MRES_Ignored;
@@ -304,6 +273,47 @@ static MRESReturn CTFScatterGun_HasKnockback_Post(int scattergun, DHookReturn re
 		ret.Value = false;
 		return MRES_Supercede;
 	}
+	
+	return MRES_Ignored;
+}
+
+static MRESReturn CTFBaseRocket_Explode_Post(int rocket, DHookParam params)
+{
+	int other = params.Get(2);
+	if (0 < other <= MaxClients)
+		return MRES_Ignored;
+	
+	int owner = GetEntPropEnt(rocket, Prop_Send, "m_hOwnerEntity");
+	if (owner == -1)
+		return MRES_Ignored;
+	
+	float damage = SDKCall_CBaseEntity_GetDamage(rocket) * ph_hunter_damage_modifier_projectile.FloatValue;
+	int damageType = SDKCall_CBaseEntity_GetDamageType(rocket) | DMG_PREVENT_PHYSICS_FORCE;
+	int launcher = GetEntPropEnt(rocket, Prop_Send, "m_hLauncher");
+	
+	SDKHooks_TakeDamage(owner, rocket, owner, damage, damageType, launcher);
+	
+	return MRES_Ignored;
+}
+
+static MRESReturn CTFWeaponBaseGrenadeProj_Explode_Post(int projectile, DHookParam params)
+{
+	/*Address trace = params.Get(1);
+	LoadFromAddress(trace + view_as<Address>(0x10))
+	
+	if ()
+		return MRES_Ignored;*/
+	
+	int thrower = GetEntPropEnt(projectile, Prop_Send, "m_hThrower");
+	if (thrower == -1)
+		return MRES_Ignored;
+	
+	float damage = GetEntPropFloat(projectile, Prop_Send, "m_flDamage") * ph_hunter_damage_modifier_projectile.FloatValue;
+	PrintToServer("%f", damage);
+	int damageType = params.Get(2) | DMG_PREVENT_PHYSICS_FORCE;
+	int weapon = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
+	
+	SDKHooks_TakeDamage(thrower, projectile, thrower, damage, damageType, weapon);
 	
 	return MRES_Ignored;
 }

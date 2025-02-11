@@ -220,18 +220,21 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnMapStart()
 {
+	g_IsMapRunning = true;
+	
 	ReadMapConfig();
 	Precache();
+	
+	SetEntProp(0, Prop_Data, "m_takedamage", DAMAGE_EVENTS_ONLY);
 }
 
 public void OnMapEnd()
 {
-	if (!PSM_IsEnabled())
-		return;
-	
-	PSM_SetPluginState(false);
-	
+	g_IsMapRunning = false;
 	g_CurrentMapConfig.Clear();
+	
+	if (PSM_IsEnabled())
+		PSM_SetPluginState(false);
 }
 
 public void OnConfigsExecuted()
@@ -271,7 +274,7 @@ public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname
 	
 	// The damage of flame throwers is calculated as Damage x TimeFireDelay
 	float damage = GetWeaponDamage(weapon) * GetWeaponTimeFireDelay(weapon) * ph_hunter_damage_modifier_flamethrower.FloatValue;
-	int damageType = SDKCall_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
+	int damageType = SDKCall_CBaseEntity_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
 	
 	SDKHooks_TakeDamage(client, weapon, client, damage, damageType, weapon);
 	
@@ -552,12 +555,12 @@ bool SearchForEntityProps(int client, char[] message, int maxlength)
 	if (entity == -1)
 		return false;
 	
-	float origin1[3], origin2[3];
-	GetClientAbsOrigin(client, origin1);
-	GetEntPropVector(entity, Prop_Data, "m_vecAbsOrigin", origin2);
+	float playerOrigin[3], entityOrigin[3];
+	GetClientAbsOrigin(client, playerOrigin);
+	GetEntPropVector(entity, Prop_Data, "m_vecAbsOrigin", entityOrigin);
 	
 	// Check whether the player is close enough
-	if (GetVectorDistance(origin1, origin2) > ph_prop_select_distance.FloatValue)
+	if (GetVectorDistance(playerOrigin, entityOrigin) > ph_prop_select_distance.FloatValue)
 		return false;
 	
 	if (!HasEntProp(entity, Prop_Data, "m_ModelName"))

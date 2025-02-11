@@ -97,40 +97,35 @@
 				"linux"		"134"
 				"windows"	"133"
 			}
+			"CBaseEntity::GetDamage"
+			{
+				"linux"		"135"
+				"windows"	"134"
+			}
+			"CTFBaseRocket::Explode"
+			{
+				"linux"		"240"
+				"windows"	"239"
+			}
+			"CTFWeaponBaseGrenadeProj::Explode"
+			{
+				"linux"		"236"
+				"windows"	"235"
+			}
 			"CTFPlayer::InitClass"
 			{
 				"linux"		"495"
 				"windows"	"488"
-			}
-			"CTFWeaponBaseGun::FireProjectile"
-			{
-				"linux"		"477"
-				"windows"	"470"
 			}
 			"CTFWeaponBaseGun::GetProjectileDamage"
 			{
 				"linux"		"492"
 				"windows"	"485"
 			}
-			"CTFWeaponBaseMelee::Smack"
-			{
-				"linux"		"477"
-				"windows"	"470"
-			}
-			"CTFWeaponBaseMelee::GetMeleeDamage"
-			{
-				"linux"		"481"
-				"windows"	"474"
-			}
 			"CTFScatterGun::HasKnockback"
 			{
 				"linux"		"498"
 				"windows"	"491"
-			}
-			"CTFProjectile_Jar::GetDamage"
-			{
-				"linux"		"135"
-				"windows"	"134"
 			}
 			"CTFWeaponBase::m_iWeaponMode"
 			{
@@ -151,11 +146,6 @@
 			{
 				"linux"		"1784"
 				"windows"	"1784"
-			}
-			"WeaponData_t::m_nBulletsPerShot"
-			{
-				"linux"		"1788"
-				"windows"	"1788"
 			}
 			"WeaponData_t::m_flTimeFireDelay"
 			{
@@ -280,26 +270,41 @@
 					}
 				}
 			}
-			"CTFWeaponBaseGun::FireProjectile"
+			"CTFBaseRocket::Explode"
 			{
-				"offset"	"CTFWeaponBaseGun::FireProjectile"
+				"offset"	"CTFBaseRocket::Explode"
 				"hooktype"	"entity"
-				"return"	"cbaseentity"
+				"return"	"void"
 				"this"		"entity"
 				"arguments"
 				{
-					"pPlayer"
+					"pTrace"
+					{
+						"type"	"int"
+					}
+					"pOther"
 					{
 						"type"	"cbaseentity"
 					}
 				}
 			}
-			"CTFWeaponBaseMelee::Smack"
+			"CTFWeaponBaseGrenadeProj::Explode"
 			{
-				"offset"	"CTFWeaponBaseMelee::Smack"
+				"offset"	"CTFWeaponBaseGrenadeProj::Explode"
 				"hooktype"	"entity"
 				"return"	"void"
 				"this"		"entity"
+				"arguments"
+				{
+					"pTrace"
+					{
+						"type"	"int"
+					}
+					"bitsDamageType"
+					{
+						"type"	"int"
+					}
+				}
 			}
 			"CTFScatterGun::HasKnockback"
 			{

@@ -18,30 +18,28 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-static Handle g_SDKCallCastSelfHeal;
-static Handle g_SDKCallFindCriterionIndex;
-static Handle g_SDKCallRemoveCriteria;
-static Handle g_SDKCallSetSwitchTeams;
-static Handle g_SDKCallGetDamageType;
-static Handle g_SDKCallInitClass;
-static Handle g_SDKCallGetProjectileDamage;
-static Handle g_SDKCallGetMeleeDamage;
-static Handle g_SDKCallJarGetDamage;
+static Handle g_CTFSpellBook_CastSelfHeal;
+static Handle g_AI_CriteriaSet_FindCriterionIndex;
+static Handle g_AI_CriteriaSet_RemoveCriteria;
+static Handle g_CTeamplayRules_SetSwitchTeams;
+static Handle g_GetDamageType;
+static Handle g_CBaseEntity_GetDamage;
+static Handle g_CTFPlayer_InitClass;
+static Handle g_CTFWeaponBaseGun_GetProjectileDamage;
 
 void SDKCalls_Init(GameData gamedata)
 {
-	g_SDKCallCastSelfHeal = PrepSDKCall_CastSelfHeal(gamedata);
-	g_SDKCallFindCriterionIndex = PrepSDKCall_FindCriterionIndex(gamedata);
-	g_SDKCallRemoveCriteria = PrepSDKCall_RemoveCriteria(gamedata);
-	g_SDKCallSetSwitchTeams = PrepSDKCall_SetSwitchTeams(gamedata);
-	g_SDKCallGetDamageType = PrepSDKCall_GetDamageType(gamedata);
-	g_SDKCallInitClass = PrepSDKCall_InitClass(gamedata);
-	g_SDKCallGetProjectileDamage = PrepSDKCall_GetProjectileDamage(gamedata);
-	g_SDKCallGetMeleeDamage = PrepSDKCall_GetMeleeDamage(gamedata);
-	g_SDKCallJarGetDamage = PrepSDKCall_JarGetDamage(gamedata);
+	g_CTFSpellBook_CastSelfHeal = PrepSDKCall_CTFSpellBook_CastSelfHeal(gamedata);
+	g_AI_CriteriaSet_FindCriterionIndex = PrepSDKCall_AI_CriteriaSet_FindCriterionIndex(gamedata);
+	g_AI_CriteriaSet_RemoveCriteria = PrepSDKCall_AI_CriteriaSet_RemoveCriteria(gamedata);
+	g_CTeamplayRules_SetSwitchTeams = PrepSDKCall_CTeamplayRules_SetSwitchTeams(gamedata);
+	g_GetDamageType = PrepSDKCall_CBaseEntity_GetDamageType(gamedata);
+	g_CBaseEntity_GetDamage = PrepSDKCall_CBaseEntity_GetDamage(gamedata);
+	g_CTFPlayer_InitClass = PrepSDKCall_CTFPlayer_InitClass(gamedata);
+	g_CTFWeaponBaseGun_GetProjectileDamage = PrepSDKCall_CTFWeaponBaseGun_GetProjectileDamage(gamedata);
 }
 
-static Handle PrepSDKCall_CastSelfHeal(GameData gamedata)
+static Handle PrepSDKCall_CTFSpellBook_CastSelfHeal(GameData gamedata)
 {
 	StartPrepSDKCall(SDKCall_Static);
 	PrepSDKCall_SetFromConf(gamedata, SDKConf_Signature, "CTFSpellBook::CastSelfHeal");
@@ -55,7 +53,7 @@ static Handle PrepSDKCall_CastSelfHeal(GameData gamedata)
 	return call;
 }
 
-static Handle PrepSDKCall_FindCriterionIndex(GameData gamedata)
+static Handle PrepSDKCall_AI_CriteriaSet_FindCriterionIndex(GameData gamedata)
 {
 	StartPrepSDKCall(SDKCall_Raw);
 	PrepSDKCall_SetFromConf(gamedata, SDKConf_Signature, "AI_CriteriaSet::FindCriterionIndex");
@@ -69,7 +67,7 @@ static Handle PrepSDKCall_FindCriterionIndex(GameData gamedata)
 	return call;
 }
 
-static Handle PrepSDKCall_RemoveCriteria(GameData gamedata)
+static Handle PrepSDKCall_AI_CriteriaSet_RemoveCriteria(GameData gamedata)
 {
 	StartPrepSDKCall(SDKCall_Raw);
 	PrepSDKCall_SetFromConf(gamedata, SDKConf_Signature, "AI_CriteriaSet::RemoveCriteria");
@@ -82,7 +80,7 @@ static Handle PrepSDKCall_RemoveCriteria(GameData gamedata)
 	return call;
 }
 
-static Handle PrepSDKCall_SetSwitchTeams(GameData gamedata)
+static Handle PrepSDKCall_CTeamplayRules_SetSwitchTeams(GameData gamedata)
 {
 	StartPrepSDKCall(SDKCall_GameRules);
 	PrepSDKCall_SetFromConf(gamedata, SDKConf_Virtual, "CTeamplayRules::SetSwitchTeams");
@@ -95,7 +93,7 @@ static Handle PrepSDKCall_SetSwitchTeams(GameData gamedata)
 	return call;
 }
 
-static Handle PrepSDKCall_GetDamageType(GameData gamedata)
+static Handle PrepSDKCall_CBaseEntity_GetDamageType(GameData gamedata)
 {
 	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetFromConf(gamedata, SDKConf_Virtual, "CBaseEntity::GetDamageType");
@@ -108,7 +106,20 @@ static Handle PrepSDKCall_GetDamageType(GameData gamedata)
 	return call;
 }
 
-static Handle PrepSDKCall_InitClass(GameData gamedata)
+static Handle PrepSDKCall_CBaseEntity_GetDamage(GameData gamedata)
+{
+	StartPrepSDKCall(SDKCall_Entity);
+	PrepSDKCall_SetFromConf(gamedata, SDKConf_Virtual, "CBaseEntity::GetDamage");
+	PrepSDKCall_SetReturnInfo(SDKType_Float, SDKPass_ByValue);
+	
+	Handle call = EndPrepSDKCall();
+	if (!call)
+		LogMessage("Failed to create SDKCall: CBaseEntity::GetDamage");
+	
+	return call;
+}
+
+static Handle PrepSDKCall_CTFPlayer_InitClass(GameData gamedata)
 {
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(gamedata, SDKConf_Virtual, "CTFPlayer::InitClass");
@@ -120,7 +131,7 @@ static Handle PrepSDKCall_InitClass(GameData gamedata)
 	return call;
 }
 
-static Handle PrepSDKCall_GetProjectileDamage(GameData gamedata)
+static Handle PrepSDKCall_CTFWeaponBaseGun_GetProjectileDamage(GameData gamedata)
 {
 	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetFromConf(gamedata, SDKConf_Virtual, "CTFWeaponBaseGun::GetProjectileDamage");
@@ -133,97 +144,45 @@ static Handle PrepSDKCall_GetProjectileDamage(GameData gamedata)
 	return call;
 }
 
-static Handle PrepSDKCall_GetMeleeDamage(GameData gamedata)
+bool SDKCall_CTFSpellBook_CastSelfHeal(int player)
 {
-	StartPrepSDKCall(SDKCall_Entity);
-	PrepSDKCall_SetFromConf(gamedata, SDKConf_Virtual, "CTFWeaponBaseMelee::GetMeleeDamage");
-	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
-	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Pointer, _, VENCODE_FLAG_COPYBACK);
-	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Pointer, _, VENCODE_FLAG_COPYBACK);
-	PrepSDKCall_SetReturnInfo(SDKType_Float, SDKPass_ByValue);
-	
-	Handle call = EndPrepSDKCall();
-	if (!call)
-		LogMessage("Failed to create SDKCall: CTFWeaponBaseMelee::GetMeleeDamage");
-	
-	return call;
+	return g_CTFSpellBook_CastSelfHeal ? SDKCall(g_CTFSpellBook_CastSelfHeal, player) : false;
 }
 
-static Handle PrepSDKCall_JarGetDamage(GameData gamedata)
+int SDKCall_AI_CriteriaSet_FindCriterionIndex(int criteriaSet, const char[] criteria)
 {
-	StartPrepSDKCall(SDKCall_Entity);
-	PrepSDKCall_SetFromConf(gamedata, SDKConf_Virtual, "CTFProjectile_Jar::GetDamage");
-	PrepSDKCall_SetReturnInfo(SDKType_Float, SDKPass_ByValue);
-	
-	Handle call = EndPrepSDKCall();
-	if (!call)
-		LogMessage("Failed to create SDKCall: CTFProjectile_Jar::GetDamage");
-	
-	return call;
+	return g_AI_CriteriaSet_FindCriterionIndex ? SDKCall(g_AI_CriteriaSet_FindCriterionIndex, criteriaSet, criteria) : -1;
 }
 
-bool SDKCall_CastSelfHeal(int player)
+void SDKCall_AI_CriteriaSet_RemoveCriteria(int criteriaSet, const char[] criteria)
 {
-	if (g_SDKCallCastSelfHeal)
-		return SDKCall(g_SDKCallCastSelfHeal, player);
-	else
-		return false;
+	if (g_AI_CriteriaSet_RemoveCriteria)
+		SDKCall(g_AI_CriteriaSet_RemoveCriteria, criteriaSet, criteria);
 }
 
-int SDKCall_FindCriterionIndex(int criteriaSet, const char[] criteria)
+void SDKCall_CTeamplayRules_SetSwitchTeams(bool shouldSwitch)
 {
-	if (g_SDKCallFindCriterionIndex)
-		return SDKCall(g_SDKCallFindCriterionIndex, criteriaSet, criteria);
-	else
-		return -1;
+	if (g_CTeamplayRules_SetSwitchTeams)
+		SDKCall(g_CTeamplayRules_SetSwitchTeams, shouldSwitch);
 }
 
-void SDKCall_RemoveCriteria(int criteriaSet, const char[] criteria)
+int SDKCall_CBaseEntity_GetDamageType(int entity)
 {
-	if (g_SDKCallRemoveCriteria)
-		SDKCall(g_SDKCallRemoveCriteria, criteriaSet, criteria);
+	return g_GetDamageType ? SDKCall(g_GetDamageType, entity) : DMG_GENERIC;
 }
 
-void SDKCall_SetSwitchTeams(bool shouldSwitch)
+float SDKCall_CBaseEntity_GetDamage(int entity)
 {
-	if (g_SDKCallSetSwitchTeams)
-		SDKCall(g_SDKCallSetSwitchTeams, shouldSwitch);
+	return g_CBaseEntity_GetDamage ? SDKCall(g_CBaseEntity_GetDamage, entity) : 0.0;
 }
 
-int SDKCall_GetDamageType(int entity)
+void SDKCall_CTFPlayer_InitClass(int player)
 {
-	if (g_SDKCallGetDamageType)
-		return SDKCall(g_SDKCallGetDamageType, entity);
-	else
-		return DMG_GENERIC;
+	if (g_CTFPlayer_InitClass)
+		SDKCall(g_CTFPlayer_InitClass, player);
 }
 
-void SDKCall_InitClass(int player)
+float SDKCall_CTFWeaponBaseGun_GetProjectileDamage(int weapon)
 {
-	if (g_SDKCallInitClass)
-		SDKCall(g_SDKCallInitClass, player);
-}
-
-float SDKCall_GetProjectileDamage(int weapon)
-{
-	if (g_SDKCallGetProjectileDamage)
-		return SDKCall(g_SDKCallGetProjectileDamage, weapon);
-	else
-		return 0.0;
-}
-
-float SDKCall_GetMeleeDamage(int weapon, int target, int damageType, int customDamage)
-{
-	if (g_SDKCallGetMeleeDamage)
-		return SDKCall(g_SDKCallGetMeleeDamage, weapon, target, damageType, customDamage);
-	else
-		return 0.0;
-}
-
-float SDKCall_JarGetDamage(int jar)
-{
-	if (g_SDKCallJarGetDamage)
-		return SDKCall(g_SDKCallJarGetDamage, jar);
-	else
-		return 0.0;
+	return g_CTFWeaponBaseGun_GetProjectileDamage ? SDKCall(g_CTFWeaponBaseGun_GetProjectileDamage, weapon) : 0.0;
 }

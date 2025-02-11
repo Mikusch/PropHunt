@@ -20,7 +20,11 @@
 
 void SDKHooks_OnEntityCreated(int entity, const char[] classname)
 {
-	if (0 < entity <= MaxClients)
+	if (entity == 0)
+	{
+		PSM_SDKHook(entity, SDKHook_OnTakeDamagePost, CWorld_OnTakeDamagePost);
+	}
+	else if (0 < entity <= MaxClients)
 	{
 		PSM_SDKHook(entity, SDKHook_OnTakeDamage, CTFPlayer_OnTakeDamage);
 	}
@@ -33,23 +37,18 @@ void SDKHooks_OnEntityCreated(int entity, const char[] classname)
 		PSM_SDKHook(entity, SDKHook_Touch, CHealthKit_Touch);
 		PSM_SDKHook(entity, SDKHook_TouchPost, CHealthKit_TouchPost);
 	}
-	else if (strncmp(classname, "tf_projectile_jar", 17) == 0 || StrEqual(classname, "tf_projectile_cleaver"))
-	{
-		PSM_SDKHook(entity, SDKHook_SpawnPost, CTFProjectile_Jar_SpawnPost);
-	}
-	else if (StrEqual(classname, "tf_projectile_stun_ball") || StrEqual(classname, "tf_projectile_ball_ornament"))
-	{
-		PSM_SDKHook(entity, SDKHook_SpawnPost, CTFStunBall_SpawnPost);
-	}
-	else if (StrEqual(classname, "tf_projectile_mechanicalarmorb"))
-	{
-		PSM_SDKHook(entity, SDKHook_SpawnPost, CTFProjectile_MechanicalArmOrb_SpawnPost);
-	}
+}
+
+static void CWorld_OnTakeDamagePost(int victim, int attacker, int inflictor, float damage, int damagetype, int weapon, const float damageForce[3], const float damagePosition[3])
+{
+	float mod = TF2Util_GetWeaponSlot(weapon) == TFWeaponSlot_Melee ? ph_hunter_damage_modifier_melee.FloatValue : ph_hunter_damage_modifier_gun.FloatValue;
+	
+	SDKHooks_TakeDamage(attacker, inflictor, attacker, damage * mod, damagetype | DMG_PREVENT_PHYSICS_FORCE, weapon);
 }
 
 static Action CTFPlayer_OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3], int damagecustom)
 {
-	// Prevent props from drowning
+	// Props can't drown!
 	if (damagetype & DMG_DROWN && TF2_GetClientTeam(victim) == TFTeam_Props)
 	{
 		damage = 0.0;
@@ -123,7 +122,7 @@ static Action SDKHookCB_ControlPoint_StartTouch(int prop, int other)
 	// Players touching the capture area receive a health bonus
 	if (IsEntityClient(other) && !PHPlayer(other).HasReceivedBonus)
 	{
-		if (SDKCall_CastSelfHeal(other))
+		if (SDKCall_CTFSpellBook_CastSelfHeal(other))
 		{
 			EmitGameSoundToClient(other, "Announcer.MVM_Bonus");
 			CPrintToChat(other, "%s %t", PLUGIN_TAG, "PH_Bonus_Received");
@@ -145,47 +144,4 @@ static Action SDKHookCB_TauntProp_SetTransmit(int entity, int client)
 		return Plugin_Handled;
 	
 	return Plugin_Continue;
-}
-
-static void CTFProjectile_Jar_SpawnPost(int projectile)
-{
-	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
-	
-	if (IsEntityClient(owner) && ShouldPlayerDealSelfDamage(owner))
-	{
-		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
-		float damage = SDKCall_JarGetDamage(projectile) * ph_hunter_damage_modifier_projectile.FloatValue;
-		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
-		
-		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
-	}
-}
-
-static void CTFStunBall_SpawnPost(int projectile)
-{
-	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
-	
-	if (IsEntityClient(owner) && ShouldPlayerDealSelfDamage(owner))
-	{
-		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
-		float damage = FindConVar("sv_proj_stunball_damage").FloatValue * ph_hunter_damage_modifier_projectile.FloatValue;
-		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
-		
-		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
-	}
-}
-
-static void CTFProjectile_MechanicalArmOrb_SpawnPost(int projectile)
-{
-	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
-	
-	if (IsEntityClient(owner) && ShouldPlayerDealSelfDamage(owner))
-	{
-		// The damage value for the mechanical arm orb is hardcoded
-		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
-		float damage = 15.0 * ph_hunter_damage_modifier_projectile.FloatValue;
-		int damageType = SDKCall_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
-		
-		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
-	}
 }
