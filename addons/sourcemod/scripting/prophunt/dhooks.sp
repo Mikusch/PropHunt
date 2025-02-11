@@ -30,7 +30,6 @@ void DHooks_Init()
 	PSM_AddDynamicDetourFromConf("CTFPlayer::GetMaxHealthForBuffing", _, CTFPlayer_GetMaxHealthForBuffing_Post);
 	PSM_AddDynamicDetourFromConf("CTFProjectile_GrapplingHook::HookTarget", CTFProjectile_GrapplingHook_HookTarget_Pre, CTFProjectile_GrapplingHook_HookTarget_Post);
 	PSM_AddDynamicDetourFromConf("CTFPlayerShared::Heal", CTFPlayerShared_Heal_Pre, _);
-	PSM_AddDynamicDetourFromConf("CTFPistol_ScoutPrimary::Push", _, CTFPistol_ScoutPrimary_Push_Post);
 	PSM_AddDynamicDetourFromConf("CTFPlayer::TeamFortress_CalculateMaxSpeed", _, CTFPlayer_TeamFortress_CalculateMaxSpeed_Post);
 	
 	g_CBaseEntity_Spawn = PSM_AddDynamicHookFromConf("CBaseEntity::Spawn");
@@ -193,22 +192,6 @@ static MRESReturn CTFPlayerShared_Heal_Pre(Address pShared, DHookParam params)
 		
 		params.Set(2, amount * ph_healing_modifier.FloatValue);
 		return MRES_ChangedHandled;
-	}
-	
-	return MRES_Ignored;
-}
-
-static MRESReturn CTFPistol_ScoutPrimary_Push_Post(int weapon)
-{
-	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
-	
-	if (ShouldPlayerDealSelfDamage(owner))
-	{
-		// The damage value for the push is hardcoded
-		float damage = 1.0 * ph_hunter_damage_modifier_scoutprimary_push.FloatValue;
-		int damageType = DMG_MELEE | DMG_NEVERGIB | DMG_CLUB | DMG_PREVENT_PHYSICS_FORCE;
-		
-		SDKHooks_TakeDamage(owner, weapon, owner, damage, damageType, weapon);
 	}
 	
 	return MRES_Ignored;

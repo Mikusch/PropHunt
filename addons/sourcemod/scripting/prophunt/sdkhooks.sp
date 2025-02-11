@@ -41,7 +41,11 @@ void SDKHooks_OnEntityCreated(int entity, const char[] classname)
 
 static void CWorld_OnTakeDamagePost(int victim, int attacker, int inflictor, float damage, int damagetype, int weapon, const float damageForce[3], const float damagePosition[3])
 {
-	float mod = TF2Util_GetWeaponSlot(weapon) == TFWeaponSlot_Melee ? ph_hunter_damage_modifier_melee.FloatValue : ph_hunter_damage_modifier_gun.FloatValue;
+	float mod = 1.0;
+	if (damagetype & DMG_MELEE)
+		mod *= ph_hunter_damage_modifier_melee.FloatValue;
+	else
+		mod *= ph_hunter_damage_modifier_gun.FloatValue;
 	
 	SDKHooks_TakeDamage(attacker, inflictor, attacker, damage * mod, damagetype | DMG_PREVENT_PHYSICS_FORCE, weapon);
 }

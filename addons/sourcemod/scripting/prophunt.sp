@@ -146,7 +146,6 @@ ConVar ph_hunter_damage_modifier_melee;
 ConVar ph_hunter_damage_modifier_grapplinghook;
 ConVar ph_hunter_damage_modifier_flamethrower;
 ConVar ph_hunter_damage_modifier_projectile;
-ConVar ph_hunter_damage_modifier_scoutprimary_push;
 ConVar ph_hunter_setup_freeze;
 ConVar ph_regenerate_last_prop;
 ConVar ph_bonus_refresh_interval;
@@ -168,10 +167,10 @@ ConVar ph_gravity_modifier;
 #include "prophunt/dhooks.sp"
 #include "prophunt/events.sp"
 #include "prophunt/forwards.sp"
-#include "prophunt/helpers.sp"
 #include "prophunt/offsets.sp"
 #include "prophunt/sdkcalls.sp"
 #include "prophunt/sdkhooks.sp"
+#include "prophunt/util.sp"
 
 public Plugin myinfo =
 {

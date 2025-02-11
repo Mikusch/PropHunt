@@ -22,6 +22,7 @@ void Events_Init()
 {
 	PSM_AddEventHook("player_spawn", OnGameEvent_player_spawn);
 	PSM_AddEventHook("player_death", OnGameEvent_player_death);
+	PSM_AddEventHook("player_hurt", OnGameEvent_player_hurt, EventHookMode_Pre);
 	PSM_AddEventHook("post_inventory_application", OnGameEvent_post_inventory_application);
 	PSM_AddEventHook("teamplay_round_start", OnGameEvent_teamplay_round_start);
 	PSM_AddEventHook("teamplay_round_win", OnGameEvent_teamplay_round_win);
@@ -89,6 +90,19 @@ static void OnGameEvent_player_death(Event event, const char[] name, bool dontBr
 	}
 	
 	CheckLastPropStanding(victim);
+}
+
+static Action OnGameEvent_player_hurt(Event event, const char[] name, bool dontBroadcast)
+{
+	int victim = GetClientOfUserId(event.GetInt("userid"));
+	
+	if (TF2_GetClientTeam(victim) == TFTeam_Props && PHPlayer(victim).PropLockEnabled)
+	{
+		event.BroadcastDisabled = true;
+		return Plugin_Handled;
+	}
+	
+	return Plugin_Continue;
 }
 
 static void OnGameEvent_post_inventory_application(Event event, const char[] name, bool dontBroadcast)

@@ -34,7 +34,6 @@ void ConVars_Init()
 	ph_hunter_damage_modifier_grapplinghook = CreateConVar("ph_hunter_damage_modifier_grapplinghook", "1.0", "Modifier of self-damage taken from the Grappling Hook.");
 	ph_hunter_damage_modifier_flamethrower = CreateConVar("ph_hunter_damage_modifier_flamethrower", "0.15", "Modifier of self-damage taken from Flame Throwers.");
 	ph_hunter_damage_modifier_projectile = CreateConVar("ph_hunter_damage_modifier_projectile", "0.5", "Modifier of self-damage taken from miscellaneous projectiles.");
-	ph_hunter_damage_modifier_scoutprimary_push = CreateConVar("ph_hunter_damage_modifier_scoutprimary_push", "5.0", "Modifier of self-damage taken from the Shortstop's shove ability.");
 	ph_hunter_setup_freeze = CreateConVar("ph_hunter_setup_freeze", "1", "When set, prevent Hunter movement during setup.");
 	ph_regenerate_last_prop = CreateConVar("ph_regenerate_last_prop", "1", "When set, regenerate the last prop so that they receive their weapons.");
 	ph_chat_tip_interval = CreateConVar("ph_chat_tip_interval", "240.0", "Interval at which tips are printed in chat, in seconds. Set to 0 to disable chat tips.");

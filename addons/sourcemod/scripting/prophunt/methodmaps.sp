@@ -34,7 +34,7 @@ methodmap PHPlayer
 		return view_as<PHPlayer>(client);
 	}
 	
-	property int _client
+	property int entindex
 	{
 		public get()
 		{
@@ -46,11 +46,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_aPlayerStatsPropType[this._client];
+			return g_aPlayerStatsPropType[this.entindex];
 		}
 		public set(PHPropType type)
 		{
-			g_aPlayerStatsPropType[this._client] = type;
+			g_aPlayerStatsPropType[this.entindex] = type;
 		}
 	}
 	
@@ -58,11 +58,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_aPlayerStatsPropIndex[this._client];
+			return g_aPlayerStatsPropIndex[this.entindex];
 		}
 		public set(int index)
 		{
-			g_aPlayerStatsPropIndex[this._client] = index;
+			g_aPlayerStatsPropIndex[this.entindex] = index;
 		}
 	}
 	
@@ -70,11 +70,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_aPlayerStatsOldMaxHealth[this._client];
+			return g_aPlayerStatsOldMaxHealth[this.entindex];
 		}
 		public set(int health)
 		{
-			g_aPlayerStatsOldMaxHealth[this._client] = health;
+			g_aPlayerStatsOldMaxHealth[this.entindex] = health;
 		}
 	}
 	
@@ -82,11 +82,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_aPlayerStatsPropLockEnabled[this._client];
+			return g_aPlayerStatsPropLockEnabled[this.entindex];
 		}
 		public set(bool enabled)
 		{
-			g_aPlayerStatsPropLockEnabled[this._client] = enabled;
+			g_aPlayerStatsPropLockEnabled[this.entindex] = enabled;
 		}
 	}
 	
@@ -94,11 +94,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_aPlayerStatsInForcedTauntCam[this._client];
+			return g_aPlayerStatsInForcedTauntCam[this.entindex];
 		}
 		public set(bool inForcedTauntCam)
 		{
-			g_aPlayerStatsInForcedTauntCam[this._client] = inForcedTauntCam;
+			g_aPlayerStatsInForcedTauntCam[this.entindex] = inForcedTauntCam;
 		}
 	}
 	
@@ -106,11 +106,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_aPlayerStatsHasReceivedBonus[this._client];
+			return g_aPlayerStatsHasReceivedBonus[this.entindex];
 		}
 		public set(bool hasReceivedBonus)
 		{
-			g_aPlayerStatsHasReceivedBonus[this._client] = hasReceivedBonus;
+			g_aPlayerStatsHasReceivedBonus[this.entindex] = hasReceivedBonus;
 		}
 	}
 	
@@ -118,11 +118,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_aPlayerStatsIsLastProp[this._client];
+			return g_aPlayerStatsIsLastProp[this.entindex];
 		}
 		public set(bool isLastProp)
 		{
-			g_aPlayerStatsIsLastProp[this._client] = isLastProp;
+			g_aPlayerStatsIsLastProp[this.entindex] = isLastProp;
 		}
 	}
 	
@@ -130,11 +130,11 @@ methodmap PHPlayer
 	{
 		public get()
 		{
-			return g_aPlayerStatsNextTauntTime[this._client];
+			return g_aPlayerStatsNextTauntTime[this.entindex];
 		}
 		public set(float time)
 		{
-			g_aPlayerStatsNextTauntTime[this._client] = time;
+			g_aPlayerStatsNextTauntTime[this.entindex] = time;
 		}
 	}
 	
