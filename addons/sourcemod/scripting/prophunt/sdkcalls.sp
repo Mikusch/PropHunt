@@ -24,7 +24,6 @@ static Handle g_AI_CriteriaSet_RemoveCriteria;
 static Handle g_CTeamplayRules_SetSwitchTeams;
 static Handle g_CBaseEntity_GetDamageType;
 static Handle g_CBaseEntity_GetDamage;
-static Handle g_CTFPlayer_InitClass;
 static Handle g_CTFWeaponBaseGun_GetProjectileDamage;
 
 void SDKCalls_Init(GameData gamedata)
@@ -35,7 +34,6 @@ void SDKCalls_Init(GameData gamedata)
 	g_CTeamplayRules_SetSwitchTeams = PrepSDKCall_CTeamplayRules_SetSwitchTeams(gamedata);
 	g_CBaseEntity_GetDamageType = PrepSDKCall_CBaseEntity_GetDamageType(gamedata);
 	g_CBaseEntity_GetDamage = PrepSDKCall_CBaseEntity_GetDamage(gamedata);
-	g_CTFPlayer_InitClass = PrepSDKCall_CTFPlayer_InitClass(gamedata);
 	g_CTFWeaponBaseGun_GetProjectileDamage = PrepSDKCall_CTFWeaponBaseGun_GetProjectileDamage(gamedata);
 }
 
@@ -119,18 +117,6 @@ static Handle PrepSDKCall_CBaseEntity_GetDamage(GameData gamedata)
 	return call;
 }
 
-static Handle PrepSDKCall_CTFPlayer_InitClass(GameData gamedata)
-{
-	StartPrepSDKCall(SDKCall_Player);
-	PrepSDKCall_SetFromConf(gamedata, SDKConf_Virtual, "CTFPlayer::InitClass");
-	
-	Handle call = EndPrepSDKCall();
-	if (!call)
-		LogMessage("Failed to create SDKCall: CTFPlayer::InitClass");
-	
-	return call;
-}
-
 static Handle PrepSDKCall_CTFWeaponBaseGun_GetProjectileDamage(GameData gamedata)
 {
 	StartPrepSDKCall(SDKCall_Entity);
@@ -174,12 +160,6 @@ int SDKCall_CBaseEntity_GetDamageType(int entity)
 float SDKCall_CBaseEntity_GetDamage(int entity)
 {
 	return g_CBaseEntity_GetDamage ? SDKCall(g_CBaseEntity_GetDamage, entity) : 0.0;
-}
-
-void SDKCall_CTFPlayer_InitClass(int player)
-{
-	if (g_CTFPlayer_InitClass)
-		SDKCall(g_CTFPlayer_InitClass, player);
 }
 
 float SDKCall_CTFWeaponBaseGun_GetProjectileDamage(int weapon)

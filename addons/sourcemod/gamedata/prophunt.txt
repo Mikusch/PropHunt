@@ -112,11 +112,6 @@
 				"linux"		"236"
 				"windows"	"235"
 			}
-			"CTFPlayer::InitClass"
-			{
-				"linux"		"495"
-				"windows"	"488"
-			}
 			"CTFWeaponBaseGun::GetProjectileDamage"
 			{
 				"linux"		"492"

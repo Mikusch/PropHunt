@@ -22,24 +22,6 @@
 
 #define WEAPONDATA_SIZE	58	// sizeof(WeaponData_t)
 
-static const TFClassType g_ValidPropClasses[] =
-{
-	TFClass_Scout,
-};
-
-static const TFClassType g_ValidHunterClasses[] =
-{
-	TFClass_Scout,
-	TFClass_Sniper,
-	TFClass_Soldier,
-	TFClass_DemoMan,
-	TFClass_Medic,
-	TFClass_Heavy,
-	TFClass_Pyro,
-	TFClass_Spy,
-	TFClass_Engineer,
-};
-
 any Min(any a, any b)
 {
 	return (a <= b) ? a : b;
@@ -300,38 +282,6 @@ bool CanPlayerChangeProp(int client)
 		&& !TF2_IsPlayerInCondition(client, TFCond_Bleeding)
 		&& !TF2_IsPlayerInCondition(client, TFCond_Milked)
 		&& !TF2_IsPlayerInCondition(client, TFCond_Gas);
-}
-
-bool IsValidClass(TFTeam team, TFClassType class)
-{
-	if (team == TFTeam_Props)
-	{
-		for (int i = 0; i < sizeof(g_ValidPropClasses); i++)
-		{
-			if (g_ValidPropClasses[i] == class)
-				return true;
-		}
-	}
-	else if (team == TFTeam_Hunters)
-	{
-		for (int i = 0; i < sizeof(g_ValidHunterClasses); i++)
-		{
-			if (g_ValidHunterClasses[i] == class)
-				return true;
-		}
-	}
-	
-	return false;
-}
-
-TFClassType GetRandomValidClass(TFTeam team)
-{
-	if (team == TFTeam_Props)
-		return g_ValidPropClasses[GetRandomInt(0, sizeof(g_ValidPropClasses) - 1)];
-	else if (team == TFTeam_Hunters)
-		return g_ValidHunterClasses[GetRandomInt(0, sizeof(g_ValidHunterClasses) - 1)];
-	else
-		return TFClass_Unknown;
 }
 
 bool IsSeekingTime()

@@ -35,15 +35,9 @@ static void OnGameEvent_player_spawn(Event event, const char[] name, bool dontBr
 	TFTeam team = TF2_GetClientTeam(client);
 	TFClassType class = TF2_GetPlayerClass(client);
 	
-	// Ensure the player is playing as a valid class for their team
-	if (!IsValidClass(team, class))
-	{
-		TF2_SetPlayerClass(client, GetRandomValidClass(team), _, false);
-		SDKCall_CTFPlayer_InitClass(client);
-	}
-	
 	if (team == TFTeam_Props)
 	{
+		TF2_SetPlayerClass(client, TFClass_Scout, _, false);
 		AcceptEntityInput(client, "DisableShadow");
 		
 		// Some things, like setting conditions, only works with a delay
@@ -206,6 +200,8 @@ static void Timer_PropPostSpawn(Handle timer, int serial)
 	int client = GetClientFromSerial(serial);
 	if (client != 0)
 	{
+		SetEntProp(client, Prop_Send, "m_bDrawViewmodel", false);
+		
 		// Enable thirdperson
 		SetVariantInt(PHPlayer(client).InForcedTauntCam);
 		AcceptEntityInput(client, "SetForcedTauntCam");
