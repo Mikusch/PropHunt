@@ -97,10 +97,7 @@ static Action OnGameEvent_player_hurt(Event event, const char[] name, bool dontB
 	int victim = GetClientOfUserId(event.GetInt("userid"));
 	
 	if (TF2_GetClientTeam(victim) == TFTeam_Props && PHPlayer(victim).PropLockEnabled)
-	{
-		event.BroadcastDisabled = true;
-		return Plugin_Handled;
-	}
+		return Plugin_Stop;
 	
 	return Plugin_Continue;
 }
