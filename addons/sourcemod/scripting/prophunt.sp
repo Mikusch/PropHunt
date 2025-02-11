@@ -778,6 +778,7 @@ void TogglePropLock(int client, bool toggle)
 	AcceptEntityInput(client, "SetCustomModelRotates");
 	
 	SetEntPropVector(client, Prop_Data, "m_vecAbsVelocity", ZERO_VECTOR);
+	SetEntityFlags(client, toggle ? GetEntityFlags(client) | FL_NOTARGET : GetEntityFlags(client) & ~FL_NOTARGET);
 	
 	SetEntityMoveType(client, toggle ? MOVETYPE_NONE : MOVETYPE_WALK);
 	EmitSoundToClient(client, toggle ? LOCK_SOUND : UNLOCK_SOUND, _, SNDCHAN_STATIC);
