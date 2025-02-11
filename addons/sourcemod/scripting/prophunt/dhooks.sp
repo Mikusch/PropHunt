@@ -298,18 +298,15 @@ static MRESReturn CTFBaseRocket_Explode_Post(int rocket, DHookParam params)
 
 static MRESReturn CTFWeaponBaseGrenadeProj_Explode_Post(int projectile, DHookParam params)
 {
-	/*Address trace = params.Get(1);
-	LoadFromAddress(trace + view_as<Address>(0x10))
-	
-	if ()
-		return MRES_Ignored;*/
+	int traceEnt = params.GetObjectVar(1, GetOffset("CGameTrace", "m_pEnt"), ObjectValueType_CBaseEntityPtr);
+	if (0 < traceEnt <= MaxClients)
+		return MRES_Ignored;
 	
 	int thrower = GetEntPropEnt(projectile, Prop_Send, "m_hThrower");
 	if (thrower == -1)
 		return MRES_Ignored;
 	
 	float damage = GetEntPropFloat(projectile, Prop_Send, "m_flDamage") * ph_hunter_damage_modifier_projectile.FloatValue;
-	PrintToServer("%f", damage);
 	int damageType = params.Get(2) | DMG_PREVENT_PHYSICS_FORCE;
 	int weapon = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
 	

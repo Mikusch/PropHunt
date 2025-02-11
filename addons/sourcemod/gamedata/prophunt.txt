@@ -152,6 +152,11 @@
 				"linux"		"1804"
 				"windows"	"1804"
 			}
+			"CGameTrace::m_pEnt"
+			{
+				"windows"	"76"
+				"linux"		"76"
+			}
 		}
 		"Functions"
 		{
@@ -280,7 +285,7 @@
 				{
 					"pTrace"
 					{
-						"type"	"int"
+						"type"	"objectptr"
 					}
 					"pOther"
 					{
@@ -298,7 +303,7 @@
 				{
 					"pTrace"
 					{
-						"type"	"int"
+						"type"	"objectptr"
 					}
 					"bitsDamageType"
 					{

@@ -133,7 +133,7 @@ any GetWeaponData(int weapon)
 {
 	int weaponMode = GetEntData(weapon, GetOffset("CTFWeaponBase", "m_iWeaponMode"));
 	int weaponInfo = GetEntData(weapon, GetOffset("CTFWeaponBase", "m_pWeaponInfo"));
-	return weaponInfo + (GetOffset(NULL_STRING, "sizeof(WeaponData_t)") * weaponMode);
+	return weaponInfo + (GetTypeSize("WeaponData_t") * weaponMode);
 }
 
 int GetWeaponDamage(int weapon)

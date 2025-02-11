@@ -22,7 +22,7 @@ static Handle g_CTFSpellBook_CastSelfHeal;
 static Handle g_AI_CriteriaSet_FindCriterionIndex;
 static Handle g_AI_CriteriaSet_RemoveCriteria;
 static Handle g_CTeamplayRules_SetSwitchTeams;
-static Handle g_GetDamageType;
+static Handle g_CBaseEntity_GetDamageType;
 static Handle g_CBaseEntity_GetDamage;
 static Handle g_CTFPlayer_InitClass;
 static Handle g_CTFWeaponBaseGun_GetProjectileDamage;
@@ -33,7 +33,7 @@ void SDKCalls_Init(GameData gamedata)
 	g_AI_CriteriaSet_FindCriterionIndex = PrepSDKCall_AI_CriteriaSet_FindCriterionIndex(gamedata);
 	g_AI_CriteriaSet_RemoveCriteria = PrepSDKCall_AI_CriteriaSet_RemoveCriteria(gamedata);
 	g_CTeamplayRules_SetSwitchTeams = PrepSDKCall_CTeamplayRules_SetSwitchTeams(gamedata);
-	g_GetDamageType = PrepSDKCall_CBaseEntity_GetDamageType(gamedata);
+	g_CBaseEntity_GetDamageType = PrepSDKCall_CBaseEntity_GetDamageType(gamedata);
 	g_CBaseEntity_GetDamage = PrepSDKCall_CBaseEntity_GetDamage(gamedata);
 	g_CTFPlayer_InitClass = PrepSDKCall_CTFPlayer_InitClass(gamedata);
 	g_CTFWeaponBaseGun_GetProjectileDamage = PrepSDKCall_CTFWeaponBaseGun_GetProjectileDamage(gamedata);
@@ -168,7 +168,7 @@ void SDKCall_CTeamplayRules_SetSwitchTeams(bool shouldSwitch)
 
 int SDKCall_CBaseEntity_GetDamageType(int entity)
 {
-	return g_GetDamageType ? SDKCall(g_GetDamageType, entity) : DMG_GENERIC;
+	return g_CBaseEntity_GetDamageType ? SDKCall(g_CBaseEntity_GetDamageType, entity) : DMG_GENERIC;
 }
 
 float SDKCall_CBaseEntity_GetDamage(int entity)
