@@ -41,6 +41,9 @@ void SDKHooks_OnEntityCreated(int entity, const char[] classname)
 
 static void CWorld_OnTakeDamagePost(int victim, int attacker, int inflictor, float damage, int damagetype, int weapon, const float damageForce[3], const float damagePosition[3])
 {
+	if (0 < attacker <= MaxClients && !ShouldPlayerDealSelfDamage(attacker))
+		return;
+	
 	float mod = 1.0;
 	if (damagetype & DMG_MELEE)
 		mod *= ph_hunter_damage_modifier_melee.FloatValue;
@@ -73,7 +76,7 @@ static void CDynamicProp_SpawnPost(int prop)
 	// Hook the control point prop
 	if (StrEqual(model, "models/props_gameplay/cap_point_base.mdl"))
 	{
-		SDKHook(prop, SDKHook_StartTouch, SDKHookCB_ControlPoint_StartTouch);
+		SDKHook(prop, SDKHook_StartTouch, ControlPoint_StartTouch);
 		
 		// Create a taunt prop to outline the control point when the bonus is ready
 		int glow = CreateEntityByName("tf_taunt_prop");
@@ -100,7 +103,7 @@ static void CDynamicProp_SpawnPost(int prop)
 				SetVariantString("!activator");
 				AcceptEntityInput(glow, "SetParent", prop);
 				
-				SDKHook(glow, SDKHook_SetTransmit, SDKHookCB_TauntProp_SetTransmit);
+				SDKHook(glow, SDKHook_SetTransmit, GlowTauntProp_SetTransmit);
 			}
 		}
 	}
@@ -118,7 +121,7 @@ static void CHealthKit_TouchPost(int healthkit, int other)
 	g_InHealthKitTouch = false;
 }
 
-static Action SDKHookCB_ControlPoint_StartTouch(int prop, int other)
+static Action ControlPoint_StartTouch(int prop, int other)
 {
 	if (!IsSeekingTime())
 		return Plugin_Continue;
@@ -138,7 +141,7 @@ static Action SDKHookCB_ControlPoint_StartTouch(int prop, int other)
 	return Plugin_Continue;
 }
 
-static Action SDKHookCB_TauntProp_SetTransmit(int entity, int client)
+static Action GlowTauntProp_SetTransmit(int entity, int client)
 {
 	if (!IsSeekingTime())
 		return Plugin_Handled;

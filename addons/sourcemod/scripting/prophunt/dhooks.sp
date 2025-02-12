@@ -169,14 +169,14 @@ static MRESReturn CTFProjectile_GrapplingHook_HookTarget_Post(int projectile, DH
 {
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	
-	if (ShouldPlayerDealSelfDamage(owner))
-	{
-		int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
-		float damage = SDKCall_CTFWeaponBaseGun_GetProjectileDamage(launcher) * ph_hunter_damage_modifier_grapplinghook.FloatValue;
-		int damageType = SDKCall_CBaseEntity_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
-		
-		SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
-	}
+	if (!ShouldPlayerDealSelfDamage(owner))
+		return MRES_Ignored;
+	
+	int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
+	float damage = SDKCall_CTFWeaponBaseGun_GetProjectileDamage(launcher) * ph_hunter_damage_modifier_grapplinghook.FloatValue;
+	int damageType = SDKCall_CBaseEntity_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
+	
+	SDKHooks_TakeDamage(owner, projectile, owner, damage, damageType, launcher);
 	
 	return MRES_Ignored;
 }
@@ -270,6 +270,9 @@ static MRESReturn CTFBaseRocket_Explode_Post(int rocket, DHookParam params)
 	if (owner == -1)
 		return MRES_Ignored;
 	
+	if (!ShouldPlayerDealSelfDamage(owner))
+		return MRES_Ignored;
+	
 	float damage = SDKCall_CBaseEntity_GetDamage(rocket) * ph_hunter_damage_modifier_projectile.FloatValue;
 	int damageType = SDKCall_CBaseEntity_GetDamageType(rocket) | DMG_PREVENT_PHYSICS_FORCE;
 	int launcher = GetEntPropEnt(rocket, Prop_Send, "m_hLauncher");
@@ -287,6 +290,9 @@ static MRESReturn CTFWeaponBaseGrenadeProj_Explode_Post(int projectile, DHookPar
 	
 	int thrower = GetEntPropEnt(projectile, Prop_Send, "m_hThrower");
 	if (thrower == -1)
+		return MRES_Ignored;
+	
+	if (!ShouldPlayerDealSelfDamage(thrower))
 		return MRES_Ignored;
 	
 	float damage = GetEntPropFloat(projectile, Prop_Send, "m_flDamage") * ph_hunter_damage_modifier_projectile.FloatValue;
