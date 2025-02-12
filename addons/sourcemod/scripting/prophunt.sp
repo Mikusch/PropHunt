@@ -273,9 +273,12 @@ public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname
 	
 	// The damage of flame throwers is calculated as Damage x TimeFireDelay
 	float damage = GetWeaponDamage(weapon) * GetWeaponTimeFireDelay(weapon) * ph_hunter_damage_modifier_flamethrower.FloatValue;
-	int damageType = SDKCall_CBaseEntity_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
+	int bitsDamageType = SDKCall_CBaseEntity_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
+	int customDamage = SDKCall_CTFWeaponBase_GetCustomDamageType(weapon);
 	
-	SDKHooks_TakeDamage(client, weapon, client, damage, damageType, weapon);
+	CTakeDamageInfo info = GetGlobalDamageInfo();
+	info.Init(weapon, client, weapon, _, _, damage, bitsDamageType, customDamage);
+	CBaseEntity(client).TakeDamage(info);
 	
 	// Allow Pyros to fly using their Flame Thrower
 	ApplyFlameThrowerVelocity(client);

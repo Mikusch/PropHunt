@@ -248,19 +248,15 @@ static Action EntityOutput_OnSetupFinished(const char[] output, int caller, int 
 	g_ControlPointBonusTimer = CreateTimer(ph_bonus_refresh_interval.FloatValue, Timer_RefreshControlPointBonus, _, TIMER_REPEAT);
 	TriggerTimer(g_ControlPointBonusTimer);
 	
-	// Refresh speed of all clients to allow hunters to move
-	if (ph_hunter_setup_freeze.BoolValue)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		for (int client = 1; client <= MaxClients; client++)
-		{
-			if (!IsClientInGame(client))
-				continue;
-			
-			if (TF2_GetClientTeam(client) != TFTeam_Hunters)
-				continue;
-			
-			TF2Attrib_RemoveCustomPlayerAttribute(client, "no_attack");
-		}
+		if (!IsClientInGame(client))
+			continue;
+		
+		if (TF2_GetClientTeam(client) != TFTeam_Hunters)
+			continue;
+		
+		TF2Attrib_RemoveCustomPlayerAttribute(client, "no_attack");
 	}
 	
 	// Trigger named relays

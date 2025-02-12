@@ -107,6 +107,11 @@
 				"linux"		"236"
 				"windows"	"235"
 			}
+			"CTFWeaponBase::GetCustomDamageType"
+			{
+				"linux"		"387"
+				"windows"	"381"
+			}
 			"CTFWeaponBaseGun::GetProjectileDamage"
 			{
 				"linux"		"492"

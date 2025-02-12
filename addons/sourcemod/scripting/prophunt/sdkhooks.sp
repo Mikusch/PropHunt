@@ -39,7 +39,7 @@ void SDKHooks_OnEntityCreated(int entity, const char[] classname)
 	}
 }
 
-static void CWorld_OnTakeDamagePost(int victim, int attacker, int inflictor, float damage, int damagetype, int weapon, const float damageForce[3], const float damagePosition[3])
+static void CWorld_OnTakeDamagePost(int victim, int attacker, int inflictor, float damage, int damagetype, int weapon, const float damageForce[3], const float damagePosition[3], int damagecustom)
 {
 	if (0 < attacker <= MaxClients && !ShouldPlayerDealSelfDamage(attacker))
 		return;
@@ -50,7 +50,9 @@ static void CWorld_OnTakeDamagePost(int victim, int attacker, int inflictor, flo
 	else
 		mod *= ph_hunter_damage_modifier_gun.FloatValue;
 	
-	SDKHooks_TakeDamage(attacker, inflictor, attacker, damage * mod, damagetype | DMG_PREVENT_PHYSICS_FORCE, weapon);
+	CTakeDamageInfo info = GetGlobalDamageInfo();
+	info.Init(inflictor, attacker, weapon, _, _, damage * mod, damagetype | DMG_PREVENT_PHYSICS_FORCE, damagecustom);
+	CBaseEntity(attacker).TakeDamage(info);
 }
 
 static Action CTFPlayer_OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3], int damagecustom)

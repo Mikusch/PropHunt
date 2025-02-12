@@ -27,7 +27,7 @@ static bool g_aPlayerStatsHasReceivedBonus[MAXPLAYERS + 1];
 static bool g_aPlayerStatsIsLastProp[MAXPLAYERS + 1];
 static float g_aPlayerStatsNextTauntTime[MAXPLAYERS + 1];
 
-methodmap PHPlayer
+methodmap PHPlayer < CBaseCombatCharacter
 {
 	public PHPlayer(int client)
 	{
