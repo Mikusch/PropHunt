@@ -29,10 +29,10 @@ void ConVars_Init()
 	ph_prop_max_health = CreateConVar("ph_prop_max_health", "300", "Maximum health of props, regardless of prop size. Set to 0 to unrestrict health.");
 	ph_prop_afterburn_immune = CreateConVar("ph_prop_afterburn_immune", "1", "When set, props do not take afterburn damage.");
 	ph_prop_proplock_enabled = CreateConVar("ph_prop_proplock_enabled", "1", "When set, props are allowed to freeze in place.");
-	ph_hunter_damage_modifier_gun = CreateConVar("ph_hunter_damage_modifier_gun", "0.35", "Modifier of self-damage taken from guns.");
+	ph_hunter_damage_modifier_gun = CreateConVar("ph_hunter_damage_modifier_gun", "0.33", "Modifier of self-damage taken from guns.");
 	ph_hunter_damage_modifier_melee = CreateConVar("ph_hunter_damage_modifier_melee", "0.15", "Modifier of self-damage taken from melees.");
 	ph_hunter_damage_modifier_flamethrower = CreateConVar("ph_hunter_damage_modifier_flamethrower", "0.15", "Modifier of self-damage taken from Flame Throwers.");
-	ph_hunter_damage_modifier_projectile = CreateConVar("ph_hunter_damage_modifier_projectile", "0.5", "Modifier of self-damage taken from miscellaneous projectiles.");
+	ph_hunter_damage_modifier_projectile = CreateConVar("ph_hunter_damage_modifier_projectile", "0.33", "Modifier of self-damage taken from projectiles.");
 	ph_hunter_setup_freeze = CreateConVar("ph_hunter_setup_freeze", "1", "When set, prevent Hunter movement during setup.");
 	ph_regenerate_last_prop = CreateConVar("ph_regenerate_last_prop", "1", "When set, regenerate the last prop so that they receive their weapons.");
 	ph_chat_tip_interval = CreateConVar("ph_chat_tip_interval", "240.0", "Interval at which tips are printed in chat, in seconds. Set to 0 to disable chat tips.");
