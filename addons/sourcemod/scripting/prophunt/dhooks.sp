@@ -28,7 +28,7 @@ static DynamicHook g_CTFWeaponBaseGrenadeProj_Explode;
 void DHooks_Init()
 {
 	PSM_AddDynamicDetourFromConf("CTFPlayer::GetMaxHealthForBuffing", _, CTFPlayer_GetMaxHealthForBuffing_Post);
-	PSM_AddDynamicDetourFromConf("CTFProjectile_GrapplingHook::HookTarget", CTFProjectile_GrapplingHook_HookTarget_Pre, CTFProjectile_GrapplingHook_HookTarget_Post);
+	PSM_AddDynamicDetourFromConf("CTFProjectile_GrapplingHook::HookTarget", CTFProjectile_GrapplingHook_HookTarget_Pre);
 	PSM_AddDynamicDetourFromConf("CTFPlayerShared::Heal", CTFPlayerShared_Heal_Pre, _);
 	PSM_AddDynamicDetourFromConf("CTFPlayer::TeamFortress_CalculateMaxSpeed", _, CTFPlayer_TeamFortress_CalculateMaxSpeed_Post);
 	
@@ -42,7 +42,7 @@ void DHooks_Init()
 
 void DHooks_OnEntityCreated(int entity, const char[] classname)
 {
-	if (0 < entity <= MaxClients)
+	if (IsEntityClient(entity))
 	{
 		PSM_DHookEntity(g_CBaseEntity_Spawn, Hook_Pre, entity, CTFPlayer_Spawn_Pre);
 		PSM_DHookEntity(g_CBaseEntity_TakeHealth, Hook_Pre, entity, CTFPlayer_TakeHealth_Pre);
@@ -165,25 +165,6 @@ static MRESReturn CTFProjectile_GrapplingHook_HookTarget_Pre(int projectile, DHo
 	return MRES_Ignored;
 }
 
-static MRESReturn CTFProjectile_GrapplingHook_HookTarget_Post(int projectile, DHookParam params)
-{
-	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
-	
-	if (!ShouldPlayerDealSelfDamage(owner))
-		return MRES_Ignored;
-	
-	int launcher = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
-	float damage = SDKCall_CTFWeaponBaseGun_GetProjectileDamage(launcher) * ph_hunter_damage_modifier_grapplinghook.FloatValue;
-	int bitsDamageType = SDKCall_CBaseEntity_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
-	int customDamage = SDKCall_CTFWeaponBase_GetCustomDamageType(launcher);
-	
-	CTakeDamageInfo info = GetGlobalDamageInfo();
-	info.Init(projectile, owner, launcher, _, _, damage, bitsDamageType, customDamage);
-	CBaseEntity(owner).TakeDamage(info);
-	
-	return MRES_Ignored;
-}
-
 static MRESReturn CTFPlayerShared_Heal_Pre(Address pShared, DHookParam params)
 {
 	int player = TF2Util_GetPlayerFromSharedAddress(pShared);
@@ -266,20 +247,21 @@ static MRESReturn CTFScatterGun_HasKnockback_Post(int scattergun, DHookReturn re
 static MRESReturn CTFBaseRocket_Explode_Post(int projectile, DHookParam params)
 {
 	int other = params.Get(2);
-	if (0 < other <= MaxClients)
+	if (IsEntityClient(other))
 		return MRES_Ignored;
 	
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
-	if (owner == -1)
-		return MRES_Ignored;
-	
-	if (!ShouldPlayerDealSelfDamage(owner))
+	if (owner == other || !IsEntityClient(owner) || !ShouldPlayerDealSelfDamage(owner))
 		return MRES_Ignored;
 	
 	int weapon = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
 	float damage = SDKCall_CBaseEntity_GetDamage(projectile) * ph_hunter_damage_modifier_projectile.FloatValue;
 	int bitsDamageType = SDKCall_CBaseEntity_GetDamageType(projectile) | DMG_PREVENT_PHYSICS_FORCE;
 	int customDamage = SDKCall_CTFWeaponBase_GetCustomDamageType(weapon);
+	
+	float mult = TF2Attrib_HookValueFloat(1.0, "mult_dmg", weapon);
+	if (mult > 0.0)
+		damage /= mult;
 	
 	CTakeDamageInfo info = GetGlobalDamageInfo();
 	info.Init(projectile, owner, weapon, _, _, damage, bitsDamageType, customDamage);
@@ -291,20 +273,21 @@ static MRESReturn CTFBaseRocket_Explode_Post(int projectile, DHookParam params)
 static MRESReturn CTFWeaponBaseGrenadeProj_Explode_Post(int projectile, DHookParam params)
 {
 	int traceEnt = params.GetObjectVar(1, GetOffset("CGameTrace", "m_pEnt"), ObjectValueType_CBaseEntityPtr);
-	if (0 < traceEnt <= MaxClients)
+	if (IsEntityClient(traceEnt))
 		return MRES_Ignored;
 	
 	int thrower = GetEntPropEnt(projectile, Prop_Send, "m_hThrower");
-	if (thrower == -1)
-		return MRES_Ignored;
-	
-	if (!ShouldPlayerDealSelfDamage(thrower))
+	if (thrower == traceEnt || !IsEntityClient(thrower) || !ShouldPlayerDealSelfDamage(thrower))
 		return MRES_Ignored;
 	
 	int weapon = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
 	float damage = GetEntPropFloat(projectile, Prop_Send, "m_flDamage") * ph_hunter_damage_modifier_projectile.FloatValue;
 	int bitsDamageType = params.Get(2) | DMG_PREVENT_PHYSICS_FORCE;
 	int customDamage = SDKCall_CTFWeaponBase_GetCustomDamageType(weapon);
+	
+	float mult = TF2Attrib_HookValueFloat(1.0, "mult_dmg", weapon);
+	if (mult > 0.0)
+		damage /= mult;
 	
 	CTakeDamageInfo info = GetGlobalDamageInfo();
 	info.Init(projectile, thrower, weapon, _, _, damage, bitsDamageType, customDamage);

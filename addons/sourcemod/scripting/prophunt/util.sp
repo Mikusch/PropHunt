@@ -37,6 +37,12 @@ any Clamp(any val, any min, any max)
 	return Min(Max(val, min), max);
 }
 
+bool FClassnameIs(int entity, const char[] classname)
+{
+	char cls[64];
+	return GetEntityClassname(entity, cls, sizeof(cls)) && StrEqual(cls, classname);
+}
+
 // Thanks to ficool2 for helping me with scary vector math
 bool IntersectionLineAABBFast(const float mins[3], const float maxs[3], const float start[3], const float dir[3], float far)
 {
@@ -333,3 +339,14 @@ bool IsCTFWeaponBaseGrenadeProj(int entity)
 {
 	return HasEntProp(entity, Prop_Send, "m_hDeflectOwner");
 }
+
+bool IsCTFProjectile_Arrow(int entity)
+{
+	return HasEntProp(entity, Prop_Data, "CTFProjectile_ArrowImpactThink");
+}
+
+bool IsCTFBaseProjectile(int entity)
+{
+	return HasEntProp(entity, Prop_Data, "CTFBaseProjectileFlyThink");
+}
+

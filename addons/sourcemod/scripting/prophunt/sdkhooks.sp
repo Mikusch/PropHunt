@@ -24,7 +24,7 @@ void SDKHooks_OnEntityCreated(int entity, const char[] classname)
 	{
 		PSM_SDKHook(entity, SDKHook_OnTakeDamagePost, CWorld_OnTakeDamagePost);
 	}
-	else if (0 < entity <= MaxClients)
+	else if (IsEntityClient(entity))
 	{
 		PSM_SDKHook(entity, SDKHook_OnTakeDamage, CTFPlayer_OnTakeDamage);
 	}
@@ -37,21 +37,28 @@ void SDKHooks_OnEntityCreated(int entity, const char[] classname)
 		PSM_SDKHook(entity, SDKHook_Touch, CHealthKit_Touch);
 		PSM_SDKHook(entity, SDKHook_TouchPost, CHealthKit_TouchPost);
 	}
+	else if (IsCTFProjectile_Arrow(entity) || IsCTFBaseProjectile(entity))
+	{
+		PSM_SDKHook(entity, SDKHook_Touch, CTFProjectile_TouchPost);
+	}
 }
 
 static void CWorld_OnTakeDamagePost(int victim, int attacker, int inflictor, float damage, int damagetype, int weapon, const float damageForce[3], const float damagePosition[3], int damagecustom)
 {
-	if (0 < attacker <= MaxClients && !ShouldPlayerDealSelfDamage(attacker))
+	if (!IsEntityClient(attacker) || !ShouldPlayerDealSelfDamage(attacker))
 		return;
 	
-	float mod = 1.0;
+	float mult = TF2Attrib_HookValueFloat(1.0, "mult_dmg", weapon);
+	if (mult > 0.0)
+		damage /= mult;
+	
 	if (damagetype & DMG_MELEE)
-		mod *= ph_hunter_damage_modifier_melee.FloatValue;
+		damage *= ph_hunter_damage_modifier_melee.FloatValue;
 	else
-		mod *= ph_hunter_damage_modifier_gun.FloatValue;
+		damage *= ph_hunter_damage_modifier_gun.FloatValue;
 	
 	CTakeDamageInfo info = GetGlobalDamageInfo();
-	info.Init(inflictor, attacker, weapon, _, _, damage * mod, damagetype | DMG_PREVENT_PHYSICS_FORCE, damagecustom);
+	info.Init(inflictor, attacker, weapon, _, _, damage, damagetype | DMG_PREVENT_PHYSICS_FORCE, damagecustom);
 	CBaseEntity(attacker).TakeDamage(info);
 }
 
@@ -154,3 +161,27 @@ static Action GlowTauntProp_SetTransmit(int entity, int client)
 	
 	return Plugin_Continue;
 }
+
+static void CTFProjectile_TouchPost(int projectile, int other)
+{
+	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
+	if (owner == other || !IsEntityClient(owner) || !ShouldPlayerDealSelfDamage(owner))
+		return;
+	
+	if (other == 0)
+	{
+		int weapon = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
+		float damage = SDKCall_CTFWeaponBaseGun_GetProjectileDamage(weapon);
+		int bitsDamageType = SDKCall_CBaseEntity_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
+		int customDamage = SDKCall_CTFWeaponBase_GetCustomDamageType(weapon);
+		
+		float mult = TF2Attrib_HookValueFloat(1.0, "mult_dmg", weapon);
+		if (mult > 0.0)
+			damage /= mult;
+		
+		CTakeDamageInfo info = GetGlobalDamageInfo();
+		info.Init(weapon, owner, weapon, _, _, damage, bitsDamageType, customDamage);
+		CBaseEntity(owner).TakeDamage(info);
+	}
+}
+

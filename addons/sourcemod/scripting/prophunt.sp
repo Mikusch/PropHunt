@@ -903,8 +903,7 @@ static void ConVarQuery_StaticPropInfo(QueryCookie cookie, int client, ConVarQue
 
 static bool TraceEntityEnumerator_EnumerateTriggers(int entity, int client)
 {
-	char classname[16];
-	if (GetEntityClassname(entity, classname, sizeof(classname)) && StrEqual(classname, "trigger_hurt"))
+	if (FClassnameIs(entity, "trigger_hurt"))
 	{
 		if (!GetEntProp(entity, Prop_Data, "m_bDisabled"))
 		{
