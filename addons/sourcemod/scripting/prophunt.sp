@@ -143,7 +143,6 @@ ConVar ph_prop_afterburn_immune;
 ConVar ph_prop_proplock_enabled;
 ConVar ph_hunter_damage_modifier_gun;
 ConVar ph_hunter_damage_modifier_melee;
-ConVar ph_hunter_damage_modifier_grapplinghook;
 ConVar ph_hunter_damage_modifier_flamethrower;
 ConVar ph_hunter_damage_modifier_projectile;
 ConVar ph_hunter_setup_freeze;

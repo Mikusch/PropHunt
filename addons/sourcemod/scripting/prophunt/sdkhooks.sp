@@ -37,7 +37,7 @@ void SDKHooks_OnEntityCreated(int entity, const char[] classname)
 		PSM_SDKHook(entity, SDKHook_Touch, CHealthKit_Touch);
 		PSM_SDKHook(entity, SDKHook_TouchPost, CHealthKit_TouchPost);
 	}
-	else if (IsCTFProjectile_Arrow(entity) || IsCTFBaseProjectile(entity))
+	else if (IsCTFBaseProjectile(entity) || IsCTFBaseRocket(entity))
 	{
 		PSM_SDKHook(entity, SDKHook_Touch, CTFProjectile_TouchPost);
 	}
@@ -171,7 +171,7 @@ static void CTFProjectile_TouchPost(int projectile, int other)
 	if (other == 0)
 	{
 		int weapon = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
-		float damage = SDKCall_CTFWeaponBaseGun_GetProjectileDamage(weapon);
+		float damage = SDKCall_CTFWeaponBaseGun_GetProjectileDamage(weapon) * ph_hunter_damage_modifier_projectile.FloatValue;
 		int bitsDamageType = SDKCall_CBaseEntity_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
 		int customDamage = SDKCall_CTFWeaponBase_GetCustomDamageType(weapon);
 		

@@ -97,11 +97,6 @@
 				"linux"		"135"
 				"windows"	"134"
 			}
-			"CTFBaseRocket::Explode"
-			{
-				"linux"		"240"
-				"windows"	"239"
-			}
 			"CTFWeaponBaseGrenadeProj::Explode"
 			{
 				"linux"		"236"
@@ -260,24 +255,6 @@
 					"criteriaSet"
 					{
 						"type"	"int"
-					}
-				}
-			}
-			"CTFBaseRocket::Explode"
-			{
-				"offset"	"CTFBaseRocket::Explode"
-				"hooktype"	"entity"
-				"return"	"void"
-				"this"		"entity"
-				"arguments"
-				{
-					"pTrace"
-					{
-						"type"	"objectptr"
-					}
-					"pOther"
-					{
-						"type"	"cbaseentity"
 					}
 				}
 			}

@@ -340,9 +340,9 @@ bool IsCTFWeaponBaseGrenadeProj(int entity)
 	return HasEntProp(entity, Prop_Send, "m_hDeflectOwner");
 }
 
-bool IsCTFProjectile_Arrow(int entity)
+bool IsCTFBaseProjectile(int entity)
 {
-	return HasEntProp(entity, Prop_Data, "CTFProjectile_ArrowImpactThink");
+	return HasEntProp(entity, Prop_Data, "CTFBaseProjectileFlyThink");
 }
 
 bool IsCTFBaseProjectile(int entity)

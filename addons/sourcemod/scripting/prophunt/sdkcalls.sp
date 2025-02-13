@@ -23,7 +23,6 @@ static Handle g_AI_CriteriaSet_FindCriterionIndex;
 static Handle g_AI_CriteriaSet_RemoveCriteria;
 static Handle g_CTeamplayRules_SetSwitchTeams;
 static Handle g_CBaseEntity_GetDamageType;
-static Handle g_CBaseEntity_GetDamage;
 static Handle g_CTFWeaponBase_GetCustomDamageType;
 static Handle g_CTFWeaponBaseGun_GetProjectileDamage;
 
@@ -34,7 +33,6 @@ void SDKCalls_Init(GameData gamedata)
 	g_AI_CriteriaSet_RemoveCriteria = PrepSDKCall_AI_CriteriaSet_RemoveCriteria(gamedata);
 	g_CTeamplayRules_SetSwitchTeams = PrepSDKCall_CTeamplayRules_SetSwitchTeams(gamedata);
 	g_CBaseEntity_GetDamageType = PrepSDKCall_CBaseEntity_GetDamageType(gamedata);
-	g_CBaseEntity_GetDamage = PrepSDKCall_CBaseEntity_GetDamage(gamedata);
 	g_CTFWeaponBase_GetCustomDamageType = PrepSDKCall_CTFWeaponBase_GetCustomDamageType(gamedata);
 	g_CTFWeaponBaseGun_GetProjectileDamage = PrepSDKCall_CTFWeaponBaseGun_GetProjectileDamage(gamedata);
 }
@@ -106,19 +104,6 @@ static Handle PrepSDKCall_CBaseEntity_GetDamageType(GameData gamedata)
 	return call;
 }
 
-static Handle PrepSDKCall_CBaseEntity_GetDamage(GameData gamedata)
-{
-	StartPrepSDKCall(SDKCall_Entity);
-	PrepSDKCall_SetFromConf(gamedata, SDKConf_Virtual, "CBaseEntity::GetDamage");
-	PrepSDKCall_SetReturnInfo(SDKType_Float, SDKPass_ByValue);
-	
-	Handle call = EndPrepSDKCall();
-	if (!call)
-		LogMessage("Failed to create SDKCall: CBaseEntity::GetDamage");
-	
-	return call;
-}
-
 static Handle PrepSDKCall_CTFWeaponBase_GetCustomDamageType(GameData gamedata)
 {
 	StartPrepSDKCall(SDKCall_Entity);
@@ -170,11 +155,6 @@ void SDKCall_CTeamplayRules_SetSwitchTeams(bool shouldSwitch)
 int SDKCall_CBaseEntity_GetDamageType(int entity)
 {
 	return g_CBaseEntity_GetDamageType ? SDKCall(g_CBaseEntity_GetDamageType, entity) : DMG_GENERIC;
-}
-
-float SDKCall_CBaseEntity_GetDamage(int entity)
-{
-	return g_CBaseEntity_GetDamage ? SDKCall(g_CBaseEntity_GetDamage, entity) : 0.0;
 }
 
 int SDKCall_CTFWeaponBase_GetCustomDamageType(int weapon)
