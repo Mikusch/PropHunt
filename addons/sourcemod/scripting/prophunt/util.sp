@@ -344,9 +344,3 @@ bool IsCTFBaseProjectile(int entity)
 {
 	return HasEntProp(entity, Prop_Data, "CTFBaseProjectileFlyThink");
 }
-
-bool IsCTFBaseProjectile(int entity)
-{
-	return HasEntProp(entity, Prop_Data, "CTFBaseProjectileFlyThink");
-}
-
