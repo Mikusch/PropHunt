@@ -74,8 +74,8 @@
 		{
 			"CTeamplayRules::SetSwitchTeams"
 			{
-				"linux"		"167"
-				"windows"	"166"
+				"linux"		"168"
+				"windows"	"167"
 			}
 			"CBaseEntity::Spawn"
 			{
