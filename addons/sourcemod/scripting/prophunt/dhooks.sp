@@ -240,6 +240,9 @@ static MRESReturn CTFScatterGun_HasKnockback_Post(int scattergun, DHookReturn re
 
 static MRESReturn CTFWeaponBaseGrenadeProj_Explode_Post(int projectile, DHookParam params)
 {
+	if (GetEntProp(projectile, Prop_Data, "m_iEFlags") & EFL_NO_ROTORWASH_PUSH)
+		return MRES_Ignored;
+	
 	int traceEnt = params.GetObjectVar(1, GetOffset("CGameTrace", "m_pEnt"), ObjectValueType_CBaseEntityPtr);
 	if (IsEntityClient(traceEnt))
 		return MRES_Ignored;
@@ -260,6 +263,10 @@ static MRESReturn CTFWeaponBaseGrenadeProj_Explode_Post(int projectile, DHookPar
 	CTakeDamageInfo info = GetGlobalDamageInfo();
 	info.Init(projectile, thrower, weapon, _, _, damage, bitsDamageType, customDamage);
 	CBaseEntity(thrower).TakeDamage(info);
+	
+	// Some projectiles, like the cleaver, can explode multiple times, leading to huge damage towards the player.
+	// Set an unused entity flag to make sure each projectile only explodes once.
+	SetEntProp(projectile, Prop_Data, "m_iEFlags", GetEntProp(projectile, Prop_Data, "m_iEFlags") | EFL_NO_ROTORWASH_PUSH);
 	
 	return MRES_Ignored;
 }
