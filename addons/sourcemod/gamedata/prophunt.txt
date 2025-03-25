@@ -32,7 +32,7 @@
 			"CTFPlayer::GetMaxHealthForBuffing"
 			{
 				"linux"		"@_ZN9CTFPlayer22GetMaxHealthForBuffingEv"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x24\x53\x56\x57\x8B\xF9\xFF\xB7\xC8\x22\x00\x00"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x20\x53\x56\x57\x8B\xF9\xFF\xB7\xC8\x22\x00\x00"
 			}
 			"CTFProjectile_GrapplingHook::HookTarget"
 			{
@@ -42,7 +42,7 @@
 			"CTFPlayerShared::Heal"
 			{
 				"linux"		"@_ZN15CTFPlayerShared4HealEP11CBaseEntityfffbP9CTFPlayer"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x0C\x53\x56\x8B\x75\x08\x8B\xD9\x57\x0F\x57\xC0"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x08\x53\x56\x8B\x75\x08\x8B\xD9\x57\x0F\x57\xC0"
 			}
 			"CTFPlayer::TeamFortress_CalculateMaxSpeed"
 			{
@@ -69,8 +69,8 @@
 		{
 			"CTeamplayRules::SetSwitchTeams"
 			{
-				"linux"		"167"
-				"windows"	"166"
+				"linux"		"168"
+				"windows"	"167"
 			}
 			"CBaseEntity::Spawn"
 			{
