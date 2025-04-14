@@ -344,3 +344,15 @@ bool IsCTFBaseProjectile(int entity)
 {
 	return HasEntProp(entity, Prop_Data, "CTFBaseProjectileFlyThink");
 }
+
+void RunScriptCode(int entity, int activator, int caller, const char[] format, any...)
+{
+	if (!IsValidEntity(entity))
+		return;
+	
+	static char buffer[1024];
+	VFormat(buffer, sizeof(buffer), format, 5);
+	
+	SetVariantString(buffer);
+	AcceptEntityInput(entity, "RunScriptCode", activator, caller);
+}

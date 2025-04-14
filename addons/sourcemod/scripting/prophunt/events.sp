@@ -67,6 +67,7 @@ static void OnGameEvent_player_death(Event event, const char[] name, bool dontBr
 	if (TF2_GetClientTeam(victim) == TFTeam_Props)
 	{
 		PHPlayer(victim).PropLockEnabled = false;
+		PHPlayer(victim).DestroyLockedProp();
 	}
 	
 	if (victim != attacker && IsEntityClient(attacker) && IsClientInGame(attacker) && IsPlayerAlive(attacker))

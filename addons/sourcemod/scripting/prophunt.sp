@@ -172,6 +172,7 @@ ConVar ph_gravity_modifier;
 #include "prophunt/sdkcalls.sp"
 #include "prophunt/sdkhooks.sp"
 #include "prophunt/util.sp"
+#include "prophunt/ph_fake_prop.sp"
 
 public Plugin myinfo =
 {
@@ -209,6 +210,8 @@ public void OnPluginStart()
 	
 	// Read global prop config
 	ReadPropConfig();
+	
+	CFakeProp.Initialize();
 }
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -318,7 +321,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	int buttonsChanged = GetEntProp(client, Prop_Data, "m_afButtonPressed") | GetEntProp(client, Prop_Data, "m_afButtonReleased");
 	
 	if (buttons & IN_ATTACK3 && buttonsChanged & IN_ATTACK3)
-		DoTaunt(client);
+		PHPlayer(client).DoTaunt();
 	
 	TFTeam team = TF2_GetClientTeam(client);
 	
@@ -364,7 +367,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 			// Don't allow them to lock to avoid props hovering above deadly areas
 			if (!g_DisallowPropLocking)
 			{
-				TogglePropLock(client, !PHPlayer(client).PropLockEnabled);
+				PHPlayer(client).TogglePropLock(!PHPlayer(client).PropLockEnabled);
 			}
 			else
 			{
@@ -388,6 +391,11 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 		
 		SetVariantInt(value);
 		AcceptEntityInput(client, "SetCustomModelVisibletoSelf");
+
+		// Fade out the prop while in third person (at least 1 HU)
+		CFakeProp prop = PHPlayer(client).GetLockedProp();
+		if (prop.IsValid())
+			prop.SetPropFloat(Prop_Send, "m_fadeMaxDist", GetEntProp(client, Prop_Send, "m_nForceTauntCam") == 0 ? 1.0 : 0.0);
 	}
 	
 	// Pressing movement keys will undo a prop lock
@@ -769,50 +777,6 @@ void ClearCustomModel(int client, bool notify = false)
 	
 	if (notify)
 		CPrintToChat(client, "%s %t", PLUGIN_TAG, "PH_Disguise_Reset");
-}
-
-void TogglePropLock(int client, bool toggle)
-{
-	if (PHPlayer(client).PropLockEnabled == toggle)
-		return;
-	
-	PHPlayer(client).PropLockEnabled = toggle;
-	
-	SetVariantInt(!toggle);
-	AcceptEntityInput(client, "SetCustomModelRotates");
-	
-	SetEntPropVector(client, Prop_Data, "m_vecAbsVelocity", ZERO_VECTOR);
-	SetEntityFlags(client, toggle ? GetEntityFlags(client) | FL_NOTARGET : GetEntityFlags(client) & ~FL_NOTARGET);
-	
-	SetEntityMoveType(client, toggle ? MOVETYPE_NONE : MOVETYPE_WALK);
-	EmitSoundToClient(client, toggle ? LOCK_SOUND : UNLOCK_SOUND, _, SNDCHAN_STATIC);
-}
-
-void DoTaunt(int client)
-{
-	if (GetGameTime() < PHPlayer(client).NextTauntTime)
-		return;
-	
-	char sound[PLATFORM_MAX_PATH];
-	
-	// Only props have taunt sounds by default, but subplugins can override this
-	if (TF2_GetClientTeam(client) == TFTeam_Props)
-		strcopy(sound, sizeof(sound), g_DefaultTauntSounds[GetRandomInt(0, sizeof(g_DefaultTauntSounds) - 1)]);
-	
-	Action result = Forwards_OnTaunt(client, sound, sizeof(sound));
-	
-	if (result >= Plugin_Handled)
-		return;
-	
-	if (sound[0] == EOS)
-		return;
-	
-	if (PrecacheScriptSound(sound))
-		EmitGameSoundToAll(sound, client);
-	else if (PrecacheSound(sound))
-		EmitSoundToAll(sound, client, SNDCHAN_STATIC, 85, .pitch = GetRandomInt(90, 110));
-	
-	PHPlayer(client).NextTauntTime = GetGameTime() + 2.0;
 }
 
 void ApplyFlameThrowerVelocity(int client)

@@ -138,6 +138,102 @@ methodmap PHPlayer < CBaseCombatCharacter
 		}
 	}
 	
+	public int GetEffectiveSkin()
+	{
+		return GetEntProp(this.entindex, Prop_Send, "m_bForcedSkin") ? GetEntProp(this.entindex, Prop_Send, "m_nForcedSkin") : GetEntProp(this.entindex, Prop_Send, "m_nSkin");
+	}
+	
+	public int GetMaxHealth()
+	{
+		return GetEntProp(GetPlayerResourceEntity(), Prop_Send, "m_iMaxHealth", _, this.entindex);
+	}
+
+	public void TogglePropLock(bool toggle)
+	{
+		if (this.PropLockEnabled == toggle)
+			return;
+		
+		this.PropLockEnabled = toggle;
+		
+		if (toggle)
+		{
+			this.SetPropVector(Prop_Data, "m_vecAbsVelocity", ZERO_VECTOR);
+
+			RunScriptCode(this.entindex, -1, -1, "self.DisableDraw()");
+			RunScriptCode(this.entindex, -1, -1, "self.SetCollisionGroup(Constants.ECollisionGroup.COLLISION_GROUP_IN_VEHICLE)");
+			TF2_AddCondition(this.entindex, TFCond_ImmuneToPushback);
+			this.SetProp(Prop_Data, "m_takedamage", DAMAGE_NO); // All damage is passed on from CFakeProp
+
+			CFakeProp prop = CFakeProp.CreateFromPlayer(this, LockedProp_OnTakeDamage);
+			prop.SetPropFloat(Prop_Send, "m_fadeMaxDist", this.GetProp(Prop_Send, "m_nForceTauntCam") == 0 ? 1.0 : 0.0);
+		}
+		else
+		{
+			RunScriptCode(this.entindex, -1, -1, "self.EnableDraw()");
+			RunScriptCode(this.entindex, -1, -1, "self.SetCollisionGroup(Constants.ECollisionGroup.COLLISION_GROUP_PLAYER)");
+			TF2_RemoveCondition(this.entindex, TFCond_ImmuneToPushback);
+			this.SetProp(Prop_Data, "m_takedamage", DAMAGE_YES);
+
+			this.DestroyLockedProp();
+		}
+
+		SetVariantInt(!toggle);
+		this.AcceptInput("SetCustomModelRotates");
+
+		this.ToggleFlag(FL_NOTARGET);
+
+		this.SetMoveType(toggle ? MOVETYPE_NONE : MOVETYPE_WALK);
+		EmitSoundToClient(this.entindex, toggle ? LOCK_SOUND : UNLOCK_SOUND, _, SNDCHAN_STATIC);
+	}
+
+	public void DoTaunt()
+	{
+		if (GetGameTime() < this.NextTauntTime)
+			return;
+		
+		char sound[PLATFORM_MAX_PATH];
+		
+		// Only props have taunt sounds by default, but subplugins can override this
+		if (TF2_GetClientTeam(this.entindex) == TFTeam_Props)
+			strcopy(sound, sizeof(sound), g_DefaultTauntSounds[GetRandomInt(0, sizeof(g_DefaultTauntSounds) - 1)]);
+		
+		Action result = Forwards_OnTaunt(this.entindex, sound, sizeof(sound));
+		
+		if (result >= Plugin_Handled)
+			return;
+		
+		if (sound[0] == EOS)
+			return;
+		
+		if (PrecacheScriptSound(sound))
+			EmitGameSoundToAll(sound, this.entindex);
+		else if (PrecacheSound(sound))
+			EmitSoundToAll(sound, this.entindex, SNDCHAN_STATIC, 85, .pitch = GetRandomInt(90, 110));
+		
+		this.NextTauntTime = GetGameTime() + 2.0;
+	}
+
+	public CFakeProp GetLockedProp()
+	{
+		int prop = -1;
+		while ((prop = FindEntityByClassname(prop, "ph_fake_prop")) != -1)
+		{
+			if (GetEntPropEnt(prop, Prop_Send, "m_hOwnerEntity") != this.entindex)
+				continue;
+			
+			return CFakeProp(prop);
+		}
+
+		return CFakeProp(-1);
+	}
+
+	public void DestroyLockedProp()
+	{
+		CFakeProp prop = this.GetLockedProp();
+		if (prop.IsValid())
+			RemoveEntity(prop.index);
+	}
+
 	public void Reset()
 	{
 		this.PropType = Prop_None;

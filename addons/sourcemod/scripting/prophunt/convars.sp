@@ -92,7 +92,7 @@ static void ConVarChanged_PropPropLockEnabled(ConVar convar, const char[] oldVal
 			if (PHPlayer(client).PropLockEnabled)
 			{
 				PHPlayer(client).PropLockEnabled = false;
-				TogglePropLock(client, false);
+				PHPlayer(client).TogglePropLock(false);
 			}
 		}
 	}

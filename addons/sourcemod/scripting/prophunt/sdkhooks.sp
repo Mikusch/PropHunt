@@ -185,3 +185,19 @@ static void CTFProjectile_TouchPost(int projectile, int other)
 	}
 }
 
+void LockedProp_OnTakeDamage(int victim, int attacker, int inflictor, float damage, int damagetype, int weapon, const float damageForce[3], const float damagePosition[3], int damagecustom)
+{
+	int owner = GetEntPropEnt(victim, Prop_Send, "m_hOwnerEntity");
+
+	// All damage on locked props is transferred to the owning player
+	if (IsEntityClient(owner) && TF2_GetClientTeam(owner) == TFTeam_Props && PHPlayer(owner).PropLockEnabled)
+	{
+		CTakeDamageInfo info = GetGlobalDamageInfo();
+		info.Init(inflictor, attacker, weapon, damageForce, damagePosition, damage, damagetype, damagecustom);
+
+		PHPlayer player = PHPlayer(owner);
+		player.SetProp(Prop_Data, "m_takedamage", DAMAGE_YES);
+		player.TakeDamage(info);
+		player.SetProp(Prop_Data, "m_takedamage", DAMAGE_NO);
+	}
+}
