@@ -407,7 +407,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	{
 		if (PHPlayer(client).PropLockEnabled)
 		{
-			TogglePropLock(client, false);
+			PHPlayer(client).TogglePropLock(false);
 		}
 	}
 	
