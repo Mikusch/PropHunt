@@ -32,7 +32,7 @@
 			"CTFPlayer::GetMaxHealthForBuffing"
 			{
 				"linux"		"@_ZN9CTFPlayer22GetMaxHealthForBuffingEv"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x24\x53\x56\x57\x8B\xF9\xFF\xB7\xC8\x22\x00\x00"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x20\x53\x56\x57\x8B\xF9\xFF\xB7\xC8\x22\x00\x00"
 			}
 			"CTFProjectile_GrapplingHook::HookTarget"
 			{
@@ -42,7 +42,7 @@
 			"CTFPlayerShared::Heal"
 			{
 				"linux"		"@_ZN15CTFPlayerShared4HealEP11CBaseEntityfffbP9CTFPlayer"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x0C\x53\x56\x8B\x75\x08\x8B\xD9\x57\x0F\x57\xC0"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x20\x53\x56\x57\x8B\xF9\xFF\xB7\xC8\x22\x00\x00"
 			}
 			"CTFPistol_ScoutPrimary::Push"
 			{
@@ -89,48 +89,48 @@
 			}
 			"CBaseEntity::ModifyOrAppendCriteria"
 			{
-				"linux"		"124"
-				"windows"	"123"
+				"linux"		"125"
+				"windows"	"124"
 			}
 			"CBaseEntity::GetDamageType"
 			{
-				"linux"		"134"
-				"windows"	"133"
+				"linux"		"135"
+				"windows"	"134"
 			}
 			"CTFPlayer::InitClass"
 			{
-				"linux"		"495"
-				"windows"	"488"
+				"linux"		"496"
+				"windows"	"489"
 			}
 			"CTFWeaponBaseGun::FireProjectile"
 			{
-				"linux"		"477"
-				"windows"	"470"
+				"linux"		"479"
+				"windows"	"472"
 			}
 			"CTFWeaponBaseGun::GetProjectileDamage"
 			{
-				"linux"		"492"
-				"windows"	"485"
+				"linux"		"494"
+				"windows"	"487"
 			}
 			"CTFWeaponBaseMelee::Smack"
 			{
-				"linux"		"477"
-				"windows"	"470"
+				"linux"		"479"
+				"windows"	"472"
 			}
 			"CTFWeaponBaseMelee::GetMeleeDamage"
 			{
-				"linux"		"481"
-				"windows"	"474"
+				"linux"		"483"
+				"windows"	"476"
 			}
 			"CTFScatterGun::HasKnockback"
 			{
-				"linux"		"498"
-				"windows"	"491"
+				"linux"		"500"
+				"windows"	"493"
 			}
 			"CTFProjectile_Jar::GetDamage"
 			{
-				"linux"		"135"
-				"windows"	"134"
+				"linux"		"136"
+				"windows"	"135"
 			}
 			"CTFWeaponBase::m_iWeaponMode"
 			{
