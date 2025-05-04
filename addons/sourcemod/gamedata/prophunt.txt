@@ -94,23 +94,23 @@
 			}
 			"CBaseEntity::GetDamage"
 			{
-				"linux"		"135"
-				"windows"	"134"
+				"linux"		"136"
+				"windows"	"135"
+			}
+			"CTFWeaponBaseGrenadeProj::Explode"
+			{
+				"linux"		"236"
+				"windows"	"235"
 			}
 			"CTFWeaponBase::GetCustomDamageType"
 			{
-				"linux"		"387"
-				"windows"	"381"
+				"linux"		"388"
+				"windows"	"382"
 			}
 			"CTFWeaponBaseGun::GetProjectileDamage"
 			{
 				"linux"		"494"
 				"windows"	"487"
-			}
-			"CTFWeaponBaseMelee::GetMeleeDamage"
-			{
-				"linux"		"483"
-				"windows"	"476"
 			}
 			"CTFScatterGun::HasKnockback"
 			{
