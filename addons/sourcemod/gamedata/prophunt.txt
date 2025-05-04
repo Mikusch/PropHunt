@@ -84,23 +84,18 @@
 			}
 			"CBaseEntity::ModifyOrAppendCriteria"
 			{
-				"linux"		"124"
-				"windows"	"123"
+				"linux"		"125"
+				"windows"	"124"
 			}
 			"CBaseEntity::GetDamageType"
 			{
-				"linux"		"134"
-				"windows"	"133"
+				"linux"		"135"
+				"windows"	"134"
 			}
 			"CBaseEntity::GetDamage"
 			{
 				"linux"		"135"
 				"windows"	"134"
-			}
-			"CTFWeaponBaseGrenadeProj::Explode"
-			{
-				"linux"		"236"
-				"windows"	"235"
 			}
 			"CTFWeaponBase::GetCustomDamageType"
 			{
@@ -109,13 +104,18 @@
 			}
 			"CTFWeaponBaseGun::GetProjectileDamage"
 			{
-				"linux"		"492"
-				"windows"	"485"
+				"linux"		"494"
+				"windows"	"487"
+			}
+			"CTFWeaponBaseMelee::GetMeleeDamage"
+			{
+				"linux"		"483"
+				"windows"	"476"
 			}
 			"CTFScatterGun::HasKnockback"
 			{
-				"linux"		"498"
-				"windows"	"491"
+				"linux"		"500"
+				"windows"	"493"
 			}
 			"CTFWeaponBase::m_iWeaponMode"
 			{
