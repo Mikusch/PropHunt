@@ -32,7 +32,7 @@
 			"CTFPlayer::GetMaxHealthForBuffing"
 			{
 				"linux"		"@_ZN9CTFPlayer22GetMaxHealthForBuffingEv"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x20\x53\x56\x57\x8B\xF9\xFF\xB7\xC8\x22\x00\x00"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x20\x53\x56\x57\x8B\xF9\xFF\xB7\xD0\x22\x00\x00"
 			}
 			"CTFProjectile_GrapplingHook::HookTarget"
 			{
@@ -101,6 +101,11 @@
 			{
 				"linux"		"480"
 				"windows"	"473"
+			}
+			"CTFWeaponBase::GetCustomDamageType"
+			{
+				"linux"		"389"
+				"windows"	"383"
 			}
 			"CTFWeaponBaseGun::GetProjectileDamage"
 			{
