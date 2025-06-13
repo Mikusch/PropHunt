@@ -41,7 +41,7 @@ methodmap CFakeProp < CBaseCombatCharacter
 			prop.KeyValueInt("skin", player.GetEffectiveSkin());
 			prop.KeyValueInt("teamnum", GetClientTeam(player));
 			prop.KeyValueInt("sequence", player.GetProp(Prop_Send, "m_nSequence"));
-			prop.KeyValueInt("solid", SOLID_VPHYSICS);
+			prop.KeyValueInt("solid", HasPhysicsModel(model) ? SOLID_VPHYSICS : SOLID_BBOX);
 			prop.KeyValueInt("disableshadows", 1);
 			prop.KeyValueFloat("playbackrate",  player.GetPropFloat(Prop_Send, "m_flPlaybackRate"));
 			prop.KeyValueFloat("cycle",  player.GetPropFloat(Prop_Send, "m_flCycle"));

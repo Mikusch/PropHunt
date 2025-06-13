@@ -345,6 +345,17 @@ bool IsCTFBaseProjectile(int entity)
 	return HasEntProp(entity, Prop_Data, "CTFBaseProjectileFlyThink");
 }
 
+bool HasPhysicsModel(const char[] model)
+{
+	char physModel[PLATFORM_MAX_PATH], base[PLATFORM_MAX_PATH];
+	strcopy(base, sizeof(base), model);
+	SplitString(base, ".mdl", base, sizeof(base));
+	
+	Format(physModel, sizeof(physModel), "%s.phy", base);
+	
+	return FileExists(physModel, true);
+}
+
 void RunScriptCode(int entity, int activator, int caller, const char[] format, any...)
 {
 	if (!IsValidEntity(entity))
