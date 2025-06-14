@@ -73,6 +73,7 @@ static void OnGameEvent_player_death(Event event, const char[] name, bool dontBr
 		}
 	}
 	
+	PHPlayer(victim).TogglePropLock(false, false);
 	CheckLastPropStanding(victim);
 }
 
@@ -143,6 +144,9 @@ static void OnGameEvent_teamplay_round_win(Event event, const char[] name, bool 
 	{
 		if (!IsClientInGame(client))
 			continue;
+		
+		// Reset this so no prop spawns with guns next round
+		PHPlayer(client).IsLastProp = false;
 		
 		if (TF2_GetClientTeam(client) == TFTeam_Props && IsPlayerAlive(client))
 		{

@@ -148,7 +148,7 @@ methodmap PHPlayer < CBaseCombatCharacter
 		return GetEntProp(GetPlayerResourceEntity(), Prop_Send, "m_iMaxHealth", _, this.entindex);
 	}
 
-	public void TogglePropLock(bool toggle)
+	public void TogglePropLock(bool toggle, bool playSound = true)
 	{
 		if (this.PropLockEnabled == toggle)
 			return;
@@ -185,7 +185,9 @@ methodmap PHPlayer < CBaseCombatCharacter
 		this.ToggleFlag(FL_NOTARGET);
 
 		this.SetMoveType(toggle ? MOVETYPE_NONE : MOVETYPE_WALK);
-		EmitSoundToClient(this.entindex, toggle ? LOCK_SOUND : UNLOCK_SOUND, _, SNDCHAN_STATIC);
+
+		if (playSound)
+			EmitSoundToClient(this.entindex, toggle ? LOCK_SOUND : UNLOCK_SOUND, _, SNDCHAN_STATIC);
 	}
 
 	public void GetEffectiveModelName(char[] model, int size)
@@ -254,6 +256,6 @@ methodmap PHPlayer < CBaseCombatCharacter
 		this.HasReceivedBonus = false;
 		this.IsLastProp = false;
 		this.NextTauntTime = -1.0;
-		this.TogglePropLock(false);
+		this.TogglePropLock(false, false);
 	}
 };
