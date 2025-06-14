@@ -22,6 +22,7 @@ void Console_Init()
 {
 	RegAdminCmd("sm_getmodel", ConCmd_GetModel, ADMFLAG_CHEATS);
 	RegAdminCmd("sm_setmodel", ConCmd_SetModel, ADMFLAG_CHEATS);
+	RegAdminCmd("sm_toggleproplock", ConCmd_TogglePropLock, ADMFLAG_CHEATS);
 	RegAdminCmd("sm_reloadconfigs", ConCmd_ReloadConfigs, ADMFLAG_CONFIG);
 	
 	PSM_AddCommandListener(CommandListener_Build, "build");
@@ -47,7 +48,7 @@ static Action ConCmd_GetModel(int client, int args)
 	GetCmdArg(1, target, sizeof(target));
 	
 	char target_name[MAX_TARGET_LENGTH];
-	int target_list[MAXPLAYERS], target_count;
+	int target_list[MAXPLAYERS + 1], target_count;
 	bool tn_is_ml;
 	
 	if ((target_count = ProcessTargetString(target, client, target_list, sizeof(target_list), COMMAND_TARGET_NONE, target_name, sizeof(target_name), tn_is_ml)) <= 0)
@@ -92,7 +93,7 @@ static Action ConCmd_SetModel(int client, int args)
 	GetCmdArg(2, model, sizeof(model));
 	
 	char target_name[MAX_TARGET_LENGTH];
-	int target_list[MAXPLAYERS], target_count;
+	int target_list[MAXPLAYERS + 1], target_count;
 	bool tn_is_ml;
 	
 	if ((target_count = ProcessTargetString(target, client, target_list, sizeof(target_list), COMMAND_TARGET_NONE, target_name, sizeof(target_name), tn_is_ml)) <= 0)
@@ -119,6 +120,48 @@ static Action ConCmd_SetModel(int client, int args)
 	else
 	{
 		CShowActivity2(client, "{default}" ... PLUGIN_TAG ... " ", "%t", "PH_Command_SetModel_Success", modelTidyName, "_s", target_name);
+	}
+	
+	return Plugin_Handled;
+}
+
+static Action ConCmd_TogglePropLock(int client, int args)
+{
+	if (!PSM_IsEnabled())
+		return Plugin_Continue;
+	
+	if (args < 2)
+	{
+		ReplyToCommand(client, "[SM] Usage: sm_setproplock <#userid|name> <1|0>");
+		return Plugin_Handled;
+	}
+	
+	char target[MAX_TARGET_LENGTH];
+	GetCmdArg(1, target, sizeof(target));
+	bool toggle = GetCmdArgInt(2) != 0;
+	
+	char target_name[MAX_TARGET_LENGTH];
+	int target_list[MAXPLAYERS + 1], target_count;
+	bool tn_is_ml;
+	
+	if ((target_count = ProcessTargetString(target, client, target_list, sizeof(target_list), COMMAND_TARGET_NONE, target_name, sizeof(target_name), tn_is_ml)) <= 0)
+	{
+		ReplyToTargetError(client, target_count);
+		return Plugin_Handled;
+	}
+	
+	for (int i = 0; i < target_count; i++)
+	{
+		PHPlayer(target_list[i]).TogglePropLock(toggle);
+	}
+	
+	if (tn_is_ml)
+	{
+		CShowActivity2(client, "{default}" ... PLUGIN_TAG ... " ", "%t", "PH_Command_TogglePropLock_Success", target_name);
+	}
+	else
+	{
+		CShowActivity2(client, "{default}" ... PLUGIN_TAG ... " ", "%t", "PH_Command_TogglePropLock_Success", "_s", target_name);
 	}
 	
 	return Plugin_Handled;
@@ -152,7 +195,10 @@ static Action CommandListener_Build(int client, const char[] command, int argc)
 	
 	// Prevent Engineers from building sentry guns
 	if (type == TFObject_Sentry)
+	{
+		EmitGameSoundToClient(client, "Player.DenyWeaponSelection");
 		return Plugin_Handled;
+	}
 	
 	return Plugin_Continue;
 }

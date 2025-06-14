@@ -146,7 +146,7 @@
 	"PH_Command_GetModel_Success"
 	{
 		"#format"	"{1:N},{2:s}"
-		"en"		"{1}'s current model: {lightgreen}{2}"
+		"en"		"Custom model of {lightblue}{1}{default}: {lightgreen}{2}"
 	}
 	
 	"PH_Command_GetModel_NoModelSet"
@@ -156,8 +156,14 @@
 	
 	"PH_Command_SetModel_Success"
 	{
-		"#format"	"{1:s},{2:t}"
-		"en"		"Forced model {lightgreen}{1} {default}on {2}."
+		"#format"	"{1:t},{2:s}"
+		"en"		"Set custom model of {lightblue}{2}{default}: {lightgreen}{1}{default}"
+	}
+
+	"PH_Command_TogglePropLock_Success"
+	{
+		"#format"	"{1:t}"
+		"en"		"Toggled PropLock™ on {lightblue}{1}{default}."
 	}
 	
 	"PH_Command_ReloadConfig_Success"

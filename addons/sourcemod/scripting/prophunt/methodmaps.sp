@@ -160,7 +160,7 @@ methodmap PHPlayer < CBaseCombatCharacter
 			this.SetPropVector(Prop_Data, "m_vecAbsVelocity", ZERO_VECTOR);
 
 			RunScriptCode(this.entindex, -1, -1, "self.DisableDraw()");
-			RunScriptCode(this.entindex, -1, -1, "self.SetCollisionGroup(Constants.ECollisionGroup.COLLISION_GROUP_IN_VEHICLE)");
+			RunScriptCode(this.entindex, -1, -1, "self.SetCollisionGroup(Constants.ECollisionGroup.COLLISION_GROUP_DEBRIS_TRIGGER)");
 			TF2_AddCondition(this.entindex, TFCond_ImmuneToPushback);
 			this.SetProp(Prop_Data, "m_takedamage", DAMAGE_NO); // All damage is passed on from CFakeProp
 
