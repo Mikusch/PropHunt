@@ -885,9 +885,13 @@ static bool TraceEntityEnumerator_EnumerateTriggers(int entity, int client)
 			{
 				float origin[3];
 				GetClientAbsOrigin(client, origin);
-				
+
+				float mins[3], maxs[3];
+				GetEntPropVector(client, Prop_Data, "m_vecMins", mins);
+				GetEntPropVector(client, Prop_Data, "m_vecMaxs", maxs);
+
 				// If it hit, do a second trace to determine whether the player is directly above the trigger
-				trace = TR_TraceRayFilterEx(origin, endPos, MASK_PLAYERSOLID, RayType_EndPoint, TraceEntityFilter_IgnoreEntity, client);
+				trace = TR_TraceHullFilterEx(origin, endPos, mins, maxs, MASK_PLAYERSOLID, TraceEntityFilter_IgnoreEntity, client);
 				if (TR_DidHit(trace))
 					didHit = false;
 				delete trace;
