@@ -364,7 +364,24 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 			float origin[3];
 			GetClientAbsOrigin(client, origin);
 			TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, TraceEntityEnumerator_EnumerateTriggers, client);
+
+			// Check if player is trying to lock inside a hunter, by momentarily creating our locked prop
+			CFakeProp prop = CFakeProp.CreateFromPlayer(PHPlayer(client), LockedProp_OnTakeDamage);
 			
+			float pos[3], mins[3], maxs[3];
+			prop.GetAbsOrigin(pos);
+			prop.GetPropVector(Prop_Data, "m_vecMins", mins);
+			prop.GetPropVector(Prop_Data, "m_vecMaxs", maxs);
+
+			TR_TraceHullFilter(pos, pos, mins, maxs, MASK_SOLID, TraceEntityFilter_IgnoreEntityAndOwner, prop, TRACE_ENTITIES_ONLY);
+			RemoveEntity(prop.index);
+
+			int entity = TR_GetEntityIndex();
+			if (IsEntityClient(entity) && GetClientTeam(entity) !=  GetClientTeam(client))
+			{
+				g_DisallowPropLocking = true;
+			}
+
 			// Don't allow them to lock to avoid props hovering above deadly areas
 			if (!g_DisallowPropLocking)
 			{
@@ -908,6 +925,11 @@ static bool TraceEntityEnumerator_EnumerateTriggers(int entity, int client)
 static bool TraceEntityFilter_IgnoreEntity(int entity, int mask, any data)
 {
 	return entity != data;
+}
+
+static bool TraceEntityFilter_IgnoreEntityAndOwner(int entity, int mask, any data)
+{
+	return entity != data && entity != GetEntPropEnt(data, Prop_Send, "m_hOwnerEntity");
 }
 
 static void Timer_CheckStaticPropInfo(Handle timer)
