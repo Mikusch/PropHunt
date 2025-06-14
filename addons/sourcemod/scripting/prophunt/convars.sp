@@ -45,6 +45,8 @@ void ConVars_Init()
 	ph_round_time = CreateConVar("ph_round_time", "225", "Length of the round time, in seconds.");
 	ph_relay_name = CreateConVar("ph_relay_name", "hidingover", "Name of the relay to trigger when setup time ends.");
 	ph_gravity_modifier = CreateConVar("ph_gravity_modifier", "0.625", "Modifier to player gravity.");
+
+	mp_bonusroundtime = FindConVar("mp_bonusroundtime");
 	
 	PSM_AddConVarChangeHook(ph_prop_afterburn_immune, ConVarChanged_PropAfterburnImmune);
 	PSM_AddConVarChangeHook(ph_prop_proplock_enabled, ConVarChanged_PropPropLockEnabled);

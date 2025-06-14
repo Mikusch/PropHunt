@@ -136,6 +136,12 @@
 	{
 		"en"		"Control point bonus received! {lightgreen}Health restored."
 	}
+
+	"PH_Prop_Reveal_Annotation"
+	{
+		"#format"	"{1:N},{2:s}"
+		"en"		"{1} as: {2}"
+	}
 	
 	"PH_Command_GetModel_Success"
 	{

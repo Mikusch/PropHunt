@@ -48,8 +48,8 @@
 #define ITEM_DEFINDEX_GRAPPLINGHOOK			1152
 #define ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH	269
 
-#define ZERO_VECTOR	view_as<float>( { 0.0, 0.0, 0.0 } )
-#define DOWN_VECTOR	view_as<float>( { 90.0, 0.0, 0.0 } )
+#define ZERO_VECTOR	{ 0.0, 0.0, 0.0 }
+#define DOWN_VECTOR	{ 90.0, 0.0, 0.0 }
 
 #define MAP_CONFIG_FILEPATH		"configs/prophunt/maps/%s"
 #define PROP_CONFIG_FILEPATH	"configs/prophunt/props.cfg"
@@ -159,6 +159,8 @@ ConVar ph_setup_time;
 ConVar ph_round_time;
 ConVar ph_relay_name;
 ConVar ph_gravity_modifier;
+
+ConVar mp_bonusroundtime;
 
 #include "prophunt/methodmaps.sp"
 #include "prophunt/structs.sp"

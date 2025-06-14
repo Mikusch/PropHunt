@@ -160,6 +160,32 @@ static void OnGameEvent_teamplay_round_win(Event event, const char[] name, bool 
 	{
 		// Reset this so no prop spawns with guns next round
 		PHPlayer(client).IsLastProp = false;
+
+		if (!IsClientInGame(client))
+			continue;
+		
+		if (TF2_GetClientTeam(client) == TFTeam_Props && IsPlayerAlive(client))
+		{
+			Event annotation = CreateEvent("show_annotation");
+			if (annotation)
+			{
+				char model[PLATFORM_MAX_PATH];
+				PHPlayer(client).GetEffectiveModelName(model, sizeof(model));
+				GetModelTidyName(model, model, sizeof(model));
+
+				char text[256];
+				Format(text, sizeof(text), "%T", "PH_Prop_Reveal_Annotation", client, client, model);
+
+				annotation.SetInt("id", client);
+				annotation.SetString("text", text);
+				annotation.SetInt("follow_entindex", client);
+				annotation.SetFloat("lifetime", mp_bonusroundtime.FloatValue);
+				annotation.SetBool("show_effect", true);
+				annotation.Fire();
+			}
+
+			SetEntProp(client, Prop_Send, "m_bGlowEnabled", true);
+		}
 	}
 	
 	// Always switch teams on round end
