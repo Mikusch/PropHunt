@@ -186,7 +186,13 @@ methodmap PHPlayer < CBaseCombatCharacter
 		EmitSoundToClient(this.entindex, toggle ? LOCK_SOUND : UNLOCK_SOUND, _, SNDCHAN_STATIC);
 	}
 
-	public void DoTaunt()
+	public void GetEffectiveModelName(char[] model, int size)
+	{
+		if (!this.GetPropString(Prop_Send, "m_iszCustomModel", model, size))
+			this.GetModelName(model, size);
+	}
+
+	public void Taunt()
 	{
 		if (GetGameTime() < this.NextTauntTime)
 			return;

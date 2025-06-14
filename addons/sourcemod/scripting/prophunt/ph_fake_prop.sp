@@ -23,7 +23,7 @@ methodmap CFakeProp < CBaseCombatCharacter
 		player.GetAbsAngles(angles);
 		
 		char model[PLATFORM_MAX_PATH];
-		player.GetPropString(Prop_Send, "m_iszCustomModel", model, sizeof(model));
+		player.GetEffectiveModelName(model, sizeof(model));
 		
 		PropConfig config;
 		if (GetConfigByModel(model, config))

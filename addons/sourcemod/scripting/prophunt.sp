@@ -322,7 +322,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	int buttonsChanged = GetEntProp(client, Prop_Data, "m_afButtonPressed") | GetEntProp(client, Prop_Data, "m_afButtonReleased");
 	
 	if (buttons & IN_ATTACK3 && buttonsChanged & IN_ATTACK3)
-		PHPlayer(client).DoTaunt();
+		PHPlayer(client).Taunt();
 	
 	TFTeam team = TF2_GetClientTeam(client);
 	
