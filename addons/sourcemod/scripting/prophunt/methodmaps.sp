@@ -159,8 +159,9 @@ methodmap PHPlayer < CBaseCombatCharacter
 		{
 			this.SetPropVector(Prop_Data, "m_vecAbsVelocity", ZERO_VECTOR);
 
-			RunScriptCode(this.entindex, -1, -1, "self.DisableDraw()");
-			RunScriptCode(this.entindex, -1, -1, "self.SetCollisionGroup(Constants.ECollisionGroup.COLLISION_GROUP_DEBRIS_TRIGGER)");
+			this.KeyValueInt("solid", FSOLID_NOT_SOLID);
+			this.KeyValueInt("rendermode", RENDER_NONE);
+			RunScriptCode(this.entindex, -1, -1, "self.SetCollisionGroup(Constants.ECollisionGroup.COLLISION_GROUP_IN_VEHICLE)");
 			TF2_AddCondition(this.entindex, TFCond_ImmuneToPushback);
 			this.SetProp(Prop_Data, "m_takedamage", DAMAGE_NO); // All damage is passed on from CFakeProp
 
@@ -169,7 +170,8 @@ methodmap PHPlayer < CBaseCombatCharacter
 		}
 		else
 		{
-			RunScriptCode(this.entindex, -1, -1, "self.EnableDraw()");
+			this.KeyValueInt("solid", SOLID_BBOX);
+			this.KeyValueInt("rendermode", RENDER_NORMAL);
 			RunScriptCode(this.entindex, -1, -1, "self.SetCollisionGroup(Constants.ECollisionGroup.COLLISION_GROUP_PLAYER)");
 			TF2_RemoveCondition(this.entindex, TFCond_ImmuneToPushback);
 			this.SetProp(Prop_Data, "m_takedamage", DAMAGE_YES);
@@ -194,6 +196,9 @@ methodmap PHPlayer < CBaseCombatCharacter
 
 	public void Taunt()
 	{
+		if (!IsPlayerAlive(this.index))
+			return;
+
 		if (GetGameTime() < this.NextTauntTime)
 			return;
 		
@@ -245,10 +250,10 @@ methodmap PHPlayer < CBaseCombatCharacter
 		this.PropType = Prop_None;
 		this.PropIndex = -1;
 		this.OldMaxHealth = 0;
-		this.PropLockEnabled = false;
 		this.InForcedTauntCam = true;
 		this.HasReceivedBonus = false;
 		this.IsLastProp = false;
 		this.NextTauntTime = -1.0;
+		this.TogglePropLock(false);
 	}
 };

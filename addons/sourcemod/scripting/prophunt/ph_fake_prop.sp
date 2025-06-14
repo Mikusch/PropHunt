@@ -16,7 +16,7 @@ methodmap CFakeProp < CBaseCombatCharacter
 		EntityFactory.Install();
 	}
 	
-	public static CFakeProp CreateFromPlayer(PHPlayer player, SDKHookCB callback)
+	public static CFakeProp CreateFromPlayer(PHPlayer player, SDKHookCB callback = INVALID_FUNCTION)
 	{
 		float origin[3], angles[3];
 		player.GetAbsOrigin(origin);
@@ -54,7 +54,8 @@ methodmap CFakeProp < CBaseCombatCharacter
 			prop.AddFlag(FL_NOTARGET);
 			prop.SetModel(model);
 			
-			PSM_SDKHook(prop.index, SDKHook_OnTakeDamageAlivePost, callback);
+			if (callback != INVALID_FUNCTION)
+				PSM_SDKHook(prop.index, SDKHook_OnTakeDamageAlivePost, callback);
 		}
 		
 		return prop;

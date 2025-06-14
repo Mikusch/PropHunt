@@ -47,7 +47,8 @@ void ConVars_Init()
 	ph_gravity_modifier = CreateConVar("ph_gravity_modifier", "0.625", "Modifier to player gravity.");
 
 	mp_bonusroundtime = FindConVar("mp_bonusroundtime");
-	
+	tf_arena_round_time = FindConVar("tf_arena_round_time");
+
 	PSM_AddConVarChangeHook(ph_prop_afterburn_immune, ConVarChanged_PropAfterburnImmune);
 	PSM_AddConVarChangeHook(ph_prop_proplock_enabled, ConVarChanged_PropPropLockEnabled);
 	PSM_AddConVarChangeHook(ph_chat_tip_interval, ConVarChanged_ChatTipInterval);
@@ -91,11 +92,7 @@ static void ConVarChanged_PropPropLockEnabled(ConVar convar, const char[] oldVal
 			if (!IsPlayerAlive(client))
 				continue;
 			
-			if (PHPlayer(client).PropLockEnabled)
-			{
-				PHPlayer(client).PropLockEnabled = false;
-				PHPlayer(client).TogglePropLock(false);
-			}
+			PHPlayer(client).TogglePropLock(false);
 		}
 	}
 }

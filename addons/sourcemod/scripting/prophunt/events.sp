@@ -34,8 +34,7 @@ static void OnGameEvent_player_spawn(Event event, const char[] name, bool dontBr
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	
 	TFTeam team = TF2_GetClientTeam(client);
-	TFClassType class = TF2_GetPlayerClass(client);
-	
+
 	if (team == TFTeam_Props)
 	{
 		TF2_SetPlayerClass(client, TFClass_Scout, _, false);
@@ -43,16 +42,6 @@ static void OnGameEvent_player_spawn(Event event, const char[] name, bool dontBr
 		
 		// Some things, like setting conditions, only works with a delay
 		CreateTimer(0.1, Timer_PropPostSpawn, GetClientSerial(client));
-	}
-	
-	if (team == TFTeam_Hunters && class == TFClass_Spy)
-	{
-		// Prevent Spy from using TargetID to find props
-		SetEntProp(client, Prop_Send, "m_iHideHUD", GetEntProp(client, Prop_Send, "m_iHideHUD") | HIDEHUD_TARGET_ID);
-	}
-	else
-	{
-		SetEntProp(client, Prop_Send, "m_iHideHUD", GetEntProp(client, Prop_Send, "m_iHideHUD") & ~HIDEHUD_TARGET_ID);
 	}
 	
 	SetEntityGravity(client, ph_gravity_modifier.FloatValue);
@@ -63,12 +52,6 @@ static void OnGameEvent_player_death(Event event, const char[] name, bool dontBr
 	int victim = GetClientOfUserId(event.GetInt("userid"));
 	int attacker = GetClientOfUserId(event.GetInt("attacker"));
 	int assister = GetClientOfUserId(event.GetInt("assister"));
-	
-	if (TF2_GetClientTeam(victim) == TFTeam_Props)
-	{
-		PHPlayer(victim).PropLockEnabled = false;
-		PHPlayer(victim).DestroyLockedProp();
-	}
 	
 	if (victim != attacker && IsEntityClient(attacker) && IsClientInGame(attacker) && IsPlayerAlive(attacker))
 	{
@@ -158,14 +141,14 @@ static void OnGameEvent_teamplay_round_win(Event event, const char[] name, bool 
 	
 	for (int client = 1; client <= MaxClients; client++)
 	{
-		// Reset this so no prop spawns with guns next round
-		PHPlayer(client).IsLastProp = false;
-
 		if (!IsClientInGame(client))
 			continue;
 		
 		if (TF2_GetClientTeam(client) == TFTeam_Props && IsPlayerAlive(client))
 		{
+			SetEntProp(client, Prop_Send, "m_bGlowEnabled", true);
+			PHPlayer(client).TogglePropLock(false);
+			
 			Event annotation = CreateEvent("show_annotation");
 			if (annotation)
 			{
@@ -183,8 +166,6 @@ static void OnGameEvent_teamplay_round_win(Event event, const char[] name, bool 
 				annotation.SetBool("show_effect", true);
 				annotation.Fire();
 			}
-
-			SetEntProp(client, Prop_Send, "m_bGlowEnabled", true);
 		}
 	}
 	

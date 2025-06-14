@@ -41,8 +41,6 @@
 
 #define DMG_MELEE	DMG_BLAST_SURFACE
 
-#define HIDEHUD_TARGET_ID	(1 << 16)
-
 #define EFL_NO_ROTORWASH_PUSH	(1<<21)
 
 #define ITEM_DEFINDEX_GRAPPLINGHOOK			1152
@@ -161,6 +159,7 @@ ConVar ph_relay_name;
 ConVar ph_gravity_modifier;
 
 ConVar mp_bonusroundtime;
+ConVar tf_arena_round_time;
 
 #include "prophunt/methodmaps.sp"
 #include "prophunt/structs.sp"
@@ -301,7 +300,7 @@ public void OnClientPutInServer(int client)
 	
 	// Fixes arena HUD messing up
 	if (!IsFakeClient(client))
-		FindConVar("tf_arena_round_time").ReplicateToClient(client, "1");
+		tf_arena_round_time.ReplicateToClient(client, "1");
 }
 
 public void OnClientDisconnect(int client)
@@ -368,7 +367,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 			TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, TraceEntityEnumerator_EnumerateTriggers, client);
 
 			// Check if player is trying to lock inside a hunter, by momentarily creating our locked prop
-			CFakeProp prop = CFakeProp.CreateFromPlayer(PHPlayer(client), LockedProp_OnTakeDamage);
+			CFakeProp prop = CFakeProp.CreateFromPlayer(PHPlayer(client));
 			
 			float pos[3], mins[3], maxs[3];
 			prop.GetAbsOrigin(pos);
