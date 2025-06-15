@@ -383,6 +383,11 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 				g_DisallowPropLocking = true;
 			}
 
+			if (GameRules_GetRoundState() != RoundState_Stalemate)
+			{
+				g_DisallowPropLocking = true;
+			}
+
 			// Don't allow them to lock to avoid props hovering above deadly areas
 			if (!g_DisallowPropLocking)
 			{
