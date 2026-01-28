@@ -34,7 +34,6 @@
 	
 	"PH_Tip_01"
 	{
-		"#format"	"{1:s}"
 		"pt"		"Você está jogando {darkorange}PropHunt Neu {default}({1}) feito por {gold}Mikusch{default}."
 	}
 	
