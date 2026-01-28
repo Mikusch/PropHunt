@@ -1,0 +1,154 @@
+/*
+ * Copyright (C) 2021  Mikusch
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+"Phrases"
+{
+	"PH_Target_Props"
+	{
+		"pt"		"Objetos"
+	}
+	
+	"PH_Target_Hunters"
+	{
+		"pt"		"Caçadores"
+	}
+	
+	"PH_Tip_Prefix"
+	{
+		"pt"		"{green}Dica: {default}"
+	}
+	
+	"PH_Tip_01"
+	{
+		"pt"		"Você está jogando {darkorange}PropHunt Neu {default}({1}) feito por {gold}Mikusch{default}."
+	}
+	
+	"PH_Tip_02"
+	{
+		"pt"		"Como {blue}Caçador{default}, Use armas que dão Sangramento, Jarratê, ou Leite Louco pra previnir props de trocarem seu disfarce."
+	}
+	
+	"PH_Tip_03"
+	{
+		"pt"		"Como {red}Objetos{default}, use PropLock™ congelar-se no lugar, funciona até no ar."
+	}
+	
+	"PH_Tip_04"
+	{
+		"pt"		"O bônus do ponto de controle cura você e seus aliados próximos, além de repelir os inimigos próximos."
+	}
+	
+	"PH_Tip_05"
+	{
+		"pt"		"Como {blue}Caçador{default}, Seu gancho de escalada permite que você persiga Objetos e acesse áreas de difícil acesso."
+	}
+	
+	"PH_Tip_06"
+	{
+		"pt"		"Como {red}Caçador{default}, Você tem a capacidade de respirar debaixo d'água."
+	}
+	
+	"PH_PropLock_Enabled"
+	{
+		"pt"		"PropLock™ Ativado"
+	}
+	
+	"PH_PropLock_Unavailable"
+	{
+		"pt"		"PropLock™ Indisponível"
+	}
+	
+	"PH_Disguise_Changed"
+	{
+		"pt"		"Você agora está disfarçado como: {lightgreen}{1}"
+	}
+	
+	"PH_Disguise_Reset"
+	{
+		"pt"		"Seu disfarce foi resetado"
+	}
+	
+	"PH_PropSelect_CannotDisguise"
+	{
+		"pt"		"Incapaz de se disfarçar como: {red}{1} {default}({2})"
+	}
+	
+	"PH_PropSelect_TooSmall"
+	{
+		"pt"		"objeto é muito pequeno"
+	}
+	
+	"PH_PropSelect_TooBig"
+	{
+		"pt"		"objeto é muito grande"
+	}
+	
+	"PH_PropSelect_Blacklisted"
+	{
+		"pt"		"esse objeto é proíbido"
+	}
+	
+	"PH_PropSelect_NotAllowed"
+	{
+		"pt"		"{red}Você não pode trocar de Objeto enquanto sob um efeito negativo."
+	}
+	
+	"PH_ConVarQuery_DisallowedValue"
+	{
+		"pt"		"\"{1}\" não pode ser definido pra \"{2}\"."
+	}
+	
+	"PH_ConVarQuery_QueryNotOkay"
+	{
+		"pt"		"Não foi possível consultar o valor do client para \"{1}\"."
+	}
+	
+	"PH_PropControls"
+	{
+		"pt"		"%%+attack%% ESCOLHER OBJETO %%+attack2%% PropLock %%+attack3%% TAUNT %%+reload%% MUDAR CÂMERA"
+	}
+	
+	"PH_Bonus_Refreshed"
+	{
+		"pt"		"Bônus de ponto de controle renovado!"
+	}
+	
+	"PH_Bonus_Received"
+	{
+		"pt"		"Bônus de ponto de controle recebido! {lightgreen}HP recuperado." 
+	}
+	
+	"PH_Command_GetModel_Success"
+	{
+		"pt"		"{1} está com modelo de: {lightgreen}{2}"
+	}
+	
+	"PH_Command_GetModel_NoModelSet"
+	{
+		"pt"		"Nenhum cliente correspondente possui um modelo personalizado definido."
+	}
+	
+	"PH_Command_SetModel_Success"
+	{
+		"pt"		"Forçado modelo {lightgreen}{1} {default}em {2}."
+	}
+	
+	"PH_Command_ReloadConfig_Success"
+	{
+		"pt"		"O cache de configuração foi atualizado."
+	}
+}
