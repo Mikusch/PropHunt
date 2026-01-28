@@ -75,7 +75,6 @@
 	
 	"PH_Disguise_Changed"
 	{
-		"#format"	"{1:s}"
 		"pt"		"Você agora está disfarçado como: {lightgreen}{1}"
 	}
 	
@@ -86,7 +85,6 @@
 	
 	"PH_PropSelect_CannotDisguise"
 	{
-		"#format"	"{1:s},{2:T}"
 		"pt"		"Incapaz de se disfarçar como: {red}{1} {default}({2})"
 	}
 	
@@ -112,13 +110,11 @@
 	
 	"PH_ConVarQuery_DisallowedValue"
 	{
-		"#format"	"{1:s},{2:s}"
 		"pt"		"\"{1}\" não pode ser definido pra \"{2}\"."
 	}
 	
 	"PH_ConVarQuery_QueryNotOkay"
 	{
-		"#format"	"{1:s}"
 		"pt"		"Não foi possível consultar o valor do client para \"{1}\"."
 	}
 	
@@ -139,7 +135,6 @@
 	
 	"PH_Command_GetModel_Success"
 	{
-		"#format"	"{1:N},{2:s}"
 		"pt"		"{1} está com modelo de: {lightgreen}{2}"
 	}
 	
@@ -150,7 +145,6 @@
 	
 	"PH_Command_SetModel_Success"
 	{
-		"#format"	"{1:s},{2:t}"
 		"pt"		"Forçado modelo {lightgreen}{1} {default}em {2}."
 	}
 	
