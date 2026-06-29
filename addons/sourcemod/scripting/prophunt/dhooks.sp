@@ -30,7 +30,8 @@ void DHooks_Init()
 	PSM_AddDynamicDetourFromConf("CTFProjectile_GrapplingHook::HookTarget", CTFProjectile_GrapplingHook_HookTarget_Pre);
 	PSM_AddDynamicDetourFromConf("CTFPlayerShared::Heal", CTFPlayerShared_Heal_Pre, _);
 	PSM_AddDynamicDetourFromConf("CTFPlayer::TeamFortress_CalculateMaxSpeed", _, CTFPlayer_TeamFortress_CalculateMaxSpeed_Post);
-	
+	PSM_AddDynamicDetourFromConf("CBaseEntity::TakeDamage", CBaseEntity_TakeDamage_Pre);
+
 	g_CBaseEntity_Spawn = PSM_AddDynamicHookFromConf("CBaseEntity::Spawn");
 	g_CBaseEntity_TakeHealth = PSM_AddDynamicHookFromConf("CBaseEntity::TakeHealth");
 	g_CBaseEntity_ModifyOrAppendCriteria = PSM_AddDynamicHookFromConf("CBaseEntity::ModifyOrAppendCriteria");
@@ -141,6 +142,27 @@ static MRESReturn CTFPlayer_GetMaxHealthForBuffing_Post(int player, DHookReturn 
 	return MRES_Ignored;
 }
 
+static MRESReturn CBaseEntity_TakeDamage_Pre(int entity, DHookReturn ret, DHookParam params)
+{
+	if (!IsFakeProp(entity))
+		return MRES_Ignored;
+
+	int owner = GetEntPropEnt(entity, Prop_Send, "m_hOwnerEntity");
+	if (!IsEntityClient(owner) || TF2_GetClientTeam(owner) != TFTeam_Props || !PHPlayer(owner).PropLockEnabled)
+		return MRES_Ignored;
+
+	// Transfer all damage on the locked prop to the owning player
+	Address info = params.GetAddress(1);
+
+	SetEntProp(owner, Prop_Data, "m_takedamage", DAMAGE_YES);
+	SDKCall_CBaseEntity_TakeDamage(owner, info);
+	SetEntProp(owner, Prop_Data, "m_takedamage", DAMAGE_NO);
+	
+	// The prop itself takes no damage
+	ret.Value = 0;
+	return MRES_Supercede;
+}
+
 static MRESReturn CTFProjectile_GrapplingHook_HookTarget_Pre(int projectile, DHookParam params)
 {
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
@@ -244,25 +266,22 @@ static MRESReturn CTFWeaponBaseGrenadeProj_Explode_Post(int projectile, DHookPar
 		return MRES_Ignored;
 	
 	int traceEnt = params.GetObjectVar(1, GetOffset("CGameTrace", "m_pEnt"), ObjectValueType_CBaseEntityPtr);
-	if (IsEntityClient(traceEnt) || FClassnameIs(traceEnt, "ph_fake_prop"))
+	if (IsEntityClient(traceEnt) || IsFakeProp(traceEnt))
 		return MRES_Ignored;
-	
+
 	int thrower = GetEntPropEnt(projectile, Prop_Send, "m_hThrower");
 	if (thrower == traceEnt || !IsEntityClient(thrower) || !ShouldPlayerDealSelfDamage(thrower))
 		return MRES_Ignored;
-	
+
 	int weapon = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
 	float damage = GetEntPropFloat(projectile, Prop_Send, "m_flDamage") * ph_hunter_damage_modifier_projectile.FloatValue;
 	int bitsDamageType = params.Get(2) | DMG_PREVENT_PHYSICS_FORCE;
-	int customDamage = SDKCall_CTFWeaponBase_GetCustomDamageType(weapon);
-	
+
 	float mult = TF2Attrib_HookValueFloat(1.0, "mult_dmg", weapon);
 	if (mult > 0.0)
 		damage /= mult;
-	
-	CTakeDamageInfo info = GetGlobalDamageInfo();
-	info.Init(projectile, thrower, weapon, _, _, damage, bitsDamageType, customDamage);
-	CBaseEntity(thrower).TakeDamage(info);
+
+	SDKHooks_TakeDamage(thrower, projectile, thrower, damage, bitsDamageType, weapon);
 	
 	// Some projectiles, like the cleaver, can explode multiple times, leading to huge damage towards the player.
 	// Set an unused entity flag to make sure each projectile only explodes once.

@@ -41,6 +41,15 @@ bool FClassnameIs(int entity, const char[] classname)
 	return GetEntityClassname(entity, cls, sizeof(cls)) && StrEqual(cls, classname);
 }
 
+bool IsFakeProp(int entity)
+{
+	if (entity <= MaxClients || !IsValidEntity(entity))
+		return false;
+
+	int owner = GetEntPropEnt(entity, Prop_Send, "m_hOwnerEntity");
+	return IsEntityClient(owner) && g_FakeProp[owner] == EntIndexToEntRef(entity);
+}
+
 // Thanks to ficool2 for helping me with scary vector math
 bool IntersectionLineAABBFast(const float mins[3], const float maxs[3], const float start[3], const float dir[3], float far)
 {

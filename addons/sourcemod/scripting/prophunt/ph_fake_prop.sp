@@ -1,30 +1,34 @@
-static char classname[] = "ph_fake_prop";
-
-static CEntityFactory EntityFactory;
-
-methodmap CFakeProp < CBaseCombatCharacter
+methodmap CFakeProp
 {
-	public CFakeProp(int entindex)
+	public CFakeProp(int entity)
 	{
-		return view_as<CFakeProp>(entindex);
+		return view_as<CFakeProp>(entity);
 	}
 
-	public static void Initialize()
+	property int index
 	{
-		EntityFactory = new CEntityFactory(classname);
-		EntityFactory.DeriveFromClass("base_boss");
-		EntityFactory.Install();
+		public get()
+		{
+			return view_as<int>(this);
+		}
 	}
-	
-	public static CFakeProp CreateFromPlayer(PHPlayer player, SDKHookCB callback = INVALID_FUNCTION)
+
+	public bool IsValid()
+	{
+		return IsValidEntity(this.index);
+	}
+
+	public static CFakeProp CreateFromPlayer(PHPlayer player)
 	{
 		float origin[3], angles[3];
-		player.GetAbsOrigin(origin);
-		player.GetAbsAngles(angles);
-		
+		GetClientAbsOrigin(player.entindex, origin);
+		GetClientEyeAngles(player.entindex, angles);
+		angles[0] = 0.0;
+		angles[2] = 0.0;
+
 		char model[PLATFORM_MAX_PATH];
 		player.GetEffectiveModelName(model, sizeof(model));
-		
+
 		PropConfig config;
 		if (GetConfigByModel(model, config))
 		{
@@ -34,32 +38,31 @@ methodmap CFakeProp < CBaseCombatCharacter
 				angles = config.rotation;
 		}
 
-		CFakeProp prop = CFakeProp(CreateEntityByName(classname));
+		CFakeProp prop = CFakeProp(CreateEntityByName("base_boss"));
 		if (prop.IsValid())
 		{
-			prop.KeyValueVector("origin", origin);
-			prop.KeyValueVector("angles", angles);
-			prop.KeyValueInt("body", player.GetProp(Prop_Send, "m_nBody"));
-			prop.KeyValueInt("skin", player.GetEffectiveSkin());
-			prop.KeyValueInt("teamnum", GetClientTeam(player));
-			prop.KeyValueInt("solid", HasPhysicsModel(model) ? SOLID_VPHYSICS : SOLID_BBOX);
-			prop.KeyValueInt("disableshadows", 1);
-			prop.KeyValueFloat("playbackrate",  player.GetPropFloat(Prop_Send, "m_flPlaybackRate"));
-			prop.KeyValueFloat("cycle",  player.GetPropFloat(Prop_Send, "m_flCycle"));
-			prop.KeyValueFloat("modelscale", player.GetPropFloat(Prop_Send, "m_flModelScale"));
-			prop.SetPropEnt(Prop_Send, "m_hOwnerEntity", player);
-			prop.SetProp(Prop_Data, "m_bloodColor", DONT_BLEED);
-			prop.SetProp(Prop_Data, "m_takedamage", DAMAGE_EVENTS_ONLY);
-			prop.SetProp(Prop_Data, "m_iMaxHealth", player.GetMaxHealth());
-			prop.SetProp(Prop_Data, "m_iHealth", player.GetMaxHealth());
-			prop.AddFlag(FL_NOTARGET);
-			prop.SetModel(model);
-			prop.SetProp(Prop_Send, "m_nSequence", player.GetProp(Prop_Send, "m_nSequence"));	// must be AFTER SetModel!
+			int entity = prop.index;
 
-			PSM_SDKHook(prop.index, SDKHook_SetTransmit, FakeProp_SetTransmit);
+			DispatchKeyValueVector(entity, "origin", origin);
+			DispatchKeyValueVector(entity, "angles", angles);
+			DispatchKeyValueInt(entity, "body", GetEntProp(player.entindex, Prop_Send, "m_nBody"));
+			DispatchKeyValueInt(entity, "skin", player.GetEffectiveSkin());
+			DispatchKeyValueInt(entity, "teamnum", GetClientTeam(player.entindex));
+			DispatchKeyValueInt(entity, "solid", HasPhysicsModel(model) ? SOLID_VPHYSICS : SOLID_BBOX);
+			DispatchKeyValueInt(entity, "disableshadows", 1);
+			DispatchKeyValueFloat(entity, "playbackrate", GetEntPropFloat(player.entindex, Prop_Send, "m_flPlaybackRate"));
+			DispatchKeyValueFloat(entity, "cycle", GetEntPropFloat(player.entindex, Prop_Send, "m_flCycle"));
+			DispatchKeyValueFloat(entity, "modelscale", GetEntPropFloat(player.entindex, Prop_Send, "m_flModelScale"));
+			SetEntPropEnt(entity, Prop_Send, "m_hOwnerEntity", player.entindex);
+			SetEntProp(entity, Prop_Data, "m_bloodColor", DONT_BLEED);
+			SetEntProp(entity, Prop_Data, "m_takedamage", DAMAGE_EVENTS_ONLY);
+			SetEntProp(entity, Prop_Data, "m_iMaxHealth", player.GetMaxHealth());
+			SetEntProp(entity, Prop_Data, "m_iHealth", player.GetMaxHealth());
+			SetEntityFlags(entity, GetEntityFlags(entity) | FL_NOTARGET);
+			SetEntityModel(entity, model);
+			SetEntProp(entity, Prop_Send, "m_nSequence", GetEntProp(player.entindex, Prop_Send, "m_nSequence"));	// must be AFTER SetModel!
 
-			if (callback != INVALID_FUNCTION)
-				PSM_SDKHook(prop.index, SDKHook_OnTakeDamageAlivePost, callback);
+			PSM_SDKHook(entity, SDKHook_SetTransmit, FakeProp_SetTransmit);
 		}
 
 		return prop;

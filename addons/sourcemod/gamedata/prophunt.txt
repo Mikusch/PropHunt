@@ -64,6 +64,11 @@
 				"linux"		"@_ZN14AI_CriteriaSet14RemoveCriteriaEPKc"
 				"windows"	"\x55\x8B\xEC\x83\xEC\x48\x56\x57\xFF\x75\x08"
 			}
+			"CBaseEntity::TakeDamage"
+			{
+				"linux"		"@_ZN11CBaseEntity10TakeDamageERK15CTakeDamageInfo"
+				"windows"	"\x55\x8B\xEC\x81\xEC\x98\x00\x00\x00\x53\x56\x57\x8B\xF9\x8B\x0D\x2A\x2A\x2A\x2A"
+			}
 		}
 		"Offsets"
 		{
@@ -277,6 +282,20 @@
 				"hooktype"	"entity"
 				"return"	"bool"
 				"this"		"entity"
+			}
+			"CBaseEntity::TakeDamage"
+			{
+				"signature"	"CBaseEntity::TakeDamage"
+				"callconv"	"thiscall"
+				"return"	"int"
+				"this"		"entity"
+				"arguments"
+				{
+					"info"
+					{
+						"type"	"objectptr"
+					}
+				}
 			}
 		}
 	}

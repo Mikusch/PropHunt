@@ -27,7 +27,7 @@ static bool g_aPlayerStatsHasReceivedBonus[MAXPLAYERS + 1];
 static bool g_aPlayerStatsIsLastProp[MAXPLAYERS + 1];
 static float g_aPlayerStatsNextTauntTime[MAXPLAYERS + 1];
 
-methodmap PHPlayer < CBaseCombatCharacter
+methodmap PHPlayer
 {
 	public PHPlayer(int client)
 	{
@@ -157,35 +157,37 @@ methodmap PHPlayer < CBaseCombatCharacter
 		
 		if (toggle)
 		{
-			this.SetPropVector(Prop_Data, "m_vecAbsVelocity", ZERO_VECTOR);
+			SetEntPropVector(this.entindex, Prop_Data, "m_vecAbsVelocity", ZERO_VECTOR);
 
-			this.KeyValueInt("solid", SOLID_NONE);
-			this.KeyValueInt("rendermode", RENDER_NONE);
+			DispatchKeyValueInt(this.entindex, "solid", SOLID_NONE);
+			DispatchKeyValueInt(this.entindex, "rendermode", RENDER_NONE);
 			RunScriptCode(this.entindex, -1, -1, "self.SetCollisionGroup(Constants.ECollisionGroup.COLLISION_GROUP_IN_VEHICLE)");
 			TF2_AddCondition(this.entindex, TFCond_ImmuneToPushback);
-			this.SetProp(Prop_Data, "m_takedamage", DAMAGE_NO); // All damage is passed on from CFakeProp
+			SetEntProp(this.entindex, Prop_Data, "m_takedamage", DAMAGE_NO); // All damage is passed on from the fake prop
 
-			CFakeProp.CreateFromPlayer(this, LockedProp_OnTakeDamage);
+			CFakeProp prop = CFakeProp.CreateFromPlayer(this);
+			if (prop.IsValid())
+				g_FakeProp[this.entindex] = EntIndexToEntRef(prop.index);
 
 			PrintHintText(this.entindex, "%t", "PH_PropLock_Enabled");
 		}
 		else
 		{
-			this.KeyValueInt("solid", SOLID_BBOX);
-			this.KeyValueInt("rendermode", RENDER_NORMAL);
+			DispatchKeyValueInt(this.entindex, "solid", SOLID_BBOX);
+			DispatchKeyValueInt(this.entindex, "rendermode", RENDER_NORMAL);
 			RunScriptCode(this.entindex, -1, -1, "self.SetCollisionGroup(Constants.ECollisionGroup.COLLISION_GROUP_PLAYER)");
 			TF2_RemoveCondition(this.entindex, TFCond_ImmuneToPushback);
-			this.SetProp(Prop_Data, "m_takedamage", DAMAGE_YES);
+			SetEntProp(this.entindex, Prop_Data, "m_takedamage", DAMAGE_YES);
 
 			this.DestroyLockedProp();
 		}
 
 		SetVariantInt(!toggle);
-		this.AcceptInput("SetCustomModelRotates");
+		AcceptEntityInput(this.entindex, "SetCustomModelRotates");
 
-		this.ToggleFlag(FL_NOTARGET);
+		SetEntityFlags(this.entindex, GetEntityFlags(this.entindex) ^ FL_NOTARGET);
 
-		this.SetMoveType(toggle ? MOVETYPE_NONE : MOVETYPE_WALK);
+		SetEntityMoveType(this.entindex, toggle ? MOVETYPE_NONE : MOVETYPE_WALK);
 
 		if (playSound)
 			EmitSoundToClient(this.entindex, toggle ? LOCK_SOUND : UNLOCK_SOUND, _, SNDCHAN_STATIC);
@@ -193,8 +195,8 @@ methodmap PHPlayer < CBaseCombatCharacter
 
 	public void GetEffectiveModelName(char[] model, int size)
 	{
-		if (!this.GetPropString(Prop_Send, "m_iszCustomModel", model, size))
-			this.GetModelName(model, size);
+		if (!GetEntPropString(this.entindex, Prop_Send, "m_iszCustomModel", model, size))
+			GetEntPropString(this.entindex, Prop_Data, "m_ModelName", model, size);
 	}
 
 	public void Taunt()
@@ -229,13 +231,12 @@ methodmap PHPlayer < CBaseCombatCharacter
 
 	public CFakeProp GetLockedProp()
 	{
-		int prop = -1;
-		while ((prop = FindEntityByClassname(prop, "ph_fake_prop")) != -1)
+		int ref = g_FakeProp[this.entindex];
+		if (ref != 0)
 		{
-			if (GetEntPropEnt(prop, Prop_Send, "m_hOwnerEntity") != this.entindex)
-				continue;
-			
-			return CFakeProp(prop);
+			int prop = EntRefToEntIndex(ref);
+			if (prop != -1)
+				return CFakeProp(prop);
 		}
 
 		return CFakeProp(-1);
@@ -246,6 +247,8 @@ methodmap PHPlayer < CBaseCombatCharacter
 		CFakeProp prop = this.GetLockedProp();
 		if (prop.IsValid())
 			RemoveEntity(prop.index);
+
+		g_FakeProp[this.entindex] = 0;
 	}
 
 	public void Reset()

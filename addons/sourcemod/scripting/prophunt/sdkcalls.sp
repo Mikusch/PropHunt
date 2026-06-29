@@ -25,6 +25,7 @@ static Handle g_CTeamplayRules_SetSwitchTeams;
 static Handle g_CBaseEntity_GetDamageType;
 static Handle g_CTFWeaponBase_GetCustomDamageType;
 static Handle g_CTFWeaponBaseGun_GetProjectileDamage;
+static Handle g_CBaseEntity_TakeDamage;
 
 void SDKCalls_Init(GameData gamedata)
 {
@@ -35,6 +36,7 @@ void SDKCalls_Init(GameData gamedata)
 	g_CBaseEntity_GetDamageType = PrepSDKCall_CBaseEntity_GetDamageType(gamedata);
 	g_CTFWeaponBase_GetCustomDamageType = PrepSDKCall_CTFWeaponBase_GetCustomDamageType(gamedata);
 	g_CTFWeaponBaseGun_GetProjectileDamage = PrepSDKCall_CTFWeaponBaseGun_GetProjectileDamage(gamedata);
+	g_CBaseEntity_TakeDamage = PrepSDKCall_CBaseEntity_TakeDamage(gamedata);
 }
 
 static Handle PrepSDKCall_CTFSpellBook_CastSelfHeal(GameData gamedata)
@@ -130,6 +132,20 @@ static Handle PrepSDKCall_CTFWeaponBaseGun_GetProjectileDamage(GameData gamedata
 	return call;
 }
 
+static Handle PrepSDKCall_CBaseEntity_TakeDamage(GameData gamedata)
+{
+	StartPrepSDKCall(SDKCall_Entity);
+	PrepSDKCall_SetFromConf(gamedata, SDKConf_Signature, "CBaseEntity::TakeDamage");
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Pointer);
+	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
+
+	Handle call = EndPrepSDKCall();
+	if (!call)
+		LogMessage("Failed to create SDKCall: CBaseEntity::TakeDamage");
+
+	return call;
+}
+
 bool SDKCall_CTFSpellBook_CastSelfHeal(int player)
 {
 	return g_CTFSpellBook_CastSelfHeal ? SDKCall(g_CTFSpellBook_CastSelfHeal, player) : false;
@@ -165,4 +181,10 @@ int SDKCall_CTFWeaponBase_GetCustomDamageType(int weapon)
 float SDKCall_CTFWeaponBaseGun_GetProjectileDamage(int weapon)
 {
 	return g_CTFWeaponBaseGun_GetProjectileDamage ? SDKCall(g_CTFWeaponBaseGun_GetProjectileDamage, weapon) : 0.0;
+}
+
+void SDKCall_CBaseEntity_TakeDamage(int entity, Address info)
+{
+	if (g_CBaseEntity_TakeDamage)
+		SDKCall(g_CBaseEntity_TakeDamage, entity, info);
 }

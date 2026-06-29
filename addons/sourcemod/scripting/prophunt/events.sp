@@ -86,7 +86,7 @@ static void OnGameEvent_player_death(Event event, const char[] name, bool dontBr
 static Action OnGameEvent_npc_hurt(Event event, const char[] name, bool dontBroadcast)
 {
 	int entindex = event.GetInt("entindex");
-	return FClassnameIs(entindex, "ph_fake_prop") ? Plugin_Stop : Plugin_Continue;
+	return IsFakeProp(entindex) ? Plugin_Stop : Plugin_Continue;
 }
 
 static void OnGameEvent_post_inventory_application(Event event, const char[] name, bool dontBroadcast)

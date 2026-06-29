@@ -57,9 +57,7 @@ static void CWorld_OnTakeDamagePost(int victim, int attacker, int inflictor, flo
 	else
 		damage *= ph_hunter_damage_modifier_gun.FloatValue;
 	
-	CTakeDamageInfo info = GetGlobalDamageInfo();
-	info.Init(inflictor, attacker, weapon, _, _, damage, damagetype | DMG_PREVENT_PHYSICS_FORCE, damagecustom);
-	CBaseEntity(attacker).TakeDamage(info);
+	SDKHooks_TakeDamage(attacker, inflictor, attacker, damage, damagetype | DMG_PREVENT_PHYSICS_FORCE, weapon);
 }
 
 static Action CTFPlayer_OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3], int damagecustom)
@@ -168,7 +166,7 @@ static void CTFProjectile_TouchPost(int projectile, int other)
 	if (owner == other || !IsEntityClient(owner) || !ShouldPlayerDealSelfDamage(owner))
 		return;
 
-	if (other != 0 && !IsEntityClient(other) && !FClassnameIs(other, "ph_fake_prop"))
+	if (other != 0 && !IsEntityClient(other) && !IsFakeProp(other))
 		return;
 
 	// Only deal self-damage once per projectile, as it can touch several entities before being removed
@@ -178,15 +176,12 @@ static void CTFProjectile_TouchPost(int projectile, int other)
 	int weapon = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
 	float damage = SDKCall_CTFWeaponBaseGun_GetProjectileDamage(weapon) * ph_hunter_damage_modifier_projectile.FloatValue;
 	int bitsDamageType = SDKCall_CBaseEntity_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
-	int customDamage = SDKCall_CTFWeaponBase_GetCustomDamageType(weapon);
 
 	float mult = TF2Attrib_HookValueFloat(1.0, "mult_dmg", weapon);
 	if (mult > 0.0)
 		damage /= mult;
 
-	CTakeDamageInfo info = GetGlobalDamageInfo();
-	info.Init(weapon, owner, weapon, _, _, damage, bitsDamageType, customDamage);
-	CBaseEntity(owner).TakeDamage(info);
+	SDKHooks_TakeDamage(owner, weapon, owner, damage, bitsDamageType, weapon);
 
 	SetEntProp(projectile, Prop_Data, "m_iEFlags", GetEntProp(projectile, Prop_Data, "m_iEFlags") | EFL_NO_ROTORWASH_PUSH);
 }
@@ -198,21 +193,4 @@ Action FakeProp_SetTransmit(int entity, int client)
 		return Plugin_Handled;
 
 	return Plugin_Continue;
-}
-
-void LockedProp_OnTakeDamage(int victim, int attacker, int inflictor, float damage, int damagetype, int weapon, const float damageForce[3], const float damagePosition[3], int damagecustom)
-{
-	int owner = GetEntPropEnt(victim, Prop_Send, "m_hOwnerEntity");
-
-	// All damage on locked props is transferred to the owning player
-	if (IsEntityClient(owner) && TF2_GetClientTeam(owner) == TFTeam_Props && PHPlayer(owner).PropLockEnabled)
-	{
-		CTakeDamageInfo info = GetGlobalDamageInfo();
-		info.Init(inflictor, attacker, weapon, damageForce, damagePosition, damage, damagetype, damagecustom);
-
-		PHPlayer player = PHPlayer(owner);
-		player.SetProp(Prop_Data, "m_takedamage", DAMAGE_YES);
-		player.TakeDamage(info);
-		player.SetProp(Prop_Data, "m_takedamage", DAMAGE_NO);
-	}
 }

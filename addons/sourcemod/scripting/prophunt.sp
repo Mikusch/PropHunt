@@ -27,7 +27,6 @@
 #include <tf2items>
 #include <tf_econ_data>
 #include <tf2utils>
-#include <cbasenpc>
 #include <pluginstatemanager>
 
 #pragma semicolon 1
@@ -38,6 +37,15 @@
 #define PLUGIN_TAG	"[{orange}PropHunt{default}]"
 
 #define DONT_BLEED	0
+
+// m_takedamage
+#define DAMAGE_NO			0
+#define DAMAGE_EVENTS_ONLY	1
+#define DAMAGE_YES			2
+
+#define EF_BONEMERGE		0x001
+#define EF_NOSHADOW			0x010
+#define EF_NORECEIVESHADOW	0x040
 
 #define DMG_MELEE	DMG_BLAST_SURFACE
 
@@ -132,6 +140,7 @@ bool g_InSetup;
 bool g_IsLastPropStanding;
 bool g_DisallowPropLocking;
 bool g_InHealthKitTouch;
+int g_FakeProp[MAXPLAYERS + 1];	// Entity reference of each locked player's fake prop, or 0 if none
 Handle g_AntiCheatTimer;
 Handle g_ChatTipTimer;
 Handle g_ControlPointBonusTimer;
@@ -213,8 +222,6 @@ public void OnPluginStart()
 	
 	// Read global prop config
 	ReadPropConfig();
-	
-	CFakeProp.Initialize();
 }
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -279,12 +286,9 @@ public Action TF2_CalcIsAttackCritical(int client, int weapon, char[] weaponname
 	// The damage of flame throwers is calculated as Damage x TimeFireDelay
 	float damage = GetWeaponDamage(weapon) * GetWeaponTimeFireDelay(weapon) * ph_hunter_damage_modifier_flamethrower.FloatValue;
 	int bitsDamageType = SDKCall_CBaseEntity_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
-	int customDamage = SDKCall_CTFWeaponBase_GetCustomDamageType(weapon);
-	
-	CTakeDamageInfo info = GetGlobalDamageInfo();
-	info.Init(weapon, client, weapon, _, _, damage, bitsDamageType, customDamage);
-	CBaseEntity(client).TakeDamage(info);
-	
+
+	SDKHooks_TakeDamage(client, weapon, client, damage, bitsDamageType, weapon);
+
 	// Allow Pyros to fly using their Flame Thrower
 	ApplyFlameThrowerVelocity(client);
 	
@@ -385,11 +389,11 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 				if (prop.IsValid())
 				{
 					float pos[3], mins[3], maxs[3];
-					prop.GetAbsOrigin(pos);
-					prop.GetPropVector(Prop_Data, "m_vecMins", mins);
-					prop.GetPropVector(Prop_Data, "m_vecMaxs", maxs);
+					GetEntPropVector(prop.index, Prop_Send, "m_vecOrigin", pos);
+					GetEntPropVector(prop.index, Prop_Data, "m_vecMins", mins);
+					GetEntPropVector(prop.index, Prop_Data, "m_vecMaxs", maxs);
 
-					TR_TraceHullFilter(pos, pos, mins, maxs, MASK_SOLID, TraceEntityFilter_IgnoreEntityAndOwner, prop, TRACE_ENTITIES_ONLY);
+					TR_TraceHullFilter(pos, pos, mins, maxs, MASK_SOLID, TraceEntityFilter_IgnoreEntityAndOwner, prop.index, TRACE_ENTITIES_ONLY);
 					RemoveEntity(prop.index);
 
 					int entity = TR_GetEntityIndex();
