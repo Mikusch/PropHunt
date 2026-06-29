@@ -23,6 +23,7 @@ methodmap CFakeProp
 		float origin[3], angles[3];
 		GetClientAbsOrigin(player.entindex, origin);
 		GetEntPropVector(player.entindex, Prop_Data, "m_angRotation", angles);
+		angles[2] = 0.0;
 
 		char model[PLATFORM_MAX_PATH];
 		player.GetEffectiveModelName(model, sizeof(model));

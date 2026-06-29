@@ -70,7 +70,7 @@ bool IntersectionLineAABBFast(const float mins[3], const float maxs[3], const fl
 			near = Max(t2, near), far = Min(t1, far);
 		
 		if (near > far)
-			return false; // Box is missed since we "exit" before entering it
+			return false;
 	}
 	else if (start[0] < mins[0] || start[0] > maxs[0])
 	{
@@ -90,7 +90,7 @@ bool IntersectionLineAABBFast(const float mins[3], const float maxs[3], const fl
 			near = Max(t2, near), far = Min(t1, far);
 		
 		if (near > far)
-			return false; // Box is missed since we "exit" before entering it
+			return false;
 	}
 	else if (start[1] < mins[1] || start[1] > maxs[1])
 	{
@@ -109,6 +109,9 @@ bool IntersectionLineAABBFast(const float mins[3], const float maxs[3], const fl
 			near = Max(t1, near), far = Min(t2, far);
 		else // Swap t1 and t2.
 			near = Max(t2, near), far = Min(t1, far);
+
+		if (near > far)
+			return false; // Box is missed since we "exit" before entering it
 	}
 	else if (start[2] < mins[2] || start[2] > maxs[2])
 	{
