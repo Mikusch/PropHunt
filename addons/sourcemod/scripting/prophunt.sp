@@ -43,6 +43,8 @@
 
 #define EFL_NO_ROTORWASH_PUSH	(1<<21)
 
+#define HIDEHUD_TARGET_ID	(1 << 16)
+
 #define ITEM_DEFINDEX_GRAPPLINGHOOK			1152
 #define ATTRIB_DEFINDEX_SEE_ENEMY_HEALTH	269
 
@@ -228,8 +230,6 @@ public void OnMapStart()
 	
 	ReadMapConfig();
 	Precache();
-	
-	SetEntProp(0, Prop_Data, "m_takedamage", DAMAGE_EVENTS_ONLY);
 }
 
 public void OnMapEnd()
@@ -359,49 +359,52 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	// IN_ATTACK2 locks the player's prop view
 	if (buttons & IN_ATTACK2 && buttonsChanged & IN_ATTACK2)
 	{
-		if (ph_prop_proplock_enabled.BoolValue)
+		if (!ph_prop_proplock_enabled.BoolValue)
 		{
-			// Check if the player is currently above a trigger_hurt
-			float origin[3];
-			GetClientAbsOrigin(client, origin);
-			TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, TraceEntityEnumerator_EnumerateTriggers, client);
-
-			// Check if player is trying to lock inside a hunter, by momentarily creating our locked prop
-			CFakeProp prop = CFakeProp.CreateFromPlayer(PHPlayer(client));
-			
-			float pos[3], mins[3], maxs[3];
-			prop.GetAbsOrigin(pos);
-			prop.GetPropVector(Prop_Data, "m_vecMins", mins);
-			prop.GetPropVector(Prop_Data, "m_vecMaxs", maxs);
-
-			TR_TraceHullFilter(pos, pos, mins, maxs, MASK_SOLID, TraceEntityFilter_IgnoreEntityAndOwner, prop, TRACE_ENTITIES_ONLY);
-			RemoveEntity(prop.index);
-
-			int entity = TR_GetEntityIndex();
-			if (IsEntityClient(entity) && GetClientTeam(entity) !=  GetClientTeam(client))
-			{
-				g_DisallowPropLocking = true;
-			}
-
-			if (GameRules_GetRoundState() != RoundState_Stalemate)
-			{
-				g_DisallowPropLocking = true;
-			}
-
-			// Don't allow them to lock to avoid props hovering above deadly areas
-			if (!g_DisallowPropLocking)
-			{
-				PHPlayer(client).TogglePropLock(!PHPlayer(client).PropLockEnabled);
-			}
-			else
-			{
-				PrintHintText(client, "%t", "PH_PropLock_Unavailable");
-				g_DisallowPropLocking = false;
-			}
+			PrintHintText(client, "%t", "PH_PropLock_Unavailable");
+		}
+		else if (PHPlayer(client).PropLockEnabled)
+		{
+			PHPlayer(client).TogglePropLock(false);
 		}
 		else
 		{
-			PrintHintText(client, "%t", "PH_PropLock_Unavailable");
+			bool allow = GameRules_GetRoundState() == RoundState_Stalemate;
+
+			if (allow)
+			{
+				g_DisallowPropLocking = false;
+
+				// Check if the player is currently above a trigger_hurt
+				float origin[3];
+				GetClientAbsOrigin(client, origin);
+				TR_EnumerateEntities(origin, DOWN_VECTOR, PARTITION_TRIGGER_EDICTS, RayType_Infinite, TraceEntityEnumerator_EnumerateTriggers, client);
+
+				// Check if player is trying to lock inside a hunter, by momentarily creating our locked prop
+				CFakeProp prop = CFakeProp.CreateFromPlayer(PHPlayer(client));
+				if (prop.IsValid())
+				{
+					float pos[3], mins[3], maxs[3];
+					prop.GetAbsOrigin(pos);
+					prop.GetPropVector(Prop_Data, "m_vecMins", mins);
+					prop.GetPropVector(Prop_Data, "m_vecMaxs", maxs);
+
+					TR_TraceHullFilter(pos, pos, mins, maxs, MASK_SOLID, TraceEntityFilter_IgnoreEntityAndOwner, prop, TRACE_ENTITIES_ONLY);
+					RemoveEntity(prop.index);
+
+					int entity = TR_GetEntityIndex();
+					if (IsEntityClient(entity) && GetClientTeam(entity) != GetClientTeam(client))
+						g_DisallowPropLocking = true;
+				}
+
+				allow = !g_DisallowPropLocking;
+				g_DisallowPropLocking = false;
+			}
+
+			if (allow)
+				PHPlayer(client).TogglePropLock(true);
+			else
+				PrintHintText(client, "%t", "PH_PropLock_Unavailable");
 		}
 	}
 	
@@ -415,11 +418,6 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 		
 		SetVariantInt(value);
 		AcceptEntityInput(client, "SetCustomModelVisibletoSelf");
-
-		// Fade out the prop while in third person (at least 1 HU)
-		CFakeProp prop = PHPlayer(client).GetLockedProp();
-		if (prop.IsValid())
-			prop.SetPropFloat(Prop_Send, "m_fadeMaxDist", GetEntProp(client, Prop_Send, "m_nForceTauntCam") == 0 ? 1.0 : 0.0);
 	}
 	
 	// Pressing movement keys will undo a prop lock
@@ -519,7 +517,9 @@ void OnPluginStateChanged(bool enabled)
 		}
 		
 		OnMapStart();
-		
+
+		SetEntProp(0, Prop_Data, "m_takedamage", DAMAGE_EVENTS_ONLY);
+
 		g_AntiCheatTimer = CreateTimer(0.1, Timer_CheckStaticPropInfo, _, TIMER_REPEAT);
 		
 		if (ph_chat_tip_interval.FloatValue > 0)
@@ -527,11 +527,19 @@ void OnPluginStateChanged(bool enabled)
 	}
 	else
 	{
+		for (int client = 1; client <= MaxClients; client++)
+		{
+			if (IsClientInGame(client))
+				PHPlayer(client).TogglePropLock(false, false);
+		}
+
+		SetEntProp(0, Prop_Data, "m_takedamage", DAMAGE_NO);
+
 		delete g_AntiCheatTimer;
 		delete g_ChatTipTimer;
 		delete g_ControlPointBonusTimer;
 	}
-	
+
 	if (GameRules_GetRoundState() >= RoundState_Preround)
 		SetWinningTeam(TFTeam_Unassigned);
 }

@@ -167,22 +167,37 @@ static void CTFProjectile_TouchPost(int projectile, int other)
 	int owner = GetEntPropEnt(projectile, Prop_Send, "m_hOwnerEntity");
 	if (owner == other || !IsEntityClient(owner) || !ShouldPlayerDealSelfDamage(owner))
 		return;
-	
-	if (other == 0)
-	{
-		int weapon = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
-		float damage = SDKCall_CTFWeaponBaseGun_GetProjectileDamage(weapon) * ph_hunter_damage_modifier_projectile.FloatValue;
-		int bitsDamageType = SDKCall_CBaseEntity_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
-		int customDamage = SDKCall_CTFWeaponBase_GetCustomDamageType(weapon);
-		
-		float mult = TF2Attrib_HookValueFloat(1.0, "mult_dmg", weapon);
-		if (mult > 0.0)
-			damage /= mult;
-		
-		CTakeDamageInfo info = GetGlobalDamageInfo();
-		info.Init(weapon, owner, weapon, _, _, damage, bitsDamageType, customDamage);
-		CBaseEntity(owner).TakeDamage(info);
-	}
+
+	if (other != 0 && !IsEntityClient(other) && !FClassnameIs(other, "ph_fake_prop"))
+		return;
+
+	// Only deal self-damage once per projectile, as it can touch several entities before being removed
+	if (GetEntProp(projectile, Prop_Data, "m_iEFlags") & EFL_NO_ROTORWASH_PUSH)
+		return;
+
+	int weapon = GetEntPropEnt(projectile, Prop_Send, "m_hLauncher");
+	float damage = SDKCall_CTFWeaponBaseGun_GetProjectileDamage(weapon) * ph_hunter_damage_modifier_projectile.FloatValue;
+	int bitsDamageType = SDKCall_CBaseEntity_GetDamageType(weapon) | DMG_PREVENT_PHYSICS_FORCE;
+	int customDamage = SDKCall_CTFWeaponBase_GetCustomDamageType(weapon);
+
+	float mult = TF2Attrib_HookValueFloat(1.0, "mult_dmg", weapon);
+	if (mult > 0.0)
+		damage /= mult;
+
+	CTakeDamageInfo info = GetGlobalDamageInfo();
+	info.Init(weapon, owner, weapon, _, _, damage, bitsDamageType, customDamage);
+	CBaseEntity(owner).TakeDamage(info);
+
+	SetEntProp(projectile, Prop_Data, "m_iEFlags", GetEntProp(projectile, Prop_Data, "m_iEFlags") | EFL_NO_ROTORWASH_PUSH);
+}
+
+Action FakeProp_SetTransmit(int entity, int client)
+{
+	int owner = GetEntPropEnt(entity, Prop_Send, "m_hOwnerEntity");
+	if (client == owner && GetEntProp(client, Prop_Send, "m_nForceTauntCam") == 0)
+		return Plugin_Handled;
+
+	return Plugin_Continue;
 }
 
 void LockedProp_OnTakeDamage(int victim, int attacker, int inflictor, float damage, int damagetype, int weapon, const float damageForce[3], const float damagePosition[3], int damagecustom)

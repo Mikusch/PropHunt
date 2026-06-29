@@ -29,7 +29,9 @@ methodmap CFakeProp < CBaseCombatCharacter
 		if (GetConfigByModel(model, config))
 		{
 			AddVectors(origin, config.offset, origin);
-			AddVectors(angles, config.rotation, angles);
+
+			if (GetVectorLength(config.rotation, true) != 0.0)
+				angles = config.rotation;
 		}
 
 		CFakeProp prop = CFakeProp(CreateEntityByName(classname));
@@ -40,7 +42,6 @@ methodmap CFakeProp < CBaseCombatCharacter
 			prop.KeyValueInt("body", player.GetProp(Prop_Send, "m_nBody"));
 			prop.KeyValueInt("skin", player.GetEffectiveSkin());
 			prop.KeyValueInt("teamnum", GetClientTeam(player));
-			prop.KeyValueInt("sequence", player.GetProp(Prop_Send, "m_nSequence"));
 			prop.KeyValueInt("solid", HasPhysicsModel(model) ? SOLID_VPHYSICS : SOLID_BBOX);
 			prop.KeyValueInt("disableshadows", 1);
 			prop.KeyValueFloat("playbackrate",  player.GetPropFloat(Prop_Send, "m_flPlaybackRate"));
@@ -53,11 +54,14 @@ methodmap CFakeProp < CBaseCombatCharacter
 			prop.SetProp(Prop_Data, "m_iHealth", player.GetMaxHealth());
 			prop.AddFlag(FL_NOTARGET);
 			prop.SetModel(model);
-			
+			prop.SetProp(Prop_Send, "m_nSequence", player.GetProp(Prop_Send, "m_nSequence"));	// must be AFTER SetModel!
+
+			PSM_SDKHook(prop.index, SDKHook_SetTransmit, FakeProp_SetTransmit);
+
 			if (callback != INVALID_FUNCTION)
 				PSM_SDKHook(prop.index, SDKHook_OnTakeDamageAlivePost, callback);
 		}
-		
+
 		return prop;
 	}
 }

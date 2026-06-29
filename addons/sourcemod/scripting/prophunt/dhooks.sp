@@ -244,7 +244,7 @@ static MRESReturn CTFWeaponBaseGrenadeProj_Explode_Post(int projectile, DHookPar
 		return MRES_Ignored;
 	
 	int traceEnt = params.GetObjectVar(1, GetOffset("CGameTrace", "m_pEnt"), ObjectValueType_CBaseEntityPtr);
-	if (IsEntityClient(traceEnt))
+	if (IsEntityClient(traceEnt) || FClassnameIs(traceEnt, "ph_fake_prop"))
 		return MRES_Ignored;
 	
 	int thrower = GetEntPropEnt(projectile, Prop_Send, "m_hThrower");

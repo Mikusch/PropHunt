@@ -20,8 +20,6 @@
 
 #define FLOAT_EPSILON	0.0001
 
-#define WEAPONDATA_SIZE	58	// sizeof(WeaponData_t)
-
 any Min(any a, any b)
 {
 	return (a <= b) ? a : b;
@@ -71,7 +69,7 @@ bool IntersectionLineAABBFast(const float mins[3], const float maxs[3], const fl
 		return false;
 	}
 	
-	if (!CloseEnough(dir[0], 0.0, FLOAT_EPSILON))
+	if (!CloseEnough(dir[1], 0.0, FLOAT_EPSILON))
 	{
 		float recipDir = 1.0 / dir[1];
 		float t1 = (mins[1] - start[1]) * recipDir;
@@ -350,9 +348,9 @@ bool HasPhysicsModel(const char[] model)
 	char physModel[PLATFORM_MAX_PATH], base[PLATFORM_MAX_PATH];
 	strcopy(base, sizeof(base), model);
 	SplitString(base, ".mdl", base, sizeof(base));
-	
+
 	Format(physModel, sizeof(physModel), "%s.phy", base);
-	
+
 	return FileExists(physModel, true);
 }
 

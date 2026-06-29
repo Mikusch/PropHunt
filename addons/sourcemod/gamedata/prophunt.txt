@@ -92,11 +92,6 @@
 				"linux"		"135"
 				"windows"	"134"
 			}
-			"CBaseEntity::GetDamage"
-			{
-				"linux"		"136"
-				"windows"	"135"
-			}
 			"CTFWeaponBaseGrenadeProj::Explode"
 			{
 				"linux"		"480"

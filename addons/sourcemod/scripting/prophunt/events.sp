@@ -39,11 +39,17 @@ static void OnGameEvent_player_spawn(Event event, const char[] name, bool dontBr
 	{
 		TF2_SetPlayerClass(client, TFClass_Scout, _, false);
 		AcceptEntityInput(client, "DisableShadow");
-		
+
 		// Some things, like setting conditions, only works with a delay
 		CreateTimer(0.1, Timer_PropPostSpawn, GetClientSerial(client));
 	}
-	
+
+	// Prevent Spy from using TargetID to find props
+	if (team == TFTeam_Hunters && TF2_GetPlayerClass(client) == TFClass_Spy)
+		SetEntProp(client, Prop_Send, "m_iHideHUD", GetEntProp(client, Prop_Send, "m_iHideHUD") | HIDEHUD_TARGET_ID);
+	else
+		SetEntProp(client, Prop_Send, "m_iHideHUD", GetEntProp(client, Prop_Send, "m_iHideHUD") & ~HIDEHUD_TARGET_ID);
+
 	SetEntityGravity(client, ph_gravity_modifier.FloatValue);
 }
 
@@ -151,7 +157,7 @@ static void OnGameEvent_teamplay_round_win(Event event, const char[] name, bool 
 		if (TF2_GetClientTeam(client) == TFTeam_Props && IsPlayerAlive(client))
 		{
 			SetEntProp(client, Prop_Send, "m_bGlowEnabled", true);
-			PHPlayer(client).TogglePropLock(false);
+			PHPlayer(client).TogglePropLock(false, false);
 			
 			Event annotation = CreateEvent("show_annotation");
 			if (annotation)

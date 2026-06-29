@@ -145,7 +145,7 @@ methodmap PHPlayer < CBaseCombatCharacter
 	
 	public int GetMaxHealth()
 	{
-		return GetEntProp(GetPlayerResourceEntity(), Prop_Send, "m_iMaxHealth", _, this.entindex);
+		return GetPlayerMaxHealth(this.entindex);
 	}
 
 	public void TogglePropLock(bool toggle, bool playSound = true)
@@ -159,14 +159,15 @@ methodmap PHPlayer < CBaseCombatCharacter
 		{
 			this.SetPropVector(Prop_Data, "m_vecAbsVelocity", ZERO_VECTOR);
 
-			this.KeyValueInt("solid", FSOLID_NOT_SOLID);
+			this.KeyValueInt("solid", SOLID_NONE);
 			this.KeyValueInt("rendermode", RENDER_NONE);
 			RunScriptCode(this.entindex, -1, -1, "self.SetCollisionGroup(Constants.ECollisionGroup.COLLISION_GROUP_IN_VEHICLE)");
 			TF2_AddCondition(this.entindex, TFCond_ImmuneToPushback);
 			this.SetProp(Prop_Data, "m_takedamage", DAMAGE_NO); // All damage is passed on from CFakeProp
 
-			CFakeProp prop = CFakeProp.CreateFromPlayer(this, LockedProp_OnTakeDamage);
-			prop.SetPropFloat(Prop_Send, "m_fadeMaxDist", this.GetProp(Prop_Send, "m_nForceTauntCam") == 0 ? 1.0 : 0.0);
+			CFakeProp.CreateFromPlayer(this, LockedProp_OnTakeDamage);
+
+			PrintHintText(this.entindex, "%t", "PH_PropLock_Enabled");
 		}
 		else
 		{
@@ -198,7 +199,7 @@ methodmap PHPlayer < CBaseCombatCharacter
 
 	public void Taunt()
 	{
-		if (!IsPlayerAlive(this.index))
+		if (!IsPlayerAlive(this.entindex))
 			return;
 
 		if (GetGameTime() < this.NextTauntTime)

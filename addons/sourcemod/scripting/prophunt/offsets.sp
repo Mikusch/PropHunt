@@ -100,7 +100,7 @@ static void SetTypeSize(GameData hGameConf, const char[] name)
 	
 	int size = hGameConf.GetOffset(key);
 	if (size == -1)
-		ThrowError("Failed to find size for type '%s", name);
+		ThrowError("Failed to find size for type '%s'", name);
 	
 	g_typeSizes.SetValue(name, size);
 }

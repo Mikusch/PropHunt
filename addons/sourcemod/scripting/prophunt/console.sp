@@ -132,7 +132,7 @@ static Action ConCmd_TogglePropLock(int client, int args)
 	
 	if (args < 2)
 	{
-		ReplyToCommand(client, "[SM] Usage: sm_setproplock <#userid|name> <1|0>");
+		ReplyToCommand(client, "[SM] Usage: sm_toggleproplock <#userid|name> <1|0>");
 		return Plugin_Handled;
 	}
 	
@@ -152,7 +152,8 @@ static Action ConCmd_TogglePropLock(int client, int args)
 	
 	for (int i = 0; i < target_count; i++)
 	{
-		PHPlayer(target_list[i]).TogglePropLock(toggle);
+		if (TF2_GetClientTeam(target_list[i]) == TFTeam_Props)
+			PHPlayer(target_list[i]).TogglePropLock(toggle);
 	}
 	
 	if (tn_is_ml)

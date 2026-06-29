@@ -24,9 +24,9 @@ AlliedModders forum thread: https://forums.alliedmods.net/showthread.php?p=27712
 
 * SourceMod 1.12+
 * [StaticProps](https://github.com/sigsegv-mvm/StaticProps)
-* [TF2Items](https://github.com/asherkin/TF2Items)
+* [TF2 Items](https://github.com/asherkin/TF2Items)
 * [TF2 Econ Data](https://github.com/nosoop/SM-TFEconData)
-* [TF2Attributes](https://github.com/FlaminSarge/tf2attributes)
+* [TF2 Attributes](https://github.com/FlaminSarge/tf2attributes)
 * [TF2 Utils](https://github.com/nosoop/SM-TFUtils)
 * [More Colors](https://github.com/DoctorMcKay/sourcemod-plugins/blob/master/scripting/include/morecolors.inc) (compile only)
 
